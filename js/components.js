@@ -1,10 +1,32 @@
 const navItems = [
-  { label: "Home", href: "index.html", key: "home" },
-  { label: "Services", href: "services.html", key: "services" },
-  { label: "Case Study", href: "case-study.html", key: "case-study" },
-  { label: "Pricing", href: "pricing.html", key: "pricing" },
-  { label: "Contact", href: "contact.html", key: "contact" }
+  { label: "Home", href: "/", key: "home" },
+  { label: "Services", href: "/services.html", key: "services" },
+  { label: "Demos", href: "/demos", key: "demos" },
+  { label: "Case Study", href: "/case-study.html", key: "case-study" },
+  { label: "Pricing", href: "/pricing.html", key: "pricing" },
+  { label: "Contact", href: "/contact.html", key: "contact" }
 ];
+
+function desktopNavHTML(activePage) {
+  return navItems
+    .map((item) => {
+      const activeClass = item.key === activePage ? "active" : "";
+
+      if (item.key === "demos") {
+        return `
+          <div class="nav-dropdown">
+            <a class="${activeClass}" href="${item.href}">${item.label}</a>
+            <div class="nav-dropdown-menu" aria-label="Demos submenu">
+              <a href="${DEMO_LINKS.ordering}" target="_blank" rel="noopener noreferrer">Online Ordering</a>
+            </div>
+          </div>
+        `;
+      }
+
+      return `<a class="${activeClass}" href="${item.href}">${item.label}</a>`;
+    })
+    .join("");
+}
 
 function navLinksHTML(activePage) {
   return navItems
@@ -24,8 +46,8 @@ function renderHeaderFooter() {
     header.innerHTML = `
       <header class="site-header">
         <div class="container nav-wrap">
-          <a class="logo" href="index.html">Sentinel Prime</a>
-          <nav class="nav-links">${navLinksHTML(pageKey)}</nav>
+          <a class="logo" href="/">Sentinel Prime</a>
+          <nav class="nav-links">${desktopNavHTML(pageKey)}</nav>
           <div class="nav-right">
             <a class="phone-link" href="tel:+15303297521">530-329-7521</a>
             <button class="menu-btn" id="menu-toggle" aria-label="Open menu">☰</button>
