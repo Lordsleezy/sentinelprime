@@ -3,6 +3,16 @@ const mobileNav = document.getElementById("mobile-nav");
 const yearEl = document.getElementById("year");
 const demosGrid = document.getElementById("demos-grid");
 const siteDemos = Array.isArray(window.DEMOS) ? window.DEMOS : [];
+const heroEvents = document.querySelectorAll("[data-hero-event]");
+const activityFeed = document.getElementById("activity-feed");
+const liveActivityMessages = [
+  "New lead from Elk Grove",
+  "Fence quote requested",
+  "Order placed - $89",
+  "AI assistant qualified a new prospect",
+  "Booking request received from Sacramento",
+  "New system inquiry from Roseville"
+];
 
 if (menuToggle && mobileNav) {
   menuToggle.addEventListener("click", () => {
@@ -34,6 +44,42 @@ if (demosGrid && siteDemos.length > 0) {
   }).join("");
 }
 
+if (heroEvents.length > 0) {
+  let activeHeroEvent = 0;
+
+  window.setInterval(() => {
+    heroEvents[activeHeroEvent].classList.remove("active");
+    activeHeroEvent = (activeHeroEvent + 1) % heroEvents.length;
+    heroEvents[activeHeroEvent].classList.add("active");
+  }, 2400);
+}
+
+if (activityFeed) {
+  const showActivityToast = () => {
+    const toast = document.createElement("div");
+    toast.className = "activity-toast";
+    toast.textContent = liveActivityMessages[Math.floor(Math.random() * liveActivityMessages.length)];
+    activityFeed.innerHTML = "";
+    activityFeed.appendChild(toast);
+
+    window.requestAnimationFrame(() => {
+      toast.classList.add("show");
+    });
+
+    window.setTimeout(() => {
+      toast.classList.remove("show");
+      window.setTimeout(() => {
+        if (activityFeed.contains(toast)) {
+          activityFeed.removeChild(toast);
+        }
+      }, 450);
+    }, 3600);
+  };
+
+  showActivityToast();
+  window.setInterval(showActivityToast, 5200);
+}
+
 document.querySelectorAll('a[href^="#"]').forEach((link) => {
   link.addEventListener("click", (event) => {
     const targetId = link.getAttribute("href");
@@ -45,7 +91,7 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
-const revealEls = document.querySelectorAll(".reveal");
+const revealEls = document.querySelectorAll(".reveal, .fade-in");
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
