@@ -1,12 +1,12 @@
-const DEMO_LINKS = {
+window.DEMO_LINKS = {
   ordering: "https://oodemo.sentinelprime.org"
 };
 
-const DEMOS = [
+window.DEMOS = [
   {
     title: "Online Ordering System",
     description: "Full restaurant system with ordering, payments, rewards, and admin dashboard.",
-    link: DEMO_LINKS.ordering,
+    link: window.DEMO_LINKS.ordering,
     live: true,
     note: "Live demo - updates frequently"
   },
