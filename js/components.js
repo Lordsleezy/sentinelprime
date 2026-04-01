@@ -75,6 +75,7 @@ function renderHeaderFooter() {
           </div>
           <div>
             <h3>Contact</h3>
+            <p><a href="mailto:customerservice@sentinelprime.org">customerservice@sentinelprime.org</a></p>
             <p>Serving local businesses across multiple service markets.</p>
           </div>
         </div>
