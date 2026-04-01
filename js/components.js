@@ -1,3 +1,7 @@
+const siteDemoLinks = window.DEMO_LINKS || {
+  ordering: "https://oodemo.sentinelprime.org"
+};
+
 const navItems = [
   { label: "Home", href: "/", key: "home" },
   { label: "Services", href: "/services.html", key: "services" },
@@ -17,7 +21,7 @@ function desktopNavHTML(activePage) {
           <div class="nav-dropdown">
             <a class="${activeClass}" href="${item.href}">${item.label}</a>
             <div class="nav-dropdown-menu" aria-label="Demos submenu">
-              <a href="${DEMO_LINKS.ordering}" target="_blank" rel="noopener noreferrer">Online Ordering</a>
+              <a href="${siteDemoLinks.ordering}" target="_blank" rel="noopener noreferrer">Online Ordering</a>
             </div>
           </div>
         `;
@@ -49,7 +53,6 @@ function renderHeaderFooter() {
           <a class="logo" href="/">Sentinel Prime</a>
           <nav class="nav-links">${desktopNavHTML(pageKey)}</nav>
           <div class="nav-right">
-            <a class="phone-link" href="tel:+15303297521">530-329-7521</a>
             <button class="menu-btn" id="menu-toggle" aria-label="Open menu">☰</button>
           </div>
         </div>
@@ -72,7 +75,6 @@ function renderHeaderFooter() {
           </div>
           <div>
             <h3>Contact</h3>
-            <p><a href="tel:+15303297521">530-329-7521</a></p>
             <p>Serving local businesses across multiple service markets.</p>
           </div>
         </div>

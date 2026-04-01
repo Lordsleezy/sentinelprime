@@ -2,6 +2,7 @@ const menuToggle = document.getElementById("menu-toggle");
 const mobileNav = document.getElementById("mobile-nav");
 const yearEl = document.getElementById("year");
 const demosGrid = document.getElementById("demos-grid");
+const siteDemos = Array.isArray(window.DEMOS) ? window.DEMOS : [];
 
 if (menuToggle && mobileNav) {
   menuToggle.addEventListener("click", () => {
@@ -13,8 +14,8 @@ if (yearEl) {
   yearEl.textContent = new Date().getFullYear();
 }
 
-if (demosGrid && Array.isArray(DEMOS)) {
-  demosGrid.innerHTML = DEMOS.map((demo) => {
+if (demosGrid && siteDemos.length > 0) {
+  demosGrid.innerHTML = siteDemos.map((demo) => {
     const isLive = Boolean(demo.live && demo.link);
 
     return `

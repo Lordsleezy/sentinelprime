@@ -1,5 +1,5 @@
 const DEMO_LINKS = {
-  ordering: "https://ordering-demo-placeholder.netlify.app"
+  ordering: "https://oodemo.sentinelprime.org"
 };
 
 const DEMOS = [
