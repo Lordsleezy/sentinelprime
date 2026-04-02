@@ -14,6 +14,17 @@ const liveActivityMessages = [
   "New system inquiry from Roseville"
 ];
 
+const scrollRevealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+      }
+    });
+  },
+  { threshold: 0.15 }
+);
+
 if (menuToggle && mobileNav) {
   menuToggle.addEventListener("click", () => {
     mobileNav.classList.toggle("open");
@@ -91,17 +102,14 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
-const revealEls = document.querySelectorAll(".reveal, .fade-in");
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.2 }
-);
+document.querySelectorAll(".fade-in").forEach((el) => scrollRevealObserver.observe(el));
+document.querySelectorAll(".reveal").forEach((el) => scrollRevealObserver.observe(el));
 
-revealEls.forEach((el) => observer.observe(el));
+window.addEventListener(
+  "scroll",
+  () => {
+    const scrollY = window.scrollY;
+    document.body.style.backgroundPositionY = `${scrollY * 0.3}px`;
+  },
+  { passive: true }
+);
