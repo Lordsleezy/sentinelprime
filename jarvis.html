@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jarvis - Your personal AI operating system. Private, local, always learning.">
+  <meta property="og:title" content="Jarvis | Personal AI OS by Sentinel Prime">
+  <meta property="og:description" content="Your AI. Your data. Always private.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <title>Jarvis | Personal AI OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .jarvis-hero {
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 80px 0 60px;
+    }
+
+    .jarvis-canvas-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.35;
+    }
+
+    .jarvis-hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .jarvis-logo-mark {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 28px;
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 40px rgba(0, 234, 255, 0.3);
+      background: rgba(0, 234, 255, 0.05);
+    }
+
+    .jarvis-logo-mark canvas {
+      width: 60px;
+      height: 60px;
+    }
+
+    .jarvis-eyebrow {
+      font-size: 13px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .jarvis-headline {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .jarvis-headline span {
+      background: linear-gradient(135deg, #00eaff, #2d8cff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .jarvis-subtext {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .jarvis-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .jarvis-features {
+      padding: 80px 0;
+      background: var(--bg-elev);
+    }
+
+    .jarvis-features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .jarvis-feature-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .jarvis-feature-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 24px rgba(0, 234, 255, 0.1);
+    }
+
+    .jarvis-feature-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+    }
+
+    .jarvis-feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .jarvis-feature-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .jarvis-download {
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .jarvis-download h2 {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .jarvis-download p {
+      color: var(--muted);
+      margin-bottom: 36px;
+      font-size: 1rem;
+    }
+
+    .jarvis-download-card {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 48px;
+      margin-bottom: 20px;
+    }
+
+    .jarvis-version-badge {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .jarvis-waitlist {
+      padding: 80px 0;
+      background: var(--bg-elev);
+      text-align: center;
+    }
+
+    .jarvis-waitlist h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .jarvis-waitlist p {
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .waitlist-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 14px 18px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .waitlist-form input:focus {
+      border-color: var(--primary);
+    }
+
+    .waitlist-success {
+      display: none;
+      color: var(--ok);
+      font-weight: 600;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body data-page="jarvis">
+  <div id="site-header"></div>
+
+  <main>
+    <!-- HERO -->
+    <section class="jarvis-hero section-pad">
+      <canvas class="jarvis-canvas-bg" id="tesseract-bg"></canvas>
+      <div class="container">
+        <div class="jarvis-hero-content fade-in">
+          <div class="jarvis-logo-mark">
+            <canvas id="tesseract-logo" width="60" height="60"></canvas>
+          </div>
+          <p class="jarvis-eyebrow">Personal AI OS by Sentinel Prime</p>
+          <h1 class="jarvis-headline">
+            Your AI. <span>Always Private.</span><br>Always Learning.
+          </h1>
+          <p class="jarvis-subtext">
+            Jarvis runs entirely on your device. No cloud. No data harvesting. 
+            Just a powerful AI that knows you, learns from you, and works for you — privately.
+          </p>
+          <div class="jarvis-actions">
+            <a class="btn btn-primary" href="#download">Download for Windows</a>
+            <a class="btn btn-ghost" href="#waitlist">Join iOS Waitlist</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="jarvis-features section-pad" id="features">
+      <div class="container">
+        <div class="text-center fade-in">
+          <p class="eyebrow">Why Jarvis</p>
+          <h2 class="section-title">Built different. <span class="gradient-text">By design.</span></h2>
+        </div>
+        <div class="jarvis-features-grid">
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">🔒</div>
+            <h3>Completely Private</h3>
+            <p>Runs 100% locally on your device. Your conversations, memories, and data never leave your machine.</p>
+          </div>
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">🧠</div>
+            <h3>Dual-Layer Memory</h3>
+            <p>Jarvis remembers hard facts in an atomic ledger and builds a behavioral portrait of you over time. Gets smarter, not bigger.</p>
+          </div>
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">🌐</div>
+            <h3>Real-Time Web Search</h3>
+            <p>Live weather, stock prices, sports scores, and current events — all fetched in real time and answered intelligently.</p>
+          </div>
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">⚡</div>
+            <h3>Fast Local AI</h3>
+            <p>Powered by Llama 3.2 running on your hardware via Ollama. No API costs, no latency, no throttling.</p>
+          </div>
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">🔄</div>
+            <h3>Auto-Updates</h3>
+            <p>Jarvis updates itself silently in the background. You always have the latest version without lifting a finger.</p>
+          </div>
+          <div class="jarvis-feature-card fade-in">
+            <div class="jarvis-feature-icon">📱</div>
+            <h3>iOS Coming Soon</h3>
+            <p>Jarvis for iPhone is in development. On-device AI with the same privacy-first architecture. Join the waitlist.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="jarvis-download section-pad" id="download">
+      <div class="container">
+        <p class="eyebrow fade-in">Available Now</p>
+        <h2 class="fade-in">Download Jarvis <span class="gradient-text">for Windows</span></h2>
+        <p class="fade-in">Free to download. Runs locally. No account required.</p>
+        <div class="fade-in">
+          <div class="jarvis-download-card">
+            <span style="font-size:2.5rem;">🖥️</span>
+            <strong style="font-size:1.1rem;">Jarvis for Windows</strong>
+            <span class="jarvis-version-badge">v1.2.8 · Windows x64</span>
+            <a class="btn btn-primary" 
+               href="https://github.com/Lordsleezy/Jarvis/releases/latest/download/Jarvis-Setup-1.2.8.exe"
+               download>
+              Download .exe
+            </a>
+          </div>
+          <p style="color:var(--muted);font-size:0.85rem;margin-top:12px;">
+            Requires Windows 10/11 · Ollama installs automatically on first launch
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- iOS WAITLIST -->
+    <section class="jarvis-waitlist section-pad" id="waitlist">
+      <div class="container">
+        <p class="eyebrow fade-in">Coming Soon</p>
+        <h2 class="fade-in">Jarvis for <span class="gradient-text">iPhone</span></h2>
+        <p class="fade-in">On-device AI for iOS. Your data stays on your phone. Join the waitlist for early access.</p>
+        <div class="fade-in">
+          <form class="waitlist-form" name="jarvis-ios-waitlist" method="POST" data-netlify="true">
+            <input type="hidden" name="form-name" value="jarvis-ios-waitlist">
+            <input type="email" name="email" placeholder="your@email.com" required>
+            <button type="submit" class="btn btn-primary">Join Waitlist</button>
+          </form>
+          <p class="waitlist-success" id="waitlist-success">✓ You're on the list! We'll reach out when iOS launches.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Waitlist form success handling
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      document.getElementById('waitlist-success').style.display = 'block';
+    }
+
+    document.querySelector('.waitlist-form')?.addEventListener('submit', function(e) {
+      // Netlify handles submission, just show success after
+      setTimeout(() => {
+        document.getElementById('waitlist-success').style.display = 'block';
+      }, 500);
+    });
+
+    // Tesseract background animation
+    (function() {
+      const V=[];
+      for(let i=0;i<16;i++) V.push([(i&1)?1:-1,(i&2)?1:-1,(i&4)?1:-1,(i&8)?1:-1]);
+      const E=[];
+      for(let a=0;a<16;a++) for(let b=a+1;b<16;b++){const d=a^b;if(d&&!(d&(d-1)))E.push([a,b]);}
+
+      function proj(v,axw,ayw,azw,scale){
+        let [x,y,z,w]=v,t;
+        t=x*Math.cos(axw)-w*Math.sin(axw);w=x*Math.sin(axw)+w*Math.cos(axw);x=t;
+        t=y*Math.cos(ayw)-w*Math.sin(ayw);w=y*Math.sin(ayw)+w*Math.cos(ayw);y=t;
+        t=z*Math.cos(azw)-w*Math.sin(azw);w=z*Math.sin(azw)+w*Math.cos(azw);z=t;
+        const s=scale/(2.5-w);
+        return [x*s, y*s];
+      }
+
+      function initCanvas(canvasId, scale, speed, alpha) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let axw=0,ayw=0,azw=0,t=0;
+
+        function resize() {
+          if (canvasId === 'tesseract-bg') {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+          }
+        }
+        resize();
+        if (canvasId === 'tesseract-bg') window.addEventListener('resize', resize);
+
+        function draw() {
+          requestAnimationFrame(draw);
+          t += 0.016;
+          axw += speed * 0.001;
+          ayw += speed * 0.0008;
+          azw += speed * 0.0006;
+
+          const w = canvas.width, h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+
+          const pts = V.map(v => proj(v, axw, ayw, azw, scale));
+
+          E.forEach(([a,b]) => {
+            const [ax,ay] = pts[a];
+            const [bx,by] = pts[b];
+            ctx.beginPath();
+            ctx.moveTo(w/2 + ax, h/2 + ay);
+            ctx.lineTo(w/2 + bx, h/2 + by);
+            ctx.strokeStyle = `rgba(0, 234, 255, ${alpha})`;
+            ctx.lineWidth = canvasId === 'tesseract-bg' ? 1 : 1.5;
+            ctx.stroke();
+          });
+        }
+        draw();
+      }
+
+      initCanvas('tesseract-bg', 120, 1, 0.4);
+      initCanvas('tesseract-logo', 22, 1.5, 0.9);
+    })();
+  </script>
+</body>
+</html>

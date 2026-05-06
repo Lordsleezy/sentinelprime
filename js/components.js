@@ -8,6 +8,7 @@ const navItems = [
   { label: "Demos", href: "/demos", key: "demos" },
   { label: "Case Study", href: "/case-study.html", key: "case-study" },
   { label: "Pricing", href: "/pricing.html", key: "pricing" },
+  { label: "Jarvis", href: "/jarvis.html", key: "jarvis" },
   { label: "Contact", href: "/contact.html", key: "contact" }
 ];
 
