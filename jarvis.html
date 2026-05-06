@@ -225,6 +225,97 @@
       font-weight: 600;
       margin-top: 16px;
     }
+
+    .jarvis-web-chat {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .jarvis-web-chat-window {
+      height: 380px;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .web-chat-msg {
+      display: flex;
+      gap: 8px;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      animation: fadeInUp 0.3s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .web-chat-prefix {
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .jarvis-msg .web-chat-prefix {
+      background: linear-gradient(90deg, #00eaff, #2d8cff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .user-msg .web-chat-prefix {
+      color: var(--primary);
+    }
+
+    .web-chat-body {
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .system-msg .web-chat-body {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .jarvis-web-chat-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-soft);
+    }
+
+    .web-chat-prompt {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .jarvis-web-chat-input input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      caret-color: var(--primary);
+    }
+
+    .jarvis-web-chat-input input:disabled {
+      opacity: 0.5;
+    }
   </style>
 </head>
 <body data-page="jarvis">
@@ -248,7 +339,8 @@
             Just a powerful AI that knows you, learns from you, and works for you — privately.
           </p>
           <div class="jarvis-actions">
-            <a class="btn btn-primary" href="#download">Download for Windows</a>
+            <a class="btn btn-primary" href="#try">Download for Windows</a>
+            <a class="btn btn-ghost" href="#try">Try Web Version</a>
             <a class="btn btn-ghost" href="#waitlist">Join iOS Waitlist</a>
           </div>
         </div>
@@ -293,6 +385,33 @@
             <h3>iOS Coming Soon</h3>
             <p>Jarvis for iPhone is in development. On-device AI with the same privacy-first architecture. Join the waitlist.</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE CHAT -->
+    <section class="jarvis-chat-section section-pad" id="try">
+      <div class="container">
+        <div class="text-center fade-in" style="margin-bottom:40px;">
+          <p class="eyebrow">Try It Now</p>
+          <h2>Talk to <span class="gradient-text">Jarvis</span></h2>
+          <p style="color:var(--muted);margin-top:8px;">No download required. Running live on the web.</p>
+        </div>
+        <div class="jarvis-web-chat fade-in">
+          <div class="jarvis-web-chat-window" id="webChatWindow">
+            <div class="web-chat-msg jarvis-msg">
+              <span class="web-chat-prefix">JARVIS ::</span>
+              <span class="web-chat-body">Hi, I'm Jarvis. Ask me anything — weather, news, stocks, or just chat.</span>
+            </div>
+          </div>
+          <div class="jarvis-web-chat-input">
+            <span class="web-chat-prompt">&gt;&gt;&gt;</span>
+            <input type="text" id="webChatInput" placeholder="Type a message..." maxlength="500" autocomplete="off">
+            <button id="webChatSend" class="btn btn-primary" style="padding:10px 20px;font-size:0.85rem;">Send</button>
+          </div>
+          <p id="webChatWaking" style="display:none;text-align:center;color:var(--muted);font-size:0.85rem;margin-top:12px;">
+            ⏳ Waking up Jarvis... this takes ~30 seconds on first load.
+          </p>
         </div>
       </div>
     </section>
@@ -417,6 +536,84 @@
 
       initCanvas('tesseract-bg', 120, 1, 0.4);
       initCanvas('tesseract-logo', 22, 1.5, 0.9);
+    })();
+  </script>
+  <script>
+    (function() {
+      const API = 'https://jarvis-0sbo.onrender.com/api/chat';
+      const chatWindow = document.getElementById('webChatWindow');
+      const chatInput = document.getElementById('webChatInput');
+      const chatSend = document.getElementById('webChatSend');
+      const wakingMsg = document.getElementById('webChatWaking');
+
+      function addMsg(role, text) {
+        const div = document.createElement('div');
+        div.className = 'web-chat-msg ' + (role === 'user' ? 'user-msg' : role === 'jarvis' ? 'jarvis-msg' : 'system-msg');
+        const prefix = document.createElement('span');
+        prefix.className = 'web-chat-prefix';
+        prefix.textContent = role === 'user' ? '> ' : role === 'jarvis' ? 'JARVIS :: ' : '[ SYS ] ';
+        const body = document.createElement('span');
+        body.className = 'web-chat-body';
+        body.textContent = text;
+        div.appendChild(prefix);
+        div.appendChild(body);
+        chatWindow.appendChild(div);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return body;
+      }
+
+      function typewrite(el, text) {
+        el.textContent = '';
+        let i = 0;
+        function tick() {
+          if (i >= text.length) return;
+          el.textContent = text.slice(0, ++i);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+          setTimeout(tick, 12);
+        }
+        tick();
+      }
+
+      async function send() {
+        const msg = chatInput.value.trim();
+        if (!msg) return;
+        addMsg('user', msg);
+        chatInput.value = '';
+        chatInput.disabled = true;
+        chatSend.disabled = true;
+
+        // Show waking message after 3 seconds if no response
+        const wakingTimer = setTimeout(() => {
+          wakingMsg.style.display = 'block';
+        }, 3000);
+
+        try {
+          const res = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+          });
+          clearTimeout(wakingTimer);
+          wakingMsg.style.display = 'none';
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error');
+          const body = addMsg('jarvis', '');
+          typewrite(body, data.response);
+        } catch (err) {
+          clearTimeout(wakingTimer);
+          wakingMsg.style.display = 'none';
+          addMsg('system', 'Error: ' + err.message);
+        } finally {
+          chatInput.disabled = false;
+          chatSend.disabled = false;
+          chatInput.focus();
+        }
+      }
+
+      chatSend.addEventListener('click', send);
+      chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); send(); }
+      });
     })();
   </script>
 </body>
