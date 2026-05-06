@@ -577,37 +577,8 @@
       async function send() {
         const msg = chatInput.value.trim();
         if (!msg) return;
-        addMsg('user', msg);
-        chatInput.value = '';
-        chatInput.disabled = true;
-        chatSend.disabled = true;
-
-        // Show waking message after 3 seconds if no response
-        const wakingTimer = setTimeout(() => {
-          wakingMsg.style.display = 'block';
-        }, 3000);
-
-        try {
-          const res = await fetch(API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg })
-          });
-          clearTimeout(wakingTimer);
-          wakingMsg.style.display = 'none';
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Error');
-          const body = addMsg('jarvis', '');
-          typewrite(body, data.response);
-        } catch (err) {
-          clearTimeout(wakingTimer);
-          wakingMsg.style.display = 'none';
-          addMsg('system', 'Error: ' + err.message);
-        } finally {
-          chatInput.disabled = false;
-          chatSend.disabled = false;
-          chatInput.focus();
-        }
+        sessionStorage.setItem('jarvis_opener', msg);
+        window.location.href = '/jarvis-app.html';
       }
 
       chatSend.addEventListener('click', send);

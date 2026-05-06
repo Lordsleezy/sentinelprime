@@ -344,7 +344,7 @@
     const status = document.getElementById('intro-status');
     const intro = document.getElementById('intro');
 
-    const DURATION = 14000; // 14 seconds total
+    const DURATION = 8000; // 8 seconds total
     const statuses = [
       [0,    'INITIALIZING CORE'],
       [1500, 'LOADING NEURAL MATRIX'],
@@ -357,7 +357,7 @@
     let start = null;
     let axw=0, ayw=0, azw=0;
     let edgesBuilt = 0;
-    const EDGE_BUILD_INTERVAL = 200; // ms per edge
+    const EDGE_BUILD_INTERVAL = 100; // ms per edge
     let lastEdgeTime = 0;
     let introDone = false;
 
@@ -434,9 +434,9 @@
         ctx.stroke();
       }
 
-      // Show logo after 8 seconds
-      if(elapsed > 8000){
-        const logoOpacity = Math.min((elapsed - 8000) / 2000, 1);
+      // Show logo after 5 seconds
+      if(elapsed > 5000){
+        const logoOpacity = Math.min((elapsed - 5000) / 1500, 1);
         logo.style.opacity = logoOpacity;
       }
 
@@ -629,6 +629,29 @@
 
     addMsg('jarvis',"Hi, I'm Jarvis. How can I help today?");
     inp.focus();
+    const opener = sessionStorage.getItem('jarvis_opener');
+    if (opener) {
+      sessionStorage.removeItem('jarvis_opener');
+      setTimeout(async () => {
+        addMsg('user', opener);
+        inp.disabled = true;
+        try {
+          const r = await fetch(API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: opener })
+          });
+          const p = await r.json();
+          if (!r.ok) throw new Error(p.error || 'HTTP ' + r.status);
+          await addMsg('jarvis', p.response);
+        } catch(err) {
+          addMsg('system', 'Error: ' + err.message);
+        } finally {
+          inp.disabled = false;
+          inp.focus();
+        }
+      }, 800);
+    }
   }
   </script>
 </body>
