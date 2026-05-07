@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel Privacy Policy | Sentinal Prime Inc.</title>
+  <meta name="description" content="Privacy Policy for the Sentinel app by Sentinal Prime Inc.">
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0c0c0c;
+      --text: #f5f8fa;
+      --muted: #a9b4bc;
+      --accent: #00d4ff;
+      --border: #1d1d1d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #111 0%, var(--bg) 40%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    .site-nav {
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      background: rgba(0, 0, 0, 0.85);
+    }
+
+    .site-nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.9rem;
+      padding-bottom: 0.9rem;
+    }
+
+    .brand {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      color: var(--accent);
+    }
+
+    main {
+      padding: 3rem 0 4rem;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: clamp(1.9rem, 4vw, 2.4rem);
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    p {
+      margin: 0.5rem 0 0.9rem;
+      color: var(--text);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+    }
+
+    strong {
+      color: #ffffff;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 1.25rem 0 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .site-nav .container {
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: flex-start;
+      }
+
+      .card {
+        padding: 1.35rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="container">
+      <a class="brand" href="jarvis.html">Sentinel<span>Prime</span></a>
+      <ul class="nav-links">
+        <li><a href="jarvis.html">Home</a></li>
+        <li><a href="privacy.html" aria-current="page">Privacy</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <article class="card">
+        <h1>Privacy Policy for Sentinel</h1>
+        <p class="meta">
+          Effective Date: May 7, 2026<br>
+          Company: Sentinal Prime Inc.
+        </p>
+
+        <h2>Overview</h2>
+        <p>
+          Sentinel (formerly called Jarvis during development) is designed with a simple principle:
+          your conversations and personal context stay on your device. We built Sentinel to be private
+          by default, with no hidden data collection.
+        </p>
+
+        <h2>Data We Collect</h2>
+        <p>
+          <strong>We do not collect any personal data.</strong> Sentinel does not collect, store, transmit,
+          or sell user information to Sentinal Prime Inc. or any third party.
+        </p>
+        <p>
+          There is no account system, no sign-in, and no user profile on our servers because we do not
+          run a user data backend for the app.
+        </p>
+
+        <h2>How Your AI Works</h2>
+        <p>
+          Sentinel's AI model runs locally on your phone. Your messages and AI conversations are processed
+          on-device and do not leave your device as part of the core assistant experience.
+        </p>
+
+        <h2>Memory System</h2>
+        <p>
+          Sentinel's memory features (including saved facts and behavioral portrait data) are stored
+          exclusively on your device using local SQLite and AsyncStorage. This memory is never synced to
+          Sentinal Prime Inc. servers and is never transmitted to third parties.
+        </p>
+
+        <h2>Web Search</h2>
+        <p>
+          If you use real-time web search features, Sentinel may send query text to third-party endpoints
+          only to retrieve current information. These services may include wttr.in, Yahoo Finance,
+          DuckDuckGo, ESPN, and CoinGecko.
+        </p>
+        <p>
+          Requests are sent without user account identity from Sentinal Prime Inc. because no account exists.
+          Sentinel does not attach profile-level identifiers for tracking users across services.
+        </p>
+
+        <h2>Third Party Services</h2>
+        <p>
+          Sentinel does <strong>not</strong> use third-party analytics SDKs, advertising SDKs, tracking pixels,
+          or cookies. We do not run analytics for user behavior in the app.
+        </p>
+
+        <h2>Children's Privacy</h2>
+        <p>
+          Sentinel is not designed to collect personal information from anyone, including children under 13,
+          because the app does not collect personal data at all.
+        </p>
+
+        <h2>Changes to This Policy</h2>
+        <p>
+          If this policy changes, we will update this page and revise the effective date above. Any future
+          changes will continue to reflect our privacy-first approach in plain language.
+        </p>
+
+        <h2>Contact Us</h2>
+        <p>
+          For privacy questions, contact Sentinal Prime Inc. at
+          <a href="mailto:paul@sentinelprime.org">paul@sentinelprime.org</a>.
+        </p>
+        <p>
+          Because we collect no user data, there is no retained user dataset to access, export, or delete.
+          You can remove all local app data at any time by deleting the Sentinel app from your device.
+        </p>
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      &copy; 2026 Sentinal Prime Inc. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>
