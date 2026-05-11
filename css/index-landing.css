@@ -526,6 +526,212 @@ body.il-body {
   box-shadow: 0 0 24px rgba(204, 0, 0, 0.45);
 }
 
+.il-mini-btn--outline-cyan {
+  background: transparent;
+  border: 1px solid var(--il-cyan);
+  color: var(--il-cyan);
+  box-shadow: none;
+}
+
+.il-mini-btn--outline-cyan:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.35);
+}
+
+/* Guardian access modal (products.html) */
+.guardian-modal-layer[hidden] {
+  display: none !important;
+}
+
+.guardian-modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.guardian-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+}
+
+.guardian-modal {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem 1.75rem 1.75rem;
+  border-radius: 16px;
+  background: linear-gradient(165deg, #0c0c0c 0%, #050505 100%);
+  border: 1px solid rgba(220, 40, 40, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 60, 60, 0.12),
+    0 0 48px rgba(200, 30, 30, 0.35),
+    inset 0 0 60px rgba(80, 0, 0, 0.12);
+}
+
+.guardian-modal-x {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #aaa;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.guardian-modal-x:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.guardian-modal-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-align: center;
+  color: #ff6b6b;
+  text-shadow: 0 0 24px rgba(255, 50, 50, 0.55);
+}
+
+.guardian-modal-sub {
+  margin: 0 0 1.25rem;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--il-muted);
+}
+
+.guardian-modal-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 0.45rem;
+}
+
+.guardian-modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+  caret-color: var(--il-cyan);
+}
+
+.guardian-modal-input:focus {
+  border-color: rgba(0, 212, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2);
+}
+
+@keyframes guardian-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  18% {
+    transform: translateX(-10px);
+  }
+  36% {
+    transform: translateX(10px);
+  }
+  54% {
+    transform: translateX(-7px);
+  }
+  72% {
+    transform: translateX(7px);
+  }
+}
+
+.guardian-modal-input--shake {
+  animation: guardian-shake 0.48s ease;
+  border-color: rgba(255, 60, 60, 0.7) !important;
+}
+
+.guardian-modal-denied {
+  margin: 0.85rem 0 0;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: #ff3b3b;
+  text-shadow: 0 0 18px rgba(255, 0, 0, 0.5);
+}
+
+.guardian-modal-unlock {
+  display: block;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(204, 0, 0, 0.6);
+  background: rgba(180, 0, 0, 0.35);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(200, 30, 30, 0.25);
+}
+
+.guardian-modal-unlock:hover {
+  background: rgba(200, 0, 0, 0.45);
+}
+
+/* Guardian download gate success page */
+.guardian-download-hero {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.guardian-download-hero__granted {
+  margin: 0 0 1rem;
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  background: linear-gradient(90deg, #3dff9a, var(--il-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(0, 255, 200, 0.35));
+}
+
+.guardian-download-hero__version {
+  margin: 0 0 2rem;
+  font-size: 1.1rem;
+  color: #e4e8ec;
+}
+
+.guardian-download-hero__warn {
+  margin: 2rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--il-muted);
+  text-align: left;
+  border-left: 3px solid rgba(255, 80, 80, 0.45);
+  padding-left: 1rem;
+}
+
 /* CSS “tesseract” icon */
 .tess-icon {
   width: 76px;

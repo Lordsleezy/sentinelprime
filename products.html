@@ -35,17 +35,16 @@
         <section id="personal-ai" class="product-page-section il-reveal">
           <p class="product-page-kicker">Product</p>
           <h2>Sentinel Personal AI</h2>
-          <p>Your assistant runs on your phone — not in someone else's cloud. Conversations and memory stay local, the model stays under your control, and the stack is open for audit.</p>
+          <p>Your assistant runs on your phone — not in someone else's cloud. Conversations and memory stay local, the model stays under your control, and the stack is built to be auditable.</p>
           <ul>
             <li>On-device inference for core assistant features</li>
             <li>No account wall, no server-side profile for the default experience</li>
-            <li>Open source core — inspect what ships</li>
+            <li>Auditable architecture — know what ships</li>
             <li>iOS and Android builds for broad access</li>
           </ul>
           <div class="product-page-actions">
             <a class="il-mini-btn il-mini-btn--fill" href="https://apps.apple.com/app/sentinel" rel="noopener noreferrer">App Store</a>
             <a class="il-mini-btn" href="https://sentinelprime.org/download/sentinel.apk" rel="noopener noreferrer">Android APK</a>
-            <a class="il-mini-btn" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
           </div>
         </section>
 
@@ -60,9 +59,8 @@
             <li>Access gated while onboarding partners</li>
           </ul>
           <div class="product-page-actions">
-            <a class="il-mini-btn il-mini-btn--red" href="contact.html">Request access</a>
-            <a class="il-mini-btn" href="https://sentinelprime.org/download/guardian-setup.exe" rel="noopener noreferrer">Windows (.exe) — placeholder</a>
-            <a class="il-mini-btn" href="https://sentinelprime.org/download/guardian.apk" rel="noopener noreferrer">Android APK — placeholder</a>
+            <a class="il-mini-btn il-mini-btn--red" href="contact.html">Request Access</a>
+            <button type="button" class="il-mini-btn il-mini-btn--outline-cyan" id="guardian-enter-code-btn">Enter Download Code</button>
           </div>
         </section>
 
@@ -78,9 +76,9 @@
               <li>Network visibility and consent-first defaults</li>
               <li>Designed to pair with Sentinel Personal AI out of the box</li>
             </ul>
-            <p class="il-lead" style="margin-top:1rem">Ship date TBA. Join the conversation on GitHub for early flashes.</p>
+            <p class="il-lead" style="margin-top:1rem">Ship date TBA. Reach out through our contact form for early updates.</p>
             <div class="product-page-actions">
-              <a class="il-mini-btn" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">Follow on GitHub</a>
+              <a class="il-mini-btn il-mini-btn--fill" href="contact.html">Get updates</a>
             </div>
           </div>
         </section>
@@ -104,10 +102,77 @@
     <div id="site-footer"></div>
   </div>
 
+  <div id="guardian-access-modal" class="guardian-modal-layer" hidden>
+    <div class="guardian-modal-backdrop" data-guardian-close tabindex="-1" aria-hidden="true"></div>
+    <div class="guardian-modal" role="dialog" aria-modal="true" aria-labelledby="guardian-modal-title">
+      <button type="button" class="guardian-modal-x" data-guardian-close aria-label="Close">×</button>
+      <h2 id="guardian-modal-title" class="guardian-modal-title">RESTRICTED ACCESS</h2>
+      <p class="guardian-modal-sub">Enter your issued download code.</p>
+      <label class="guardian-modal-label" for="guardian-access-code">Access code</label>
+      <input id="guardian-access-code" class="guardian-modal-input" type="text" autocomplete="off" spellcheck="false">
+      <p id="guardian-access-denied" class="guardian-modal-denied" hidden>ACCESS DENIED</p>
+      <button type="button" class="guardian-modal-unlock" id="guardian-unlock-btn">Unlock</button>
+    </div>
+  </div>
+
   <script type="module" src="js/index-tesseract.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/components.js"></script>
   <script src="js/shell.js" defer></script>
   <script src="js/index-landing.js" defer></script>
+  <script>
+  (function () {
+    var layer = document.getElementById("guardian-access-modal");
+    var openBtn = document.getElementById("guardian-enter-code-btn");
+    var input = document.getElementById("guardian-access-code");
+    var unlockBtn = document.getElementById("guardian-unlock-btn");
+    var denied = document.getElementById("guardian-access-denied");
+    var codeOk = "sentinelcore2026";
+
+    function openModal() {
+      layer.hidden = false;
+      document.documentElement.style.overflow = "hidden";
+      denied.hidden = true;
+      input.value = "";
+      input.classList.remove("guardian-modal-input--shake");
+      window.setTimeout(function () {
+        input.focus();
+      }, 30);
+    }
+
+    function closeModal() {
+      layer.hidden = true;
+      document.documentElement.style.overflow = "";
+    }
+
+    function tryUnlock() {
+      denied.hidden = true;
+      if (input.value.trim() === codeOk) {
+        window.location.href = "guardian-download.html";
+        return;
+      }
+      denied.hidden = false;
+      input.classList.remove("guardian-modal-input--shake");
+      void input.offsetWidth;
+      input.classList.add("guardian-modal-input--shake");
+    }
+
+    openBtn.addEventListener("click", openModal);
+    unlockBtn.addEventListener("click", tryUnlock);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") tryUnlock();
+    });
+
+    layer.querySelectorAll("[data-guardian-close]").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        if (e.target === el) closeModal();
+      });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !layer.hidden) closeModal();
+    });
+  })();
+  </script>
 </body>
 </html>

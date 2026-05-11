@@ -63,7 +63,6 @@ function renderHeaderFooter() {
     footer.innerHTML = `
       <footer class="il-footer">
         <nav class="il-footer__links" aria-label="Footer">
-          <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="/privacy.html">Privacy Policy</a>
           <a href="/contact.html">Contact</a>
         </nav>
