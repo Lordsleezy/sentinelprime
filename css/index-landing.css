@@ -8,9 +8,12 @@
 #ecosystem,
 #sentinel-os,
 #about,
-#business,
 #product-personal,
-#product-guardian {
+#product-guardian,
+#sentineloscoming-soon,
+#personal-ai,
+#guardian-product,
+#audit-device {
   scroll-margin-top: 96px;
 }
 
@@ -25,6 +28,13 @@ body.il-body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
+}
+
+.shell-main {
+  position: relative;
+  z-index: 1;
+  padding-top: 5.25rem;
+  min-height: 40vh;
 }
 
 #webgl-root {
@@ -106,6 +116,21 @@ body.il-body {
   font-weight: 500;
   letter-spacing: 0.04em;
   transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.landing-nav__links a.active {
+  color: #fff;
+}
+
+.landing-nav__link--try {
+  color: var(--il-cyan) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.45);
+}
+
+.landing-nav__link--try:hover {
+  color: #9eedff !important;
+  text-shadow: 0 0 28px rgba(0, 212, 255, 0.55);
 }
 
 .landing-nav__links a:hover {
@@ -972,4 +997,279 @@ body.il-body {
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
+}
+
+/* Sentinel web chat (jarvis-app.html) */
+.jarvis-app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.jarvis-app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.jarvis-terminal {
+  width: min(720px, 100%);
+  flex: 1;
+  min-height: min(560px, calc(100vh - 220px));
+  max-height: 820px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 8, 8, 0.92);
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  border-radius: 16px;
+  box-shadow: 0 0 48px rgba(0, 212, 255, 0.08);
+  overflow: hidden;
+}
+
+.jarvis-terminal__head {
+  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.jarvis-terminal__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(0, 212, 255, 0.25);
+}
+
+.jarvis-terminal__badge {
+  font-size: 0.72rem;
+  color: var(--il-muted);
+  letter-spacing: 0.08em;
+}
+
+#sentinel-chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 255, 0.3) transparent;
+}
+
+.jarvis-msg {
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jarvis-msg.user .jarvis-prefix {
+  color: var(--il-cyan);
+  font-weight: 700;
+}
+
+.jarvis-msg.user .jarvis-body {
+  color: #e8eaed;
+}
+
+.jarvis-msg.bot .jarvis-prefix {
+  color: var(--il-cyan);
+  font-weight: 700;
+}
+
+.jarvis-msg.bot .jarvis-body {
+  color: #e4e6e9;
+}
+
+.jarvis-msg.system .jarvis-prefix {
+  color: #666;
+}
+
+.jarvis-msg.system .jarvis-body {
+  color: var(--il-muted);
+  font-style: italic;
+}
+
+.jarvis-input-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 1rem;
+  border-top: 1px solid rgba(0, 212, 255, 0.25);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.jarvis-input-row .prompt {
+  color: var(--il-cyan);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+#sentinel-chat-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  padding: 0.5rem 0;
+  caret-color: var(--il-cyan);
+}
+
+#sentinel-chat-input:disabled {
+  opacity: 0.45;
+}
+
+.jarvis-send-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.12);
+  color: var(--il-cyan);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.jarvis-send-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+}
+
+.jarvis-send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.contact-shell .contact-dark-grid {
+  display: grid;
+  gap: 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .contact-shell .contact-dark-grid {
+    grid-template-columns: 1fr 1.1fr;
+    align-items: start;
+  }
+}
+
+.contact-dark-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 1.5rem 1.35rem;
+}
+
+.contact-dark-card label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.contact-dark-card input,
+.contact-dark-card select,
+.contact-dark-card textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0a0a0a;
+  color: #fff;
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+  margin-bottom: 1rem;
+}
+
+.contact-dark-card textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.contact-dark-card .il-btn-primary {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  padding: 0.85rem 1.25rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(120deg, var(--il-cyan), #0099bb);
+  color: #001018;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.25);
+}
+
+.contact-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.contact-social a {
+  color: var(--il-cyan);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.contact-social a:hover {
+  text-decoration: underline;
+}
+
+.product-page-section {
+  padding: 3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.product-page-section:last-of-type {
+  border-bottom: none;
+}
+
+.product-page-kicker {
+  color: var(--il-cyan);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.product-page-kicker--red {
+  color: #ff6b6b;
+}
+
+.product-page-section h2 {
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  margin: 0 0 1rem;
+}
+
+.product-page-section p,
+.product-page-section li {
+  color: var(--il-muted);
+  max-width: 720px;
+}
+
+.product-page-section ul {
+  padding-left: 1.2rem;
+  margin: 1rem 0;
+}
+
+.product-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
 }

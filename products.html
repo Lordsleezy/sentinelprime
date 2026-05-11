@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentinel ecosystem: Personal AI, Guardian, SentinelOS, and Audit Device — privacy-first by design.">
+  <title>Products | Sentinel</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body class="il-body" data-page="products">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <div id="site-header"></div>
+
+    <main class="shell-main">
+      <div class="il-container">
+        <header class="il-section" style="padding-top:0;padding-bottom:2rem">
+          <p class="il-eyebrow il-reveal">The ecosystem</p>
+          <h1 class="il-reveal" style="font-size:clamp(2rem,5vw,3rem);margin:0 0 0.75rem">Sentinel products</h1>
+          <p class="il-lead il-reveal">Private AI, security intelligence, a new mobile OS, and hardware you control — built as one coherent stack.</p>
+        </header>
+
+        <section id="personal-ai" class="product-page-section il-reveal">
+          <p class="product-page-kicker">Product</p>
+          <h2>Sentinel Personal AI</h2>
+          <p>Your assistant runs on your phone — not in someone else's cloud. Conversations and memory stay local, the model stays under your control, and the stack is open for audit.</p>
+          <ul>
+            <li>On-device inference for core assistant features</li>
+            <li>No account wall, no server-side profile for the default experience</li>
+            <li>Open source core — inspect what ships</li>
+            <li>iOS and Android builds for broad access</li>
+          </ul>
+          <div class="product-page-actions">
+            <a class="il-mini-btn il-mini-btn--fill" href="https://apps.apple.com/app/sentinel" rel="noopener noreferrer">App Store</a>
+            <a class="il-mini-btn" href="https://sentinelprime.org/download/sentinel.apk" rel="noopener noreferrer">Android APK</a>
+            <a class="il-mini-btn" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+          </div>
+        </section>
+
+        <section id="guardian-product" class="product-page-section il-reveal">
+          <p class="product-page-kicker product-page-kicker--red">Security suite</p>
+          <h2>Sentinel Guardian</h2>
+          <p>An invite-only security intelligence workspace for operators who need offensive insight, defensive hardening, and forensics in one disciplined toolchain.</p>
+          <ul>
+            <li>Windows desktop experience (.exe)</li>
+            <li>Android APK for field workflows</li>
+            <li>Attack · Defend · Forensics modules under one roof</li>
+            <li>Access gated while onboarding partners</li>
+          </ul>
+          <div class="product-page-actions">
+            <a class="il-mini-btn il-mini-btn--red" href="contact.html">Request access</a>
+            <a class="il-mini-btn" href="https://sentinelprime.org/download/guardian-setup.exe" rel="noopener noreferrer">Windows (.exe) — placeholder</a>
+            <a class="il-mini-btn" href="https://sentinelprime.org/download/guardian.apk" rel="noopener noreferrer">Android APK — placeholder</a>
+          </div>
+        </section>
+
+        <section id="sentineloscoming-soon" class="product-page-section il-reveal il-os" style="border-radius:18px;padding:2.5rem 1.5rem;margin:2rem 0">
+          <div class="il-os__noise" aria-hidden="true" style="border-radius:18px"></div>
+          <div class="il-os__blur" aria-hidden="true" style="border-radius:18px"></div>
+          <div style="position:relative;z-index:2">
+            <p class="product-page-kicker product-page-kicker--red">Coming soon</p>
+            <h2>SentinelOS</h2>
+            <p>A privacy-first mobile operating system built for <strong style="color:#fff">Google Pixel</strong> hardware first — no tracking hooks, no silent telemetry, and an ownership model that treats the device as yours.</p>
+            <ul>
+              <li>Pixel-first images with reproducible build goals</li>
+              <li>Network visibility and consent-first defaults</li>
+              <li>Designed to pair with Sentinel Personal AI out of the box</li>
+            </ul>
+            <p class="il-lead" style="margin-top:1rem">Ship date TBA. Join the conversation on GitHub for early flashes.</p>
+            <div class="product-page-actions">
+              <a class="il-mini-btn" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">Follow on GitHub</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="audit-device" class="product-page-section il-reveal">
+          <p class="product-page-kicker">Hardware</p>
+          <h2>Sentinel Audit Device</h2>
+          <p>A pocket-sized security sensor built around <strong style="color:#fff">Raspberry Pi Zero</strong> class hardware — meant for air-gapped audits, physical tamper checks, and portable evidence capture without cloud dependency.</p>
+          <ul>
+            <li>Low-power, offline-first workflows</li>
+            <li>Companion apps to Guardian and Personal AI (roadmap)</li>
+            <li>Designed for professionals who need trustworthy hardware roots</li>
+          </ul>
+          <div class="product-page-actions">
+            <a class="il-mini-btn il-mini-btn--fill" href="contact.html">Notify me</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
+  <script src="js/index-landing.js" defer></script>
+</body>
+</html>

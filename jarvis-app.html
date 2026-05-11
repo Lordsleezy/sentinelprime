@@ -3,656 +3,154 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JARVIS</title>
+  <meta name="description" content="Try Sentinel — private AI web chat powered by Sentinel Prime.">
+  <title>Try Sentinel | Web Chat</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      background: #000;
-      font-family: 'JetBrains Mono', monospace;
-      color: #e0e0e0;
-      overflow: hidden;
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
-
-    /* ── INTRO ── */
-    #intro {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-
-    #intro-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    #intro-logo {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
-
-    #intro-logo h1 {
-      font-size: clamp(3rem, 10vw, 7rem);
-      font-weight: 700;
-      letter-spacing: 0.5em;
-      text-indent: 0.5em;
-      color: #fff;
-      text-shadow:
-        0 0 40px rgba(0,234,255,0.8),
-        0 0 80px rgba(0,234,255,0.4);
-    }
-
-    #intro-logo p {
-      font-size: clamp(0.7rem, 2vw, 1rem);
-      letter-spacing: 0.3em;
-      color: #00eaff;
-      margin-top: 12px;
-      opacity: 0.8;
-    }
-
-    #intro-progress {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    #intro-progress-bar-wrap {
-      width: 200px;
-      height: 2px;
-      background: rgba(0,234,255,0.2);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    #intro-progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #00eaff;
-      transition: width 0.1s linear;
-      box-shadow: 0 0 8px #00eaff;
-    }
-
-    #intro-status {
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      color: rgba(0,234,255,0.6);
-    }
-
-    /* ── CHAT APP ── */
-    #app {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #app.visible {
-      opacity: 1;
-      z-index: 50;
-    }
-
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .scanlines {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0,0,0,0.12), rgba(0,0,0,0.12) 1px,
-        transparent 1px, transparent 3px
-      );
-      opacity: 0.03;
-    }
-
-    .vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      background: radial-gradient(
-        ellipse 70% 65% at 50% 50%,
-        transparent 0%, transparent 45%,
-        rgba(0,0,0,0.75) 100%
-      );
-    }
-
-    .terminal {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      width: min(700px, calc(100vw - 28px));
-      height: 75vh;
-      max-height: 820px;
-      display: flex;
-      flex-direction: column;
-      background: rgba(0,0,0,0.82);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      box-shadow: 0 0 60px rgba(0,255,255,0.06);
-      overflow: hidden;
-    }
-
-    .terminal-header {
-      flex-shrink: 0;
-      padding: 18px 20px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .terminal-title {
-      font-size: clamp(1.1rem, 3vw, 1.45rem);
-      font-weight: 700;
-      letter-spacing: 0.55em;
-      text-indent: 0.55em;
-      color: #e0e0e0;
-      text-shadow: 0 0 24px rgba(0,255,255,0.25);
-    }
-
-    .terminal-version {
-      font-size: 11px;
-      color: #555;
-      letter-spacing: 0.05em;
-    }
-
-    #chatWindow {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px 18px;
-      font-size: 13px;
-      line-height: 1.65;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(0,255,255,0.25) transparent;
-    }
-
-    .msg { margin-bottom: 14px; white-space: pre-wrap; word-break: break-word; }
-    .msg.user .prefix { color: #00ffff; font-weight: 600; }
-    .msg.user .body { color: #e0e0e0; }
-    .msg.jarvis .prefix {
-      font-weight: 700;
-      background: linear-gradient(90deg,#00ffff,#4488ff,#aa44ff,#ffffff,#00ffff);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: irid 8s linear infinite;
-    }
-    @keyframes irid { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
-    .msg.jarvis .body { color: #e0e0e0; }
-    .msg.system .prefix { color: #555; }
-    .msg.system .body { color: rgba(160,160,160,0.75); font-style: italic; }
-
-    .input-row {
-      flex-shrink: 0;
-      border-top: 1px solid rgba(0,255,255,0.35);
-      padding: 12px 16px 16px;
-      display: flex;
-      align-items: center;
-      background: rgba(0,0,0,0.35);
-    }
-
-    .prompt-prefix {
-      color: #00ffff;
-      font-weight: 600;
-      font-size: 13px;
-      flex-shrink: 0;
-      padding-right: 6px;
-    }
-
-    #messageInput {
-      flex: 1;
-      border: none;
-      background: transparent;
-      color: #e0e0e0;
-      font: inherit;
-      font-size: 13px;
-      outline: none;
-      padding: 8px 0;
-      caret-color: #00ffff;
-    }
-
-    #messageInput:disabled { opacity: 0.45; }
-
-    #back-btn {
-      position: fixed;
-      top: 16px;
-      left: 16px;
-      z-index: 20;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(0,234,255,0.3);
-      border-radius: 8px;
-      color: rgba(0,234,255,0.7);
-      font-family: inherit;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      padding: 8px 14px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: border-color 0.2s, color 0.2s;
-    }
-
-    #back-btn:hover {
-      border-color: #00eaff;
-      color: #00eaff;
-    }
-  </style>
+  }
+  </script>
 </head>
-<body>
+<body class="il-body" data-page="jarvis">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap jarvis-app-layout">
+    <div id="site-header"></div>
 
-  <!-- PHASE 1: INTRO -->
-  <div id="intro">
-    <canvas id="intro-canvas"></canvas>
-    <div id="intro-logo">
-      <h1>J A R V I S</h1>
-      <p>PERSONAL AI OS · SENTINEL PRIME</p>
-    </div>
-    <div id="intro-progress">
-      <div id="intro-progress-bar-wrap">
-        <div id="intro-progress-bar"></div>
-      </div>
-      <span id="intro-status">INITIALIZING</span>
-    </div>
-  </div>
-
-  <!-- PHASE 2: APP -->
-  <div id="app">
-    <a href="/jarvis.html" id="back-btn">← JARVIS</a>
-    <canvas id="bg-canvas"></canvas>
-    <div class="scanlines"></div>
-    <div class="vignette"></div>
-    <main class="terminal">
-      <header class="terminal-header">
-        <h1 class="terminal-title">J A R V I S</h1>
-        <span class="terminal-version">WEB · v1.2</span>
-      </header>
-      <section id="chatWindow" aria-live="polite"></section>
-      <div class="input-row">
-        <span class="prompt-prefix">&gt;&gt;&gt;</span>
-        <input id="messageInput" type="text" maxlength="4000"
-               aria-label="Message" autocomplete="off"
-               placeholder="Ask me anything...">
+    <main class="jarvis-app-main shell-main" style="padding-top:5.25rem">
+      <div class="jarvis-terminal il-reveal">
+        <header class="jarvis-terminal__head">
+          <h1 class="jarvis-terminal__title">SENTINEL</h1>
+          <span class="jarvis-terminal__badge">WEB CHAT · AI</span>
+        </header>
+        <section id="sentinel-chat-window" aria-live="polite"></section>
+        <div class="jarvis-input-row">
+          <span class="prompt">&gt;&gt;&gt;</span>
+          <input id="sentinel-chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Message Sentinel…" aria-label="Message">
+          <button type="button" class="jarvis-send-btn" id="sentinel-chat-send">Send</button>
+        </div>
       </div>
     </main>
+
+    <div id="site-footer"></div>
   </div>
 
+  <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
   <script>
-  // ═══════════════════════════════════════════════
-  // TESSERACT GEOMETRY (shared)
-  // ═══════════════════════════════════════════════
-  const V=[];
-  for(let i=0;i<16;i++) V.push([(i&1)?1:-1,(i&2)?1:-1,(i&4)?1:-1,(i&8)?1:-1]);
-  const E=[];
-  for(let a=0;a<16;a++) for(let b=a+1;b<16;b++){const d=a^b;if(d&&!(d&(d-1)))E.push([a,b]);}
+  (function () {
+    const API = "https://jarvis-0sbo.onrender.com/api/chat";
+    const win = document.getElementById("sentinel-chat-window");
+    const inp = document.getElementById("sentinel-chat-input");
+    const btn = document.getElementById("sentinel-chat-send");
 
-  function rot4(v,axw,ayw,azw){
-    let [x,y,z,w]=v,t;
-    t=x*Math.cos(axw)-w*Math.sin(axw);w=x*Math.sin(axw)+w*Math.cos(axw);x=t;
-    t=y*Math.cos(ayw)-w*Math.sin(ayw);w=y*Math.sin(ayw)+w*Math.cos(ayw);y=t;
-    t=z*Math.cos(azw)-w*Math.sin(azw);w=z*Math.sin(azw)+w*Math.cos(azw);z=t;
-    return [x,y,z,w];
-  }
+    fetch("https://jarvis-0sbo.onrender.com/").catch(function () {});
 
-  function proj4to2(v,axw,ayw,azw,scale,wDist){
-    const [x,y,z,w]=rot4(v,axw,ayw,azw);
-    const s=scale/(wDist-w);
-    return [x*s, y*s, z*s];
-  }
+    function addMsg(role, text, typewriter) {
+      const row = document.createElement("div");
+      row.className = "jarvis-msg " + role;
+      const pre = document.createElement("span");
+      pre.className = "jarvis-prefix";
+      pre.textContent = role === "user" ? "> " : role === "bot" ? "SENTINEL :: " : "[ SYSTEM ] ";
+      const bod = document.createElement("span");
+      bod.className = "jarvis-body";
+      row.appendChild(pre);
+      row.appendChild(bod);
+      win.appendChild(row);
+      win.scrollTop = win.scrollHeight;
 
-  // ═══════════════════════════════════════════════
-  // PHASE 1: INTRO ANIMATION (Canvas 2D)
-  // ═══════════════════════════════════════════════
-  (function runIntro(){
-    const canvas = document.getElementById('intro-canvas');
-    const ctx = canvas.getContext('2d');
-    const logo = document.getElementById('intro-logo');
-    const bar = document.getElementById('intro-progress-bar');
-    const status = document.getElementById('intro-status');
-    const intro = document.getElementById('intro');
-
-    const DURATION = 8000; // 8 seconds total
-    const statuses = [
-      [0,    'INITIALIZING CORE'],
-      [1500, 'LOADING NEURAL MATRIX'],
-      [4000, 'CALIBRATING 4D SPACE'],
-      [7000, 'CONNECTING TO NETWORK'],
-      [10000,'SYNCING MEMORY STORE'],
-      [12000,'JARVIS ONLINE'],
-    ];
-
-    let start = null;
-    let axw=0, ayw=0, azw=0;
-    let edgesBuilt = 0;
-    const EDGE_BUILD_INTERVAL = 100; // ms per edge
-    let lastEdgeTime = 0;
-    let introDone = false;
-
-    function resize(){
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Wake server in background
-    fetch('https://jarvis-0sbo.onrender.com/').catch(()=>{});
-
-    function easeInOut(t){ return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
-
-    function drawFrame(ts){
-      if(!start) start = ts;
-      const elapsed = ts - start;
-      const progress = Math.min(elapsed / DURATION, 1);
-
-      // Update progress bar
-      bar.style.width = (progress * 100) + '%';
-
-      // Update status text
-      for(const [time, text] of statuses){
-        if(elapsed >= time) status.textContent = text;
-      }
-
-      // Build edges over time
-      if(elapsed - lastEdgeTime > EDGE_BUILD_INTERVAL && edgesBuilt < E.length){
-        edgesBuilt++;
-        lastEdgeTime = elapsed;
-      }
-
-      // Rotate slowly then faster
-      const speed = 0.003 + progress * 0.012;
-      axw += speed * 0.8;
-      ayw += speed * 0.6;
-      azw += speed * 0.4;
-
-      // Scale grows from 0 to full
-      const scale = easeInOut(Math.min(elapsed / 3000, 1)) * Math.min(canvas.width, canvas.height) * 0.32;
-
-      // Camera falls in: perspective distance shrinks
-      const wDist = 3.5 - progress * 1.5;
-
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw built edges
-      const pts = V.map(v => proj4to2(v, axw, ayw, azw, scale, wDist));
-
-      for(let i=0; i<edgesBuilt; i++){
-        const [a,b] = E[i];
-        const [ax,ay] = pts[a];
-        const [bx,by] = pts[b];
-
-        // Glow pass
-        ctx.beginPath();
-        ctx.moveTo(cx+ax, cy+ay);
-        ctx.lineTo(cx+bx, cy+by);
-        ctx.strokeStyle = `rgba(0,234,255,${0.15 + progress * 0.1})`;
-        ctx.lineWidth = 6;
-        ctx.stroke();
-
-        // Bright pass
-        ctx.beginPath();
-        ctx.moveTo(cx+ax, cy+ay);
-        ctx.lineTo(cx+bx, cy+by);
-        ctx.strokeStyle = `rgba(0,234,255,${0.6 + progress * 0.3})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // Show logo after 5 seconds
-      if(elapsed > 5000){
-        const logoOpacity = Math.min((elapsed - 5000) / 1500, 1);
-        logo.style.opacity = logoOpacity;
-      }
-
-      // Fade out and transition at end
-      if(progress >= 1 && !introDone){
-        introDone = true;
-        transitionToApp();
-        return;
-      }
-
-      requestAnimationFrame(drawFrame);
-    }
-
-    requestAnimationFrame(drawFrame);
-  })();
-
-  // ═══════════════════════════════════════════════
-  // TRANSITION
-  // ═══════════════════════════════════════════════
-  function transitionToApp(){
-    const intro = document.getElementById('intro');
-    const app = document.getElementById('app');
-
-    // Fade out intro
-    intro.style.transition = 'opacity 1.5s ease';
-    intro.style.opacity = '0';
-
-    setTimeout(()=>{
-      intro.style.display = 'none';
-      app.classList.add('visible');
-      startTesseractBg();
-      startChat();
-    }, 1500);
-  }
-
-  // ═══════════════════════════════════════════════
-  // PHASE 2: TESSERACT BACKGROUND (Three.js)
-  // ═══════════════════════════════════════════════
-  function startTesseractBg(){
-    if(typeof THREE === 'undefined') return;
-
-    const R = new THREE.WebGLRenderer({antialias:true});
-    R.setPixelRatio(window.devicePixelRatio);
-    R.setSize(window.innerWidth, window.innerHeight);
-    R.domElement.id = 'bg-canvas';
-    R.domElement.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;';
-    document.getElementById('bg-canvas').replaceWith(R.domElement);
-
-    const S = new THREE.Scene();
-    S.background = new THREE.Color(0x000000);
-    S.fog = new THREE.FogExp2(0x000000, 0.022);
-
-    const C = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 300);
-
-    S.add(new THREE.AmbientLight(0x0a0a1a, 0.4));
-    const WL = new THREE.PointLight(0xFFCC44, 3, 40); S.add(WL);
-    const cl = new THREE.PointLight(0x4488FF, 0.8, 25); cl.position.set(5,3,0); S.add(cl);
-    const bl = new THREE.PointLight(0xFF8844, 1.2, 25); bl.position.set(-4,-2,-5); S.add(bl);
-
-    const BM = new THREE.MeshStandardMaterial({color:0x1a1a2e, metalness:0.9, roughness:0.2});
-    const LM = new THREE.MeshStandardMaterial({color:0xFFEEAA, emissive:new THREE.Color(0xFFCC44), emissiveIntensity:2, roughness:1});
-    const BG = new THREE.CylinderGeometry(0.04,0.04,1,6);
-    const LG = new THREE.CylinderGeometry(0.018,0.018,0.92,4);
-
-    const N=8, SP=9, GS=[];
-    for(let i=0;i<N;i++){
-      const g = new THREE.Group();
-      const em = [];
-      for(let e=0;e<E.length;e++){
-        const bm = new THREE.Mesh(BG,BM);
-        const lm = new THREE.Mesh(LG,LM);
-        g.add(bm); g.add(lm);
-        em.push({bm,lm});
-      }
-      g.userData = {absZ:-i*SP, em};
-      S.add(g); GS.push(g);
-    }
-
-    const UP = new THREE.Vector3(0,1,0);
-    function upd(g,axw,ayw,azw){
-      const pts = V.map(v=>{
-        const [x,y,z] = proj4to2(v,axw,ayw,azw,3.5,2.5);
-        return new THREE.Vector3(x,y,z);
-      });
-      E.forEach(([a,b],i)=>{
-        const pA=pts[a], pB=pts[b];
-        const dir=new THREE.Vector3().subVectors(pB,pA);
-        const len=dir.length();
-        if(len<0.001) return;
-        const mid=new THREE.Vector3().addVectors(pA,pB).multiplyScalar(0.5);
-        const q=new THREE.Quaternion().setFromUnitVectors(UP,dir.clone().normalize());
-        const {bm,lm}=g.userData.em[i];
-        bm.position.copy(mid); bm.quaternion.copy(q); bm.scale.set(1,len,1);
-        lm.position.copy(mid); lm.quaternion.copy(q); lm.scale.set(1,len,1);
-      });
-    }
-
-    let axw=0,ayw=0,azw=0,t=0;
-    const FALL_SPEED=0.01;
-    GS.forEach((g,i)=>{ g.userData.absZ=-i*SP; });
-
-    function animate(){
-      requestAnimationFrame(animate);
-      t+=0.016; axw+=0.001; ayw+=0.0008; azw+=0.0006;
-      GS.forEach(g=>upd(g,axw,ayw,azw));
-      GS.forEach(g=>{ g.userData.absZ+=FALL_SPEED; });
-      const cx=Math.sin(t*0.04)*0.5;
-      const cy=Math.cos(t*0.03)*0.35;
-      C.position.set(cx,cy,8);
-      C.lookAt(Math.sin(t*0.04)*0.2,Math.cos(t*0.03)*0.15,-100);
-      GS.forEach(g=>{
-        if(g.userData.absZ>12){
-          let mn=Infinity;
-          GS.forEach(gg=>{ if(gg.userData.absZ<mn) mn=gg.userData.absZ; });
-          g.userData.absZ=mn-SP;
-        }
-        g.position.z=g.userData.absZ;
-      });
-      WL.intensity=2.5+Math.sin(t*0.5)*0.5;
-      R.render(S,C);
-    }
-    animate();
-
-    window.addEventListener('resize',()=>{
-      R.setSize(window.innerWidth,window.innerHeight);
-      C.aspect=window.innerWidth/window.innerHeight;
-      C.updateProjectionMatrix();
-    });
-  }
-
-  // ═══════════════════════════════════════════════
-  // PHASE 2: CHAT
-  // ═══════════════════════════════════════════════
-  function startChat(){
-    const API = 'https://jarvis-0sbo.onrender.com/api/chat';
-    const win = document.getElementById('chatWindow');
-    const inp = document.getElementById('messageInput');
-
-    function addMsg(role,text,tw){
-      const d=document.createElement('div');
-      d.className='msg '+role;
-      const pre=document.createElement('span');
-      pre.className='prefix';
-      pre.textContent=role==='user'?'> ':role==='jarvis'?'JARVIS :: ':'[ SYSTEM ] ';
-      const bod=document.createElement('span');
-      bod.className='body';
-      d.appendChild(pre); d.appendChild(bod);
-      win.appendChild(d);
-      win.scrollTop=win.scrollHeight;
-      if(role==='jarvis'&&tw!==false){
-        return new Promise(res=>{
-          let i=0;
-          (function tick(){
-            if(i>=text.length){win.scrollTop=win.scrollHeight;res();return;}
-            bod.textContent=text.slice(0,++i);
-            win.scrollTop=win.scrollHeight;
+      if (role === "bot" && typewriter !== false) {
+        return new Promise(function (res) {
+          var i = 0;
+          function tick() {
+            if (i >= text.length) {
+              win.scrollTop = win.scrollHeight;
+              res();
+              return;
+            }
+            bod.textContent = text.slice(0, ++i);
+            win.scrollTop = win.scrollHeight;
             requestAnimationFrame(tick);
-          })();
+          }
+          tick();
         });
       }
-      bod.textContent=text;
+      bod.textContent = text;
       return Promise.resolve();
     }
 
-    inp.addEventListener('keydown',async function(e){
-      if(e.key!=='Enter') return;
-      e.preventDefault();
-      if(inp.disabled) return;
-      const msg=inp.value.trim();
-      if(!msg) return;
-      addMsg('user',msg);
-      inp.value='';
-      inp.disabled=true;
-      try{
-        const r=await fetch(API,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({message:msg})
+    function setBusy(on) {
+      inp.disabled = on;
+      btn.disabled = on;
+    }
+
+    async function send() {
+      var msg = inp.value.trim();
+      if (!msg) return;
+      addMsg("user", msg);
+      inp.value = "";
+      setBusy(true);
+      try {
+        var r = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg })
         });
-        const p=await r.json();
-        if(!r.ok) throw new Error(p.error||'HTTP '+r.status);
-        await addMsg('jarvis',p.response);
-      }catch(err){
-        addMsg('system','Error: '+err.message);
-      }finally{
-        inp.disabled=false;
+        var p = await r.json();
+        if (!r.ok) throw new Error(p.error || "HTTP " + r.status);
+        await addMsg("bot", p.response);
+      } catch (err) {
+        addMsg("system", "Error: " + err.message, false);
+      } finally {
+        setBusy(false);
         inp.focus();
+      }
+    }
+
+    btn.addEventListener("click", send);
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        send();
       }
     });
 
-    addMsg('jarvis',"Hi, I'm Jarvis. How can I help today?");
+    addMsg("bot", "Hi — I'm Sentinel. Ask me anything.", false);
     inp.focus();
-    const opener = sessionStorage.getItem('jarvis_opener');
+
+    var opener = sessionStorage.getItem("jarvis_opener");
     if (opener) {
-      sessionStorage.removeItem('jarvis_opener');
-      setTimeout(async () => {
-        addMsg('user', opener);
-        inp.disabled = true;
+      sessionStorage.removeItem("jarvis_opener");
+      setTimeout(async function () {
+        addMsg("user", opener);
+        setBusy(true);
         try {
-          const r = await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+          var r = await fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: opener })
           });
-          const p = await r.json();
-          if (!r.ok) throw new Error(p.error || 'HTTP ' + r.status);
-          await addMsg('jarvis', p.response);
-        } catch(err) {
-          addMsg('system', 'Error: ' + err.message);
+          var p = await r.json();
+          if (!r.ok) throw new Error(p.error || "HTTP " + r.status);
+          await addMsg("bot", p.response);
+        } catch (err) {
+          addMsg("system", "Error: " + err.message, false);
         } finally {
-          inp.disabled = false;
+          setBusy(false);
           inp.focus();
         }
-      }, 800);
+      }, 400);
     }
-  }
+  })();
   </script>
 </body>
 </html>

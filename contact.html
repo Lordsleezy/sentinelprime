@@ -3,62 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Contact Sentinel Prime to discuss web development, growth systems, custom software, and IT services for your business.">
-  <meta name="keywords" content="contact web development agency, custom software quote, IT services consultation">
-  <meta property="og:title" content="Contact Sentinel Prime">
-  <meta property="og:description" content="Tell us what you need built and we will map the right digital and technical solution.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://sentinelprime.org/contact.html">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="Contact Sentinel Prime — general inquiries, business services, Guardian access, partnerships.">
   <title>Contact | Sentinel Prime</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
-<body data-page="contact">
-  <div id="site-header"></div>
+<body class="il-body" data-page="contact">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <div id="site-header"></div>
 
-  <main>
-    <section class="section-pad">
-      <div class="container contact-grid">
-        <div class="reveal">
-          <p class="eyebrow">Contact</p>
-          <h1>Tell Us What You Need Built</h1>
-          <p>Tell us about your business and we’ll recommend the right mix of website, systems, software, and technical support.</p>
-          <p>We respond with a practical implementation plan and clear next steps.</p>
-          <p><a href="mailto:customerservice@sentinelprime.org">customerservice@sentinelprime.org</a></p>
+    <main class="shell-main contact-shell">
+      <div class="il-container contact-dark-grid il-reveal">
+        <div>
+          <p class="il-eyebrow">Contact</p>
+          <h1 style="font-size:clamp(1.85rem,4vw,2.5rem);margin:0 0 1rem">Reach the team</h1>
+          <p class="il-lead">We read every message. Choose a subject so the right thread gets priority.</p>
+          <p style="margin-top:1.25rem;font-size:1.05rem">
+            <strong style="color:#fff">Email:</strong><br>
+            <a href="mailto:customerservice@sentinelprime.org" style="color:var(--il-cyan)">customerservice@sentinelprime.org</a>
+          </p>
+          <div class="contact-social">
+            <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="index.html">Home</a>
+            <a href="jarvis-app.html">Try Sentinel (web)</a>
+          </div>
         </div>
 
-        <form class="contact-form reveal glass" name="contact" method="POST" data-netlify="true">
+        <form class="contact-dark-card" name="contact" method="POST" data-netlify="true">
           <input type="hidden" name="form-name" value="contact">
-          <div class="field">
-            <label for="name">Name</label>
-            <input id="name" name="name" type="text" required>
-          </div>
-          <div class="field">
-            <label for="email">Email (required)</label>
-            <input id="email" name="email" type="email" required>
-          </div>
-          <div class="field">
-            <label for="business-name">Business Name</label>
-            <input id="business-name" name="business-name" type="text">
-          </div>
-          <div class="field">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" placeholder="What do you need built or improved? Include your timeline and any technical challenges."></textarea>
-          </div>
-          <button class="btn btn-primary full" type="submit">Send My Request</button>
+          <label for="c-name">Name</label>
+          <input id="c-name" name="name" type="text" required autocomplete="name">
+
+          <label for="c-email">Email</label>
+          <input id="c-email" name="email" type="email" required autocomplete="email">
+
+          <label for="c-subject">Subject</label>
+          <select id="c-subject" name="subject" required>
+            <option value="">Select…</option>
+            <option value="General">General</option>
+            <option value="Business Services">Business Services</option>
+            <option value="Guardian Access Request">Guardian Access Request</option>
+            <option value="Partnership">Partnership</option>
+          </select>
+
+          <label for="c-message">Message</label>
+          <textarea id="c-message" name="message" required placeholder="How can we help?"></textarea>
+
+          <button class="il-btn-primary" type="submit">Send</button>
         </form>
       </div>
-    </section>
-  </main>
+    </main>
 
-  <div id="site-footer"></div>
+    <div id="site-footer"></div>
+  </div>
 
+  <script type="module" src="js/index-tesseract.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/components.js"></script>
-  <script src="js/tesseract-bg.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/shell.js" defer></script>
+  <script src="js/index-landing.js" defer></script>
 </body>
 </html>

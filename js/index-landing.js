@@ -1,23 +1,4 @@
 (function () {
-  const nav = document.getElementById("landing-nav");
-  const menuBtn = document.getElementById("nav-menu-btn");
-  const mobileNav = document.getElementById("nav-mobile");
-
-  function onScroll() {
-    if (!nav) return;
-    nav.classList.toggle("landing-nav--scrolled", window.scrollY > 32);
-  }
-
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-
-  if (menuBtn && mobileNav) {
-    menuBtn.addEventListener("click", () => {
-      const open = mobileNav.classList.toggle("open");
-      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
-    });
-  }
-
   const cycleEl = document.getElementById("hero-cycle");
   const phrases = ["Private.", "Powerful.", "Yours."];
   let ci = 0;
@@ -33,19 +14,6 @@
     cycleEl.classList.add("hero-cycle--visible");
     window.setInterval(cycle, 2800);
   }
-
-  document.querySelectorAll('a[href^="#"]').forEach((a) => {
-    a.addEventListener("click", (e) => {
-      const id = a.getAttribute("href");
-      if (!id || id === "#") return;
-      const el = document.querySelector(id);
-      if (!el) return;
-      e.preventDefault();
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (mobileNav) mobileNav.classList.remove("open");
-      if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
-    });
-  });
 
   const statPrivate = document.getElementById("stat-private");
   const statData = document.getElementById("stat-data");

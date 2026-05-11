@@ -1,22 +1,30 @@
 const navItems = [
-  { label: "Products", href: "/index.html#ecosystem", key: "products" },
-  { label: "SentinelOS", href: "/index.html#sentinel-os", key: "sentinelos" },
-  { label: "About", href: "/index.html#about", key: "about" },
-  { label: "Business Services", href: "/index.html#business", key: "services" },
-  { label: "Contact", href: "/contact.html", key: "contact" }
+  { label: "Home", href: "/index.html", key: "home" },
+  { label: "Products", href: "/products.html", key: "products" },
+  { label: "SentinelOS", href: "/products.html#sentineloscoming-soon", key: "sentinelos" },
+  { label: "About", href: "/about.html", key: "about" },
+  { label: "Business Services", href: "/business-services.html", key: "services" },
+  { label: "Contact", href: "/contact.html", key: "contact" },
+  { label: "Try Sentinel", href: "/jarvis-app.html", key: "jarvis", tryCta: true }
 ];
 
-function navActiveClass(itemKey, activePage) {
-  if (itemKey === "services" && activePage === "services") return "active";
-  if (itemKey === "contact" && activePage === "contact") return "active";
-  return "";
+function navLinkClass(item, activePage) {
+  const parts = [];
+  if (item.tryCta) parts.push("landing-nav__link--try");
+  if (item.key === "home" && activePage === "home") parts.push("active");
+  if (item.key === "products" && activePage === "products") parts.push("active");
+  if (item.key === "about" && activePage === "about") parts.push("active");
+  if (item.key === "services" && activePage === "services") parts.push("active");
+  if (item.key === "contact" && activePage === "contact") parts.push("active");
+  if (item.key === "jarvis" && activePage === "jarvis") parts.push("active");
+  return parts.join(" ").trim();
 }
 
 function desktopNavHTML(activePage) {
   return navItems
     .map((item) => {
-      const activeClass = navActiveClass(item.key, activePage);
-      return `<a class="${activeClass}" href="${item.href}">${item.label}</a>`;
+      const cls = navLinkClass(item, activePage);
+      return `<a class="${cls}" href="${item.href}">${item.label}</a>`;
     })
     .join("");
 }
@@ -24,8 +32,8 @@ function desktopNavHTML(activePage) {
 function navLinksHTML(activePage) {
   return navItems
     .map((item) => {
-      const activeClass = navActiveClass(item.key, activePage);
-      return `<a class="${activeClass}" href="${item.href}">${item.label}</a>`;
+      const cls = navLinkClass(item, activePage);
+      return `<a class="${cls}" href="${item.href}">${item.label}</a>`;
     })
     .join("");
 }
@@ -34,37 +42,32 @@ function renderHeaderFooter() {
   const pageKey = document.body.dataset.page || "home";
   const header = document.getElementById("site-header");
   const footer = document.getElementById("site-footer");
-  const logoActive = pageKey === "home" ? " logo-home-active" : "";
 
   if (header) {
     header.innerHTML = `
-      <header class="site-header">
-        <div class="container nav-wrap">
-          <a class="logo${logoActive}" href="/index.html" aria-label="Sentinel Prime home">
-            <span class="logo-mark"><img src="/assets/logo-tesseract.svg" width="34" height="34" alt="" /></span>
-            <span class="logo-text">Sentinel Prime</span>
-          </a>
-          <nav class="nav-links" aria-label="Primary">${desktopNavHTML(pageKey)}</nav>
-          <div class="nav-right">
-            <button class="menu-btn" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
-          </div>
+      <header class="landing-nav" id="landing-nav">
+        <a class="landing-nav__brand" href="/index.html" aria-label="Sentinel Prime home">
+          <img src="/assets/logo-tesseract.svg" width="36" height="36" alt="">
+          <span>SENTINEL PRIME</span>
+        </a>
+        <nav class="landing-nav__links" aria-label="Primary">${desktopNavHTML(pageKey)}</nav>
+        <div class="landing-nav__menu">
+          <button type="button" class="nav-menu-btn" id="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
         </div>
-        <div class="container mobile-nav" id="mobile-nav">${navLinksHTML(pageKey)}</div>
       </header>
+      <nav class="nav-mobile" id="nav-mobile" aria-label="Mobile">${navLinksHTML(pageKey)}</nav>
     `;
   }
 
   if (footer) {
     footer.innerHTML = `
-      <footer class="site-footer site-footer--minimal">
-        <div class="container footer-minimal">
-          <nav class="footer-minimal-links" aria-label="Footer">
-            <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="/privacy.html">Privacy Policy</a>
-            <a href="/contact.html">Contact</a>
-          </nav>
-          <p class="copyright">Sentinal Prime Inc. 2026 — Building what big tech won’t</p>
-        </div>
+      <footer class="il-footer">
+        <nav class="il-footer__links" aria-label="Footer">
+          <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/contact.html">Contact</a>
+        </nav>
+        <p class="il-footer__tag">Sentinal Prime Inc. 2026 — Building what big tech won't</p>
       </footer>
     `;
   }

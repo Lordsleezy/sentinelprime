@@ -22,33 +22,11 @@
   }
   </script>
 </head>
-<body class="il-body">
+<body class="il-body" data-page="home">
   <div id="webgl-root" aria-hidden="true"></div>
 
   <div class="il-wrap">
-    <header class="landing-nav" id="landing-nav">
-      <a class="landing-nav__brand" href="index.html">
-        <img src="assets/logo-tesseract.svg" width="36" height="36" alt="">
-        <span>SENTINEL PRIME</span>
-      </a>
-      <nav class="landing-nav__links" aria-label="Primary">
-        <a href="#ecosystem">Products</a>
-        <a href="#sentinel-os">SentinelOS</a>
-        <a href="#about">About</a>
-        <a href="#business">Business Services</a>
-        <a href="contact.html">Contact</a>
-      </nav>
-      <div class="landing-nav__menu">
-        <button type="button" class="nav-menu-btn" id="nav-menu-btn" aria-label="Open menu" aria-expanded="false">☰</button>
-      </div>
-    </header>
-    <nav class="nav-mobile" id="nav-mobile" aria-label="Mobile">
-      <a href="#ecosystem">Products</a>
-      <a href="#sentinel-os">SentinelOS</a>
-      <a href="#about">About</a>
-      <a href="#business">Business Services</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div id="site-header"></div>
 
     <main>
       <section class="il-hero">
@@ -97,6 +75,7 @@
               <div class="il-pcard__actions">
                 <a class="il-mini-btn il-mini-btn--fill" href="https://apps.apple.com/app/sentinel" rel="noopener noreferrer">App Store</a>
                 <a class="il-mini-btn" href="https://sentinelprime.org/download/sentinel.apk" rel="noopener noreferrer">Android APK</a>
+                <a class="il-mini-btn" href="products.html#personal-ai">Details</a>
               </div>
             </article>
             <article class="il-pcard il-pcard--red il-reveal" id="product-guardian">
@@ -121,6 +100,7 @@
               </ul>
               <div class="il-pcard__actions">
                 <a class="il-mini-btn il-mini-btn--red" href="contact.html">Request Access</a>
+                <a class="il-mini-btn" href="products.html#guardian-product">Details</a>
               </div>
             </article>
           </div>
@@ -134,6 +114,7 @@
           <h2 class="il-os__title">Sentinel OS</h2>
           <span class="il-os__soon">Coming Soon</span>
           <p class="il-os__sub">A privacy-first mobile operating system. No tracking. No telemetry. Full control.</p>
+          <p class="il-os__sub" style="margin-top:1rem"><a class="il-mini-btn" href="products.html#sentineloscoming-soon">Learn more</a></p>
         </div>
       </section>
 
@@ -145,258 +126,24 @@
         </div>
       </section>
 
-      <section id="about" class="il-section il-about il-reveal">
+      <section id="home-about" class="il-section il-about il-reveal">
         <div class="il-container">
           <h2>Built by one person. Designed for everyone.</h2>
           <p>
-            Sentinel exists to prove that privacy-first AI can be powerful without surveillance. No venture path that demands your data, no harvesting model — only open tools and products that keep intelligence under your control. This is software built for people who refuse to trade dignity for convenience.
+            Sentinel exists to prove that privacy-first AI can be powerful without surveillance. No venture path that demands your data, no harvesting model — only open tools and products that keep intelligence under your control.
           </p>
-          <div class="il-photo-placeholder" aria-hidden="true">Portrait</div>
+          <p style="margin-top:1rem"><a class="il-mini-btn il-mini-btn--fill" href="about.html">Read the full story</a></p>
         </div>
       </section>
-
-      <div id="business" class="il-biz">
-        <section class="il-section">
-          <div class="il-container il-section-heading il-reveal">
-            <p class="il-eyebrow">Business Services</p>
-            <h2>Full-Service Digital + Technical Solutions</h2>
-            <p class="il-lead">From front-end customer experiences to back-end operations and IT, we build systems that keep your business moving.</p>
-          </div>
-        </section>
-
-        <section class="il-section" style="padding-top:0">
-          <div class="il-container">
-            <div class="il-biz-grid">
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">01</span>
-                <h3>Web Development</h3>
-                <p>Business websites, multi-page SEO sites, and high-converting landing pages tailored to your services and market.</p>
-                <ul>
-                  <li>Use cases: company sites, local SEO structures, campaign landing pages</li>
-                  <li>Benefits: stronger credibility, clearer offers, better conversion flow</li>
-                  <li>Built for performance, scalability, and easy long-term updates</li>
-                </ul>
-                <a class="il-btn-primary" href="contact.html">Discuss Web Build</a>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">02</span>
-                <h3>Marketing &amp; Growth</h3>
-                <p>Integrated growth support across SEO, lead generation architecture, and paid social campaigns.</p>
-                <ul>
-                  <li>Use cases: local ranking, service-area expansion, ad-ready funnels</li>
-                  <li>Benefits: more qualified inbound demand and improved marketing ROI</li>
-                  <li>Includes SEO, content structure, and Facebook/Instagram ad support</li>
-                </ul>
-                <a class="il-btn-primary" href="contact.html">Plan Growth Strategy</a>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">03</span>
-                <h3>Business Systems</h3>
-                <p>Booking, ordering, and scheduling systems that simplify operations for customer-facing teams.</p>
-                <ul>
-                  <li>Use cases: restaurants, hotels, mechanics, contractors, rentals</li>
-                  <li>Benefits: fewer missed bookings, faster service intake, smoother workflow</li>
-                  <li>Connected forms and processes reduce manual back-and-forth</li>
-                </ul>
-                <a class="il-btn-primary" href="contact.html">Build My System</a>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">04</span>
-                <h3>Custom Software</h3>
-                <p>Purpose-built software for internal visibility and automation across teams and locations.</p>
-                <ul>
-                  <li>Use cases: internal dashboards, inventory tools, automation platforms</li>
-                  <li>Benefits: better decisions, fewer errors, faster execution</li>
-                  <li>Systems are designed around your real process, not generic apps</li>
-                </ul>
-                <a class="il-btn-primary" href="contact.html">Scope Custom Software</a>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">05</span>
-                <h3>IT Services</h3>
-                <p>Hands-on technical support that keeps your business infrastructure reliable and secure.</p>
-                <ul>
-                  <li>Use cases: computer repair, network setup, server installation, on-site support</li>
-                  <li>Benefits: reduced downtime and stronger day-to-day technical stability</li>
-                  <li>A single partner for digital systems and physical IT needs</li>
-                </ul>
-                <a class="il-btn-primary" href="contact.html">Request IT Support</a>
-              </article>
-            </div>
-            <div class="il-biz-cta il-reveal">
-              <h3>Need one team that can handle everything?</h3>
-              <p>Tell us your bottlenecks and goals. We will map the right website, systems, and technical stack for your business.</p>
-              <a class="il-btn-primary" href="contact.html">Start a Project Discussion</a>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container il-section-heading il-reveal">
-            <p class="il-eyebrow">Archive</p>
-            <h2>Previous homepage — digital agency &amp; growth systems</h2>
-            <p class="il-lead">Preserved in full below: positioning, CRM/ordering/AI showcase, process, capabilities, industries, and CTAs.</p>
-          </div>
-        </section>
-
-        <section class="il-section" style="padding-top:0">
-          <div class="il-container il-reveal" style="display:grid;gap:2rem;grid-template-columns:1fr;align-items:start">
-            <div>
-              <p class="il-eyebrow">AI systems company</p>
-              <h2 style="font-size:clamp(1.75rem,4vw,2.75rem);margin:0 0 0.75rem;line-height:1.1">We Build Systems <span style="color:var(--il-cyan)">That Print Customers.</span></h2>
-              <p class="il-lead">Websites. AI. Automation. Lead Engines. Built to run your business — not just sit there.</p>
-              <p style="margin-top:1rem"><a class="il-btn-primary" href="demos/">View Live Demos</a> <a class="il-mini-btn" href="contact.html" style="margin-left:0.5rem">Get Started</a></p>
-              <div style="display:flex;flex-wrap:wrap;gap:0.65rem;margin-top:1.25rem">
-                <span class="il-mini-btn" style="cursor:default">Automation · 24/7</span>
-                <span class="il-mini-btn" style="cursor:default">Lead Flow · Always On</span>
-                <span class="il-mini-btn" style="cursor:default">Systems · Built to Scale</span>
-              </div>
-            </div>
-            <div style="display:grid;gap:1rem">
-              <div class="il-biz-card">
-                <p class="il-num">Preview</p>
-                <h3>CRM · AI · Orders</h3>
-                <p class="il-lead">Pipeline, assistant, and live order stream — same narrative as the legacy homepage.</p>
-                <div class="il-showcase-mini">New lead · Sacramento, CA → acquisition pipeline</div>
-                <div class="il-showcase-mini">AI response sent · inquiry logged</div>
-                <div class="il-showcase-mini">Order #4821 · $124.00 · Kitchen · 2 items</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section" style="padding-top:0">
-          <div class="il-container">
-            <div class="il-section-heading il-reveal">
-              <p class="il-eyebrow">What we do</p>
-              <h2>Built like a revenue control center</h2>
-            </div>
-            <div class="il-systems-grid">
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">01</span>
-                <h3>Customer Acquisition Engine</h3>
-                <p>Website, SEO, and ads working together as one machine to capture and convert demand.</p>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">02</span>
-                <h3>Online Ordering Systems</h3>
-                <p>Full ordering, checkout, rewards, and admin workflows built for restaurants and service teams.</p>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <span class="il-num">03</span>
-                <h3>AI Business Assistants</h3>
-                <p>AI handling support, leads, and workflows so your business keeps moving after hours.</p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container">
-            <div class="il-section-heading il-reveal">
-              <p class="il-eyebrow">How it works</p>
-              <h2>A clear process from strategy to scale</h2>
-            </div>
-            <div class="il-steps">
-              <article class="il-step il-reveal"><span class="il-step-num">1</span><h3>Understand your business</h3><p class="il-lead">We map your operations, sales process, and growth goals before writing a line of code.</p></article>
-              <article class="il-step il-reveal"><span class="il-step-num">2</span><h3>Build your system</h3><p class="il-lead">We implement the website, tools, and infrastructure your team actually needs day to day.</p></article>
-              <article class="il-step il-reveal"><span class="il-step-num">3</span><h3>Optimize &amp; automate</h3><p class="il-lead">We refine performance, remove bottlenecks, and automate repetitive tasks.</p></article>
-              <article class="il-step il-reveal"><span class="il-step-num">4</span><h3>Help you scale</h3><p class="il-lead">As you grow, we expand your systems, marketing reach, and technical capabilities.</p></article>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container">
-            <div class="il-section-heading il-reveal">
-              <p class="il-eyebrow">Product showcase</p>
-              <h2>CRM, AI, and ordering — in one stack</h2>
-            </div>
-            <div class="il-showcase">
-              <article class="il-biz-card il-reveal">
-                <h3>CRM &amp; pipeline</h3>
-                <p>Track leads, stages, and revenue in one place.</p>
-                <div class="il-showcase-mini" aria-hidden="true"><div style="height:8px;background:linear-gradient(90deg,var(--il-cyan),#0099bb);border-radius:4px;margin-bottom:0.5rem"></div><div style="height:10px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:0.35rem"></div><div style="height:10px;width:72%;background:rgba(255,255,255,0.08);border-radius:4px"></div></div>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <h3>AI chatbot</h3>
-                <p>Qualify visitors and route conversations automatically.</p>
-                <div class="il-showcase-mini">Bot: Thanks — what service area are you in?<br>User: 95624</div>
-              </article>
-              <article class="il-biz-card il-reveal">
-                <h3>Ordering</h3>
-                <p>Orders flow straight into your ops dashboard.</p>
-                <div class="il-showcase-mini"><strong style="font-size:1.2rem">$89.40</strong><br>Paid · Pickup</div>
-              </article>
-            </div>
-            <div class="il-section-heading il-reveal" style="margin-top:2.5rem">
-              <p class="il-eyebrow">Capabilities</p>
-              <h2>Core capabilities that move businesses forward</h2>
-            </div>
-            <div class="il-biz-grid">
-              <article class="il-biz-card il-reveal"><h3>Custom Websites That Convert</h3><p>Sites designed around user intent and business objectives, not generic templates.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Automated Booking &amp; Ordering</h3><p>Reduce friction for customers and save admin time with streamlined digital workflows.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Multi-Location SEO Systems</h3><p>Expand visibility across service areas with structured local search coverage.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Internal Tools &amp; Dashboards</h3><p>Track operations, inventory, and performance through custom-built internal systems.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Full IT Support &amp; Setup</h3><p>From network architecture to on-site support, we keep your technical foundation stable.</p></article>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container">
-            <div class="il-section-heading il-reveal">
-              <p class="il-eyebrow">Solutions by industry</p>
-              <h2>Built for the way your business actually operates</h2>
-            </div>
-            <div class="il-grid-three">
-              <article class="il-biz-card il-reveal"><h3>Contractors / Home Services</h3><p>Lead-ready websites, quote workflows, and scheduling tools that keep crews booked.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Restaurants</h3><p>Online ordering, menu management, and local visibility systems that increase repeat orders.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Auto Shops</h3><p>Service booking, job intake automation, and customer follow-up pipelines.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Hotels / Rentals</h3><p>Reservation-focused websites and booking flows that reduce friction and increase occupancy.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Retail / Warehouses</h3><p>Inventory and operations tooling that gives teams better control and reporting.</p></article>
-              <article class="il-biz-card il-reveal"><h3>Small Businesses</h3><p>Practical digital systems that modernize your business without unnecessary complexity.</p></article>
-            </div>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container">
-            <div class="il-section-heading il-reveal">
-              <p class="il-eyebrow">Why choose us</p>
-              <h2>A technical growth partner built for serious businesses</h2>
-            </div>
-            <ul class="il-feature-list il-reveal">
-              <li>One team for strategy, build, optimization, and ongoing support</li>
-              <li>Built for real businesses, not one-size-fits-all templates</li>
-              <li>Scalable systems that grow with your locations and operations</li>
-              <li>Technical expertise across web, automation, software, and IT</li>
-              <li>Long-term support focused on measurable business outcomes</li>
-            </ul>
-          </div>
-        </section>
-
-        <section class="il-section">
-          <div class="il-container il-biz-cta il-reveal">
-            <h3>Ready to Upgrade Your Business?</h3>
-            <p>Tell us what you need, and we will design the right digital and technical system for it.</p>
-            <a class="il-btn-primary" href="contact.html">Start Your Project</a>
-          </div>
-        </section>
-      </div>
-
-      <footer class="il-footer">
-        <nav class="il-footer__links" aria-label="Footer">
-          <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href="privacy.html">Privacy Policy</a>
-          <a href="contact.html">Contact</a>
-        </nav>
-        <p class="il-footer__tag">Sentinal Prime Inc. 2026 — Building what big tech won’t</p>
-      </footer>
     </main>
+
+    <div id="site-footer"></div>
   </div>
 
   <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
   <script src="js/index-landing.js" defer></script>
 </body>
 </html>

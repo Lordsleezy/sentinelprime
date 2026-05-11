@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="About Sentinel — privacy-first AI, no VC, no data harvesting, built by one person for everyone.">
+  <title>About | Sentinel</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body class="il-body" data-page="about">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <div id="site-header"></div>
+
+    <main class="shell-main">
+      <div class="il-container">
+        <article class="il-about il-reveal" style="text-align:left;max-width:720px;margin:0 auto">
+          <h1 style="font-size:clamp(2rem,5vw,2.75rem);margin-bottom:1rem">Built by one person. Designed for everyone.</h1>
+          <p class="il-lead" style="font-size:1.1rem;color:#cfd3d8">
+            Sentinel is a bet that intelligence should not require surveillance. We ship privacy-first AI with no venture mandate to monetize your attention, no incentive to hoard your conversations, and no backroom deals with advertisers. The mission is simple: put powerful models and security tooling on devices people already own, keep the stack open, and refuse the extraction economy that defines big tech today.
+          </p>
+          <h2 style="margin-top:2.5rem;font-size:1.35rem">Why Sentinel exists</h2>
+          <p class="il-lead">The dominant playbook — centralized inference, opaque training, and default data collection — trains users to surrender context in exchange for convenience. Sentinel exists to break that pattern: local-first execution, explicit consent, and products you can audit.</p>
+          <h2 style="margin-top:2rem;font-size:1.35rem">What big tech gets wrong</h2>
+          <p class="il-lead">When AI lives only in the cloud, every prompt becomes a dataset. When business models depend on engagement, privacy becomes a marketing line instead of an architecture. Sentinel answers with hardware-bound intelligence, minimal telemetry by design, and pricing that does not depend on reselling your life.</p>
+          <h2 style="margin-top:2rem;font-size:1.35rem">Values</h2>
+          <p style="font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.12em">Privacy · Transparency · Accessibility · Security</p>
+          <p class="il-lead" style="margin-top:0.75rem">Those words are constraints on the roadmap, not poster copy. If a feature cannot be explained plainly, it does not ship.</p>
+          <div style="margin-top:2rem">
+            <a class="il-mini-btn il-mini-btn--fill" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener noreferrer">GitHub — Lordsleezy/sentinelprime</a>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
+  <script src="js/index-landing.js" defer></script>
+</body>
+</html>

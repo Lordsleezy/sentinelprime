@@ -22,18 +22,6 @@ const scrollRevealObserver = new IntersectionObserver(
   { threshold: 0.15 }
 );
 
-function initMenu() {
-  const menuToggle = document.getElementById("menu-toggle");
-  const mobileNav = document.getElementById("mobile-nav");
-  if (!menuToggle || !mobileNav) return;
-  menuToggle.addEventListener("click", () => {
-    const open = mobileNav.classList.toggle("open");
-    menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
-  });
-}
-
-initMenu();
-
 if (demosGrid && siteDemos.length > 0) {
   demosGrid.innerHTML = siteDemos
     .map((demo) => {

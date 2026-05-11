@@ -15,11 +15,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
-<body data-page="demos">
+<body class="il-body" data-page="demos">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap">
   <div id="site-header"></div>
 
-  <main>
+  <main class="shell-main">
     <section class="section-pad">
       <div class="container section-heading reveal">
         <p class="eyebrow">Live Demos</p>
@@ -44,10 +55,12 @@
   </main>
 
   <div id="site-footer"></div>
+  </div>
 
+  <script type="module" src="../js/index-tesseract.js"></script>
   <script src="../js/site-config.js"></script>
   <script src="../js/components.js"></script>
-  <script src="../js/tesseract-bg.js"></script>
-  <script src="../js/main.js"></script>
+  <script src="../js/shell.js" defer></script>
+  <script src="../js/main.js" defer></script>
 </body>
 </html>
