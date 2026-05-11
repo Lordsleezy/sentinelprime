@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="tess" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D4FF"/>
+      <stop offset="100%" stop-color="#00D4FF" stop-opacity="0.45"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer cube -->
+  <path d="M10 14 L38 14 L38 34 L10 34 Z" stroke="url(#tess)" stroke-width="1.4" opacity="0.95"/>
+  <path d="M16 10 L44 10 L44 30 L16 30 Z" stroke="url(#tess)" stroke-width="1.2" opacity="0.55"/>
+  <path d="M10 14 L16 10 M38 14 L44 10 M38 34 L44 30 M10 34 L16 30" stroke="url(#tess)" stroke-width="1.1" opacity="0.65"/>
+  <!-- Inner cube hint -->
+  <path d="M18 20 L32 20 L32 30 L18 30 Z" stroke="url(#tess)" stroke-width="1" opacity="0.4"/>
+  <path d="M20 18 L34 18 L34 26 L20 26 Z" stroke="url(#tess)" stroke-width="0.9" opacity="0.35"/>
+  <path d="M18 20 L20 18 M32 20 L34 18 M32 30 L34 26 M18 30 L20 26" stroke="url(#tess)" stroke-width="0.85" opacity="0.35"/>
+</svg>

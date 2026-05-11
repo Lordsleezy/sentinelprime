@@ -1,6 +1,3 @@
-const menuToggle = document.getElementById("menu-toggle");
-const mobileNav = document.getElementById("mobile-nav");
-const yearEl = document.getElementById("year");
 const demosGrid = document.getElementById("demos-grid");
 const siteDemos = Array.isArray(window.DEMOS) ? window.DEMOS : [];
 const heroEvents = document.querySelectorAll("[data-hero-event]");
@@ -25,21 +22,24 @@ const scrollRevealObserver = new IntersectionObserver(
   { threshold: 0.15 }
 );
 
-if (menuToggle && mobileNav) {
+function initMenu() {
+  const menuToggle = document.getElementById("menu-toggle");
+  const mobileNav = document.getElementById("mobile-nav");
+  if (!menuToggle || !mobileNav) return;
   menuToggle.addEventListener("click", () => {
-    mobileNav.classList.toggle("open");
+    const open = mobileNav.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
   });
 }
 
-if (yearEl) {
-  yearEl.textContent = new Date().getFullYear();
-}
+initMenu();
 
 if (demosGrid && siteDemos.length > 0) {
-  demosGrid.innerHTML = siteDemos.map((demo) => {
-    const isLive = Boolean(demo.live && demo.link);
+  demosGrid.innerHTML = siteDemos
+    .map((demo) => {
+      const isLive = Boolean(demo.live && demo.link);
 
-    return `
+      return `
       <article class="card demo-card reveal">
         <div class="demo-card-head">
           <h2>${demo.title}</h2>
@@ -52,7 +52,8 @@ if (demosGrid && siteDemos.length > 0) {
         </div>
       </article>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 if (heroEvents.length > 0) {
@@ -104,12 +105,3 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
 
 document.querySelectorAll(".fade-in").forEach((el) => scrollRevealObserver.observe(el));
 document.querySelectorAll(".reveal").forEach((el) => scrollRevealObserver.observe(el));
-
-window.addEventListener(
-  "scroll",
-  () => {
-    const scrollY = window.scrollY;
-    document.body.style.backgroundPositionY = `${scrollY * 0.3}px`;
-  },
-  { passive: true }
-);
