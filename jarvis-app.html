@@ -3,49 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sentinel AI — private web chat powered by Sentinel Prime.">
+  <meta name="description" content="Sentinel AI — web assistant by Sentinel Prime.">
   <title>Sentinel AI</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index-landing.css">
+  <link rel="stylesheet" href="css/jarvis-app.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
-<body class="il-body jarvis-chat-page" data-page="jarvis">
+<body class="sentinel-ai-standalone">
   <div id="webgl-root" aria-hidden="true"></div>
-  <div class="il-wrap jarvis-app-layout">
-    <div id="site-header"></div>
 
-    <main class="jarvis-app-main shell-main" style="padding-top:5.25rem">
-      <div class="jarvis-chat-shell il-reveal">
-        <header class="jarvis-terminal__head">
-          <h1 class="jarvis-terminal__title">SENTINEL</h1>
-          <span class="jarvis-terminal__badge">AI CHAT</span>
-        </header>
-        <section id="sentinel-chat-window" aria-live="polite"></section>
-        <div class="chat-input-bar">
-          <span class="prompt" aria-hidden="true">›</span>
-          <input id="sentinel-chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Message Sentinel…" aria-label="Message">
-          <button type="button" class="jarvis-send-btn" id="sentinel-chat-send">Send</button>
-        </div>
-      </div>
-    </main>
-
-    <div id="site-footer"></div>
+  <div id="sentinel-intro" class="sentinel-intro">
+    <div class="sentinel-intro__inner">
+      <h1 class="sentinel-intro__brand">SENTINEL</h1>
+      <p class="sentinel-intro__tag">Personal AI — Sentinel Prime</p>
+      <button type="button" class="sentinel-intro__begin" id="sentinel-begin">Begin</button>
+    </div>
   </div>
 
-  <script src="js/site-config.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/shell.js" defer></script>
+  <div id="sentinel-chat-root" class="sentinel-chat-root" aria-hidden="true">
+    <header class="sentinel-chat-header">
+      <div class="sentinel-chat-header__spacer" aria-hidden="true"></div>
+      <div class="sentinel-chat-header__titles">
+        <h1 class="sentinel-chat-header__title">Sentinel</h1>
+        <p class="sentinel-chat-header__sub">Sentinel Prime</p>
+      </div>
+      <button type="button" class="sentinel-memory-pill" id="sentinel-memory-pill" aria-live="polite">memory (0)</button>
+    </header>
+
+    <div id="sentinel-chat-messages" class="sentinel-chat-scroll" aria-live="polite"></div>
+
+    <div class="sentinel-chat-footer">
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+
+    <div class="sentinel-input-bar">
+      <input id="sentinel-chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Message Sentinel…" aria-label="Message">
+      <button type="button" class="sentinel-send-btn" id="sentinel-chat-send">Send</button>
+    </div>
+  </div>
+
+  <a class="sentinel-watermark" href="https://sentinelprime.org">sentinelprime.org</a>
+
+  <script type="module" src="js/index-tesseract.js"></script>
   <script>
   (function () {
     var API = "https://jarvis-0sbo.onrender.com/api/chat";
-    var win = document.getElementById("sentinel-chat-window");
+    var intro = document.getElementById("sentinel-intro");
+    var begin = document.getElementById("sentinel-begin");
+    var chatRoot = document.getElementById("sentinel-chat-root");
+    var win = document.getElementById("sentinel-chat-messages");
     var inp = document.getElementById("sentinel-chat-input");
     var btn = document.getElementById("sentinel-chat-send");
+    var memoryPill = document.getElementById("sentinel-memory-pill");
     var conversationHistory = [];
 
     fetch("https://jarvis-0sbo.onrender.com/").catch(function () {});
+
+    function updateMemoryPill() {
+      memoryPill.textContent = "memory (" + conversationHistory.length + ")";
+    }
 
     function scrollEnd() {
       win.scrollTop = win.scrollHeight;
@@ -53,9 +79,9 @@
 
     function addBubbleUser(text) {
       var row = document.createElement("div");
-      row.className = "chat-row chat-row--user";
+      row.className = "ja-row ja-row--user";
       var b = document.createElement("div");
-      b.className = "chat-bubble chat-bubble--user";
+      b.className = "ja-bubble ja-bubble--user";
       b.textContent = text;
       row.appendChild(b);
       win.appendChild(row);
@@ -64,46 +90,17 @@
 
     function addBubbleAssistant(text) {
       var row = document.createElement("div");
-      row.className = "chat-row chat-row--assistant";
+      row.className = "ja-row ja-row--assistant";
       var b = document.createElement("div");
-      b.className = "chat-bubble chat-bubble--assistant";
+      b.className = "ja-bubble ja-bubble--assistant";
       var lab = document.createElement("span");
-      lab.className = "chat-bubble__label";
-      lab.textContent = "SENTINEL";
+      lab.className = "ja-bubble__label";
+      lab.textContent = "Sentinel";
       b.appendChild(lab);
       var body = document.createElement("div");
-      body.className = "chat-bubble__body";
+      body.className = "ja-bubble__body";
       body.textContent = text;
       b.appendChild(body);
-      row.appendChild(b);
-      win.appendChild(row);
-      scrollEnd();
-    }
-
-    function addAssistantStreamingShell() {
-      var row = document.createElement("div");
-      row.className = "chat-row chat-row--assistant";
-      var b = document.createElement("div");
-      b.className = "chat-bubble chat-bubble--assistant chat-bubble--streaming";
-      var lab = document.createElement("span");
-      lab.className = "chat-bubble__label";
-      lab.textContent = "SENTINEL";
-      b.appendChild(lab);
-      var body = document.createElement("div");
-      body.className = "chat-bubble__body";
-      b.appendChild(body);
-      row.appendChild(b);
-      win.appendChild(row);
-      scrollEnd();
-      return body;
-    }
-
-    function addBubbleSystem(text) {
-      var row = document.createElement("div");
-      row.className = "chat-row chat-row--system";
-      var b = document.createElement("div");
-      b.className = "chat-bubble chat-bubble--system";
-      b.textContent = text;
       row.appendChild(b);
       win.appendChild(row);
       scrollEnd();
@@ -114,43 +111,42 @@
       btn.disabled = on;
     }
 
-    function extractJsonDelta(raw) {
-      try {
-        var j = JSON.parse(raw);
-        var piece = j.content != null ? j.content : j.text != null ? j.text : j.token != null ? j.token : j.delta != null ? j.delta : j.response != null ? j.response : j.message != null ? j.message : "";
-        if (typeof piece === "object" && piece != null && piece.content) piece = piece.content;
-        return typeof piece === "string" ? piece : String(piece || "");
-      } catch (e) {
-        return raw;
-      }
+    function offlineReply() {
+      addBubbleAssistant("Sentinel is offline. Please try again later.");
     }
 
-    async function consumeSSE(response, onDelta) {
-      var reader = response.body.getReader();
-      var dec = new TextDecoder();
-      var buffer = "";
-      while (true) {
-        var chunk = await reader.read();
-        if (chunk.done) break;
-        buffer += dec.decode(chunk.value, { stream: true });
-        var parts = buffer.split("\n");
-        buffer = parts.pop() || "";
-        for (var i = 0; i < parts.length; i++) {
-          var line = parts[i];
-          if (line.indexOf("data:") !== 0) continue;
-          var raw = line.slice(5).trim();
-          if (!raw || raw === "[DONE]") continue;
-          var delta = extractJsonDelta(raw);
-          if (delta) onDelta(delta);
+    begin.addEventListener("click", function () {
+      intro.classList.add("sentinel-intro--exit");
+      chatRoot.classList.add("is-active");
+      chatRoot.setAttribute("aria-hidden", "false");
+      window.setTimeout(function () {
+        intro.setAttribute("hidden", "");
+        inp.focus();
+      }, 560);
+    });
+
+    function parseReply(r, bodyText) {
+      var ct = (r.headers.get("content-type") || "").toLowerCase();
+      if (ct.indexOf("application/json") !== -1) {
+        try {
+          var p = JSON.parse(bodyText);
+          var reply =
+            p.response != null
+              ? p.response
+              : p.message != null
+                ? p.message
+                : p.answer != null
+                  ? p.answer
+                  : p.text != null
+                    ? p.text
+                    : "";
+          if (typeof reply !== "string") reply = reply == null ? "" : String(reply);
+          return String(reply);
+        } catch (e) {
+          return bodyText;
         }
       }
-      if (buffer.indexOf("data:") === 0) {
-        var tail = buffer.slice(5).trim();
-        if (tail && tail !== "[DONE]") {
-          var d = extractJsonDelta(tail);
-          if (d) onDelta(d);
-        }
-      }
+      return bodyText;
     }
 
     async function postChat(userText) {
@@ -160,60 +156,32 @@
       };
       var r = await fetch(API, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json, text/event-stream, text/plain, */*"
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json, text/plain" },
         body: JSON.stringify(payload)
       });
-      var ct = (r.headers.get("content-type") || "").toLowerCase();
-
-      if (ct.indexOf("text/event-stream") !== -1) {
-        if (!r.ok) {
-          var errBody = await r.text();
-          throw new Error(errBody || "HTTP " + r.status);
-        }
-        var bodyEl = addAssistantStreamingShell();
-        var full = "";
-        await consumeSSE(r, function (d) {
-          full += d;
-          bodyEl.textContent = full;
-          scrollEnd();
-        });
-        bodyEl.parentElement.classList.remove("chat-bubble--streaming");
-        conversationHistory.push({ role: "user", content: userText });
-        conversationHistory.push({ role: "assistant", content: full });
-        return;
+      var raw = await r.text();
+      if (!r.ok) {
+        throw new Error("offline");
       }
-
-      if (ct.indexOf("application/json") !== -1) {
-        var p = await r.json();
-        if (!r.ok) throw new Error(p.error || p.message || "HTTP " + r.status);
-        var reply = p.response != null ? p.response : p.message != null ? p.message : p.answer != null ? p.answer : p.text != null ? p.text : "";
-        reply = String(reply);
-        addBubbleAssistant(reply);
-        conversationHistory.push({ role: "user", content: userText });
-        conversationHistory.push({ role: "assistant", content: reply });
-        return;
-      }
-
-      var text = await r.text();
-      if (!r.ok) throw new Error(text || "HTTP " + r.status);
-      addBubbleAssistant(text);
-      conversationHistory.push({ role: "user", content: userText });
-      conversationHistory.push({ role: "assistant", content: text });
+      return parseReply(r, raw);
     }
 
     async function send() {
       var msg = inp.value.trim();
       if (!msg) return;
+      if (!chatRoot.classList.contains("is-active")) return;
+
       addBubbleUser(msg);
       inp.value = "";
       setBusy(true);
       try {
-        await postChat(msg);
-      } catch (err) {
-        addBubbleSystem("Error: " + err.message);
+        var reply = await postChat(msg);
+        addBubbleAssistant(reply);
+        conversationHistory.push({ role: "user", content: msg });
+        conversationHistory.push({ role: "assistant", content: reply });
+        updateMemoryPill();
+      } catch (e) {
+        offlineReply();
       } finally {
         setBusy(false);
         inp.focus();
@@ -228,26 +196,10 @@
       }
     });
 
-    addBubbleAssistant("Hi — I'm Sentinel. Ask me anything.");
-    inp.focus();
-
-    var opener = sessionStorage.getItem("jarvis_opener");
-    if (opener) {
-      sessionStorage.removeItem("jarvis_opener");
-      setTimeout(function () {
-        addBubbleUser(opener);
-        inp.value = "";
-        setBusy(true);
-        postChat(opener)
-          .catch(function (err) {
-            addBubbleSystem("Error: " + err.message);
-          })
-          .finally(function () {
-            setBusy(false);
-            inp.focus();
-          });
-      }, 400);
-    }
+    addBubbleAssistant(
+      "Hello. I am Sentinel, your AI assistant. How can I help you today?"
+    );
+    updateMemoryPill();
   })();
   </script>
 </body>
