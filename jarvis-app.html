@@ -3,36 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Try Sentinel — private AI web chat powered by Sentinel Prime.">
-  <title>Try Sentinel | Web Chat</title>
+  <meta name="description" content="Sentinel AI — private web chat powered by Sentinel Prime.">
+  <title>Sentinel AI</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index-landing.css">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
-<body class="il-body" data-page="jarvis">
+<body class="il-body jarvis-chat-page" data-page="jarvis">
   <div id="webgl-root" aria-hidden="true"></div>
   <div class="il-wrap jarvis-app-layout">
     <div id="site-header"></div>
 
     <main class="jarvis-app-main shell-main" style="padding-top:5.25rem">
-      <div class="jarvis-terminal il-reveal">
+      <div class="jarvis-chat-shell il-reveal">
         <header class="jarvis-terminal__head">
           <h1 class="jarvis-terminal__title">SENTINEL</h1>
-          <span class="jarvis-terminal__badge">WEB CHAT · AI</span>
+          <span class="jarvis-terminal__badge">AI CHAT</span>
         </header>
         <section id="sentinel-chat-window" aria-live="polite"></section>
-        <div class="jarvis-input-row">
-          <span class="prompt">&gt;&gt;&gt;</span>
+        <div class="chat-input-bar">
+          <span class="prompt" aria-hidden="true">›</span>
           <input id="sentinel-chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Message Sentinel…" aria-label="Message">
           <button type="button" class="jarvis-send-btn" id="sentinel-chat-send">Send</button>
         </div>
@@ -42,50 +34,79 @@
     <div id="site-footer"></div>
   </div>
 
-  <script type="module" src="js/index-tesseract.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/components.js"></script>
   <script src="js/shell.js" defer></script>
   <script>
   (function () {
-    const API = "https://jarvis-0sbo.onrender.com/api/chat";
-    const win = document.getElementById("sentinel-chat-window");
-    const inp = document.getElementById("sentinel-chat-input");
-    const btn = document.getElementById("sentinel-chat-send");
+    var API = "https://jarvis-0sbo.onrender.com/api/chat";
+    var win = document.getElementById("sentinel-chat-window");
+    var inp = document.getElementById("sentinel-chat-input");
+    var btn = document.getElementById("sentinel-chat-send");
+    var conversationHistory = [];
 
     fetch("https://jarvis-0sbo.onrender.com/").catch(function () {});
 
-    function addMsg(role, text, typewriter) {
-      const row = document.createElement("div");
-      row.className = "jarvis-msg " + role;
-      const pre = document.createElement("span");
-      pre.className = "jarvis-prefix";
-      pre.textContent = role === "user" ? "> " : role === "bot" ? "SENTINEL :: " : "[ SYSTEM ] ";
-      const bod = document.createElement("span");
-      bod.className = "jarvis-body";
-      row.appendChild(pre);
-      row.appendChild(bod);
-      win.appendChild(row);
+    function scrollEnd() {
       win.scrollTop = win.scrollHeight;
+    }
 
-      if (role === "bot" && typewriter !== false) {
-        return new Promise(function (res) {
-          var i = 0;
-          function tick() {
-            if (i >= text.length) {
-              win.scrollTop = win.scrollHeight;
-              res();
-              return;
-            }
-            bod.textContent = text.slice(0, ++i);
-            win.scrollTop = win.scrollHeight;
-            requestAnimationFrame(tick);
-          }
-          tick();
-        });
-      }
-      bod.textContent = text;
-      return Promise.resolve();
+    function addBubbleUser(text) {
+      var row = document.createElement("div");
+      row.className = "chat-row chat-row--user";
+      var b = document.createElement("div");
+      b.className = "chat-bubble chat-bubble--user";
+      b.textContent = text;
+      row.appendChild(b);
+      win.appendChild(row);
+      scrollEnd();
+    }
+
+    function addBubbleAssistant(text) {
+      var row = document.createElement("div");
+      row.className = "chat-row chat-row--assistant";
+      var b = document.createElement("div");
+      b.className = "chat-bubble chat-bubble--assistant";
+      var lab = document.createElement("span");
+      lab.className = "chat-bubble__label";
+      lab.textContent = "SENTINEL";
+      b.appendChild(lab);
+      var body = document.createElement("div");
+      body.className = "chat-bubble__body";
+      body.textContent = text;
+      b.appendChild(body);
+      row.appendChild(b);
+      win.appendChild(row);
+      scrollEnd();
+    }
+
+    function addAssistantStreamingShell() {
+      var row = document.createElement("div");
+      row.className = "chat-row chat-row--assistant";
+      var b = document.createElement("div");
+      b.className = "chat-bubble chat-bubble--assistant chat-bubble--streaming";
+      var lab = document.createElement("span");
+      lab.className = "chat-bubble__label";
+      lab.textContent = "SENTINEL";
+      b.appendChild(lab);
+      var body = document.createElement("div");
+      body.className = "chat-bubble__body";
+      b.appendChild(body);
+      row.appendChild(b);
+      win.appendChild(row);
+      scrollEnd();
+      return body;
+    }
+
+    function addBubbleSystem(text) {
+      var row = document.createElement("div");
+      row.className = "chat-row chat-row--system";
+      var b = document.createElement("div");
+      b.className = "chat-bubble chat-bubble--system";
+      b.textContent = text;
+      row.appendChild(b);
+      win.appendChild(row);
+      scrollEnd();
     }
 
     function setBusy(on) {
@@ -93,23 +114,106 @@
       btn.disabled = on;
     }
 
+    function extractJsonDelta(raw) {
+      try {
+        var j = JSON.parse(raw);
+        var piece = j.content != null ? j.content : j.text != null ? j.text : j.token != null ? j.token : j.delta != null ? j.delta : j.response != null ? j.response : j.message != null ? j.message : "";
+        if (typeof piece === "object" && piece != null && piece.content) piece = piece.content;
+        return typeof piece === "string" ? piece : String(piece || "");
+      } catch (e) {
+        return raw;
+      }
+    }
+
+    async function consumeSSE(response, onDelta) {
+      var reader = response.body.getReader();
+      var dec = new TextDecoder();
+      var buffer = "";
+      while (true) {
+        var chunk = await reader.read();
+        if (chunk.done) break;
+        buffer += dec.decode(chunk.value, { stream: true });
+        var parts = buffer.split("\n");
+        buffer = parts.pop() || "";
+        for (var i = 0; i < parts.length; i++) {
+          var line = parts[i];
+          if (line.indexOf("data:") !== 0) continue;
+          var raw = line.slice(5).trim();
+          if (!raw || raw === "[DONE]") continue;
+          var delta = extractJsonDelta(raw);
+          if (delta) onDelta(delta);
+        }
+      }
+      if (buffer.indexOf("data:") === 0) {
+        var tail = buffer.slice(5).trim();
+        if (tail && tail !== "[DONE]") {
+          var d = extractJsonDelta(tail);
+          if (d) onDelta(d);
+        }
+      }
+    }
+
+    async function postChat(userText) {
+      var payload = {
+        message: userText,
+        conversationHistory: conversationHistory.slice()
+      };
+      var r = await fetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream, text/plain, */*"
+        },
+        body: JSON.stringify(payload)
+      });
+      var ct = (r.headers.get("content-type") || "").toLowerCase();
+
+      if (ct.indexOf("text/event-stream") !== -1) {
+        if (!r.ok) {
+          var errBody = await r.text();
+          throw new Error(errBody || "HTTP " + r.status);
+        }
+        var bodyEl = addAssistantStreamingShell();
+        var full = "";
+        await consumeSSE(r, function (d) {
+          full += d;
+          bodyEl.textContent = full;
+          scrollEnd();
+        });
+        bodyEl.parentElement.classList.remove("chat-bubble--streaming");
+        conversationHistory.push({ role: "user", content: userText });
+        conversationHistory.push({ role: "assistant", content: full });
+        return;
+      }
+
+      if (ct.indexOf("application/json") !== -1) {
+        var p = await r.json();
+        if (!r.ok) throw new Error(p.error || p.message || "HTTP " + r.status);
+        var reply = p.response != null ? p.response : p.message != null ? p.message : p.answer != null ? p.answer : p.text != null ? p.text : "";
+        reply = String(reply);
+        addBubbleAssistant(reply);
+        conversationHistory.push({ role: "user", content: userText });
+        conversationHistory.push({ role: "assistant", content: reply });
+        return;
+      }
+
+      var text = await r.text();
+      if (!r.ok) throw new Error(text || "HTTP " + r.status);
+      addBubbleAssistant(text);
+      conversationHistory.push({ role: "user", content: userText });
+      conversationHistory.push({ role: "assistant", content: text });
+    }
+
     async function send() {
       var msg = inp.value.trim();
       if (!msg) return;
-      addMsg("user", msg);
+      addBubbleUser(msg);
       inp.value = "";
       setBusy(true);
       try {
-        var r = await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msg })
-        });
-        var p = await r.json();
-        if (!r.ok) throw new Error(p.error || "HTTP " + r.status);
-        await addMsg("bot", p.response);
+        await postChat(msg);
       } catch (err) {
-        addMsg("system", "Error: " + err.message, false);
+        addBubbleSystem("Error: " + err.message);
       } finally {
         setBusy(false);
         inp.focus();
@@ -124,30 +228,24 @@
       }
     });
 
-    addMsg("bot", "Hi — I'm Sentinel. Ask me anything.", false);
+    addBubbleAssistant("Hi — I'm Sentinel. Ask me anything.");
     inp.focus();
 
     var opener = sessionStorage.getItem("jarvis_opener");
     if (opener) {
       sessionStorage.removeItem("jarvis_opener");
-      setTimeout(async function () {
-        addMsg("user", opener);
+      setTimeout(function () {
+        addBubbleUser(opener);
+        inp.value = "";
         setBusy(true);
-        try {
-          var r = await fetch(API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: opener })
+        postChat(opener)
+          .catch(function (err) {
+            addBubbleSystem("Error: " + err.message);
+          })
+          .finally(function () {
+            setBusy(false);
+            inp.focus();
           });
-          var p = await r.json();
-          if (!r.ok) throw new Error(p.error || "HTTP " + r.status);
-          await addMsg("bot", p.response);
-        } catch (err) {
-          addMsg("system", "Error: " + err.message, false);
-        } finally {
-          setBusy(false);
-          inp.focus();
-        }
       }, 400);
     }
   })();
