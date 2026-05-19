@@ -1,11 +1,10 @@
 const navItems = [
   { label: "Home", href: "/index.html", key: "home" },
   { label: "Products", href: "/products.html", key: "products" },
-  { label: "SentinelOS", href: "/products.html#sentineloscoming-soon", key: "sentinelos" },
+  { label: "SentinelOS", href: "/products.html#sentinelos", key: "sentinelos" },
+  { label: "Pricing", href: "/pricing.html", key: "pricing" },
   { label: "About", href: "/about.html", key: "about" },
-  { label: "Business Services", href: "/business-services.html", key: "services" },
-  { label: "Contact", href: "/contact.html", key: "contact" },
-  { label: "Try Sentinel", href: "/jarvis-app.html", key: "jarvis", tryCta: true }
+  { label: "Contact", href: "/contact.html", key: "contact" }
 ];
 
 function navLinkClass(item, activePage) {
@@ -14,9 +13,8 @@ function navLinkClass(item, activePage) {
   if (item.key === "home" && activePage === "home") parts.push("active");
   if (item.key === "products" && activePage === "products") parts.push("active");
   if (item.key === "about" && activePage === "about") parts.push("active");
-  if (item.key === "services" && activePage === "services") parts.push("active");
+  if (item.key === "pricing" && activePage === "pricing") parts.push("active");
   if (item.key === "contact" && activePage === "contact") parts.push("active");
-  if (item.key === "jarvis" && activePage === "jarvis") parts.push("active");
   return parts.join(" ").trim();
 }
 

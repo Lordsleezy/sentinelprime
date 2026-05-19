@@ -1333,3 +1333,136 @@ body.il-body {
   gap: 0.65rem;
   margin-top: 1.25rem;
 }
+
+.product-status {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.product-status--available {
+  color: var(--il-cyan);
+  border: 1px solid rgba(0, 212, 255, 0.45);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.product-status--building {
+  color: #f5b942;
+  border: 1px solid rgba(245, 185, 66, 0.45);
+  background: rgba(245, 185, 66, 0.08);
+}
+
+.product-status--soon {
+  color: #8a8a90;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.il-waitlist {
+  padding: 4rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.forge-pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .forge-pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .forge-pricing-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.forge-plan {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  background: rgba(6, 6, 6, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.forge-plan h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.forge-plan__price {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.forge-plan__price span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--il-muted);
+}
+
+.forge-plan__desc {
+  margin: 0;
+  flex: 1;
+  color: var(--il-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.forge-plan--highlight {
+  border-color: rgba(0, 212, 255, 0.55);
+  box-shadow: 0 0 32px rgba(0, 212, 255, 0.12);
+}
+
+.forge-plan__badge {
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--il-cyan);
+  color: #001018;
+  white-space: nowrap;
+}
+
+.forge-faq {
+  padding-top: 0;
+}
+
+.forge-faq__list {
+  margin: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.forge-faq__item dt {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+
+.forge-faq__item dd {
+  margin: 0;
+  color: var(--il-muted);
+  line-height: 1.55;
+}
