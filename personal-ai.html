@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentinel Personal AI — your AI on your device, forever private.">
+  <title>Sentinel Personal AI | Sentinel</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./js/lib/three.module.js",
+      "three/addons/": "./js/lib/three-addons/"
+    }
+  }
+  </script>
+</head>
+<body class="il-body" data-page="products">
+  <div id="webgl-root" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <div id="site-header"></div>
+
+    <main class="shell-main">
+      <div class="il-container">
+        <article class="product-standalone il-reveal">
+          <span class="product-status product-status--available">Available Now</span>
+          <header class="product-standalone__hero">
+            <h1>Sentinel Personal AI</h1>
+            <p class="il-pcard__tag">Your AI. On your device. Forever private.</p>
+          </header>
+          <ul>
+            <li>Free iOS app — download today</li>
+            <li>On-device inference, no server-side profile</li>
+            <li>No data collection, no account wall for core features</li>
+            <li>Local-first memory and conversations</li>
+            <li>Auditable architecture you can inspect</li>
+          </ul>
+          <p class="product-standalone__stub">Android support and expanded model options are in development — the iOS app is available now on the App Store.</p>
+          <div class="product-page-actions">
+            <a class="il-mini-btn il-mini-btn--fill" href="https://apps.apple.com/app/id6767139428" rel="noopener noreferrer">App Store</a>
+            <a class="il-mini-btn" href="products.html#personal-ai">All products</a>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
+  <script src="js/index-landing.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+/* Product galaxy map — decorative; cards remain accessible source */
+@media (prefers-reduced-motion: reduce) {
+  .product-galaxy-root {
+    display: none !important;
+  }
+}
+
+.product-galaxy-root {
+  position: relative;
+  width: 100%;
+  margin: 0 0 2rem;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: radial-gradient(ellipse at 50% 40%, rgba(0, 212, 255, 0.06) 0%, transparent 55%),
+    #030305;
+}
+
+.product-galaxy {
+  position: relative;
+  width: 100%;
+  height: min(52vh, 420px);
+  min-height: 280px;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.product-galaxy.is-dragging {
+  cursor: grabbing;
+}
+
+.product-galaxy canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.product-galaxy--no-drag {
+  cursor: default;
+  touch-action: auto;
+}
+
+.galaxy-tooltip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 3;
+  max-width: min(280px, 90vw);
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translate(-50%, -120%) scale(0.96);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  text-align: center;
+}
+
+.galaxy-tooltip.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -120%) scale(1);
+}
+
+.galaxy-tooltip__name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.galaxy-tooltip__tag {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--il-muted);
+}
+
+.galaxy-hint {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(154, 163, 173, 0.65);
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .product-galaxy {
+    height: min(44vh, 340px);
+    min-height: 240px;
+  }
+
+  .galaxy-hint--desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .galaxy-hint--mobile {
+    display: none;
+  }
+}
+
+/* Standalone product pages */
+.product-standalone {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.product-standalone__hero {
+  margin-bottom: 1.5rem;
+}
+
+.product-standalone__hero h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  margin: 0 0 0.5rem;
+}
+
+.product-standalone__stub {
+  color: var(--il-muted);
+  font-size: 0.95rem;
+  margin: 1.5rem 0 0;
+  font-style: italic;
+}
+
+.product-standalone ul {
+  padding-left: 1.2rem;
+  margin: 1rem 0;
+  color: var(--il-muted);
+}
+
+.product-standalone li {
+  margin-bottom: 0.35rem;
+}

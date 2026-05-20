@@ -13,11 +13,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index-landing.css">
+  <link rel="stylesheet" href="css/galaxy.css">
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      "three": "./js/lib/three.module.js",
+      "three/addons/": "./js/lib/three-addons/"
     }
   }
   </script>
@@ -50,6 +51,17 @@
             <span class="il-eco-title__line" aria-hidden="true"></span>
             <span class="il-eco-title__text">The Ecosystem</span>
             <span class="il-eco-title__line" aria-hidden="true"></span>
+          </div>
+          <div class="product-galaxy-root il-reveal" data-galaxy-root>
+            <div class="product-galaxy">
+              <canvas aria-hidden="true"></canvas>
+              <div class="galaxy-tooltip" hidden aria-hidden="true">
+                <p class="galaxy-tooltip__name"></p>
+                <p class="galaxy-tooltip__tag"></p>
+              </div>
+              <p class="galaxy-hint galaxy-hint--desktop">Drag to orbit · Click a planet</p>
+              <p class="galaxy-hint galaxy-hint--mobile">Tap a planet to explore</p>
+            </div>
           </div>
           <div class="il-products-grid">
             <article class="il-pcard il-pcard--cyan il-reveal" id="product-personal">
@@ -235,5 +247,6 @@
   <script src="js/components.js"></script>
   <script src="js/shell.js" defer></script>
   <script src="js/index-landing.js" defer></script>
+  <script type="module" src="js/galaxy-loader.js"></script>
 </body>
 </html>
