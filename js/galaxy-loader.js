@@ -12,8 +12,14 @@
     if (initialized.has(root)) return;
     initialized.add(root);
     import("./galaxy.js")
-      .then((mod) => mod.initGalaxy(root))
-      .catch((err) => console.warn("Galaxy failed to load:", err));
+      .then((mod) => {
+        try {
+          mod.initGalaxy(root);
+        } catch (err) {
+          console.error("[galaxy] initGalaxy threw:", err);
+        }
+      })
+      .catch((err) => console.error("[galaxy] failed to load module:", err));
   }
 
   const io = new IntersectionObserver(

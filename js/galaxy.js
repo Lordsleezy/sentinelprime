@@ -36,6 +36,92 @@ function getQualityTier() {
   return "medium";
 }
 
+function validateGeometryAttributes(scene, label = "scene") {
+  scene.traverse((obj) => {
+    if (!obj.isMesh && !obj.isLine && !obj.isPoints) return;
+    const geom = obj.geometry;
+    if (!geom) {
+      console.error(`[galaxy] Object has no geometry (${label}):`, obj.name || obj.type, obj);
+      return;
+    }
+    for (const [name, attr] of Object.entries(geom.attributes)) {
+      if (!attr || !attr.array || attr.array.length === 0) {
+        console.error(`[galaxy] Bad attribute "${name}" on (${label}):`, obj.name || obj.type, obj, attr);
+      }
+    }
+    if (geom.index && (!geom.index.array || geom.index.array.length === 0)) {
+      console.error(`[galaxy] Bad index on (${label}):`, obj.name || obj.type, obj);
+    }
+  });
+}
+
+function createTesseractFaceGeometry(faceCount) {
+  const facePositions = new Float32Array(faceCount * 4 * 3);
+  const faceUvs = new Float32Array(faceCount * 4 * 2);
+  for (let f = 0; f < faceCount; f += 1) {
+    const uo = f * 8;
+    faceUvs[uo] = 0;
+    faceUvs[uo + 1] = 0;
+    faceUvs[uo + 2] = 1;
+    faceUvs[uo + 3] = 0;
+    faceUvs[uo + 4] = 1;
+    faceUvs[uo + 5] = 1;
+    faceUvs[uo + 6] = 0;
+    faceUvs[uo + 7] = 1;
+  }
+
+  const faceGeo = new THREE.BufferGeometry();
+  faceGeo.setAttribute("position", new THREE.BufferAttribute(facePositions, 3));
+  faceGeo.setAttribute("uv", new THREE.BufferAttribute(faceUvs, 2));
+  faceGeo.setIndex(
+    new Uint16Array(
+      Array.from({ length: faceCount * 6 }, (_, i) => {
+        const f = Math.floor(i / 6);
+        const v = i % 6;
+        const map = [0, 1, 2, 0, 2, 3];
+        return f * 4 + map[v];
+      })
+    )
+  );
+
+  return { faceGeo, facePositions };
+}
+
+function isDegenerateQuad(verts, indices) {
+  const a = verts[indices[0]];
+  const b = verts[indices[1]];
+  const c = verts[indices[2]];
+  const d = verts[indices[3]];
+  const eps = 0.001;
+  const dist = (p, q) => p.distanceTo(q);
+  return (
+    dist(a, b) < eps ||
+    dist(b, c) < eps ||
+    dist(c, d) < eps ||
+    dist(d, a) < eps ||
+    dist(a, c) < eps ||
+    dist(b, d) < eps
+  );
+}
+
+function refreshFaceGeometryNormals(geometry) {
+  if (!geometry.attributes.normal) {
+    geometry.setAttribute(
+      "normal",
+      new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3)
+    );
+  }
+  geometry.computeVertexNormals();
+  if (
+    geometry.index &&
+    geometry.attributes.position &&
+    geometry.attributes.normal &&
+    geometry.attributes.uv
+  ) {
+    geometry.computeTangents();
+  }
+}
+
 function alignCylinder(mesh, a, b) {
   _vA.copy(a);
   _vB.copy(b);
@@ -101,18 +187,7 @@ class HolographicTesseract {
     this.edgePulseBoost = 1;
 
     const faceCount = this.tess.faces.length;
-    const facePositions = new Float32Array(faceCount * 4 * 3);
-    const faceGeo = new THREE.BufferGeometry();
-    faceGeo.setAttribute("position", new THREE.BufferAttribute(facePositions, 3));
-    faceGeo.setIndex(
-      new Uint16Array(Array.from({ length: faceCount * 6 }, (_, i) => {
-        const f = Math.floor(i / 6);
-        const v = i % 6;
-        const map = [0, 1, 2, 0, 2, 3];
-        return f * 4 + map[v];
-      }))
-    );
-    faceGeo.computeVertexNormals();
+    const { faceGeo, facePositions } = createTesseractFaceGeometry(faceCount);
 
     this.faceMat = new THREE.MeshPhysicalMaterial({
       color: CORE_EMISSIVE,
@@ -130,6 +205,10 @@ class HolographicTesseract {
     this.faceMesh = new THREE.Mesh(faceGeo, this.faceMat);
     this.group.add(this.faceMesh);
     this.facePositions = facePositions;
+
+    // Populate vertices before first GPU upload — transmission materials require valid UV/normal.
+    this.update(0);
+    refreshFaceGeometryNormals(this.faceMesh.geometry);
 
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
@@ -166,7 +245,7 @@ class HolographicTesseract {
       opacity: 0.95 * this.opacity
     });
     for (let i = 0; i < 16; i += 1) {
-      const m = new THREE.Mesh(vGeo, vMat.clone());
+      const m = new THREE.Mesh(vGeo.clone(), vMat.clone());
       this.group.add(m);
       this.vertexMeshes.push(m);
     }
@@ -226,68 +305,74 @@ class HolographicTesseract {
   }
 
   update(time, projectedOverride) {
-    if (!projectedOverride) {
-      this.tess.rotate(time, this.xwRate, this.ywRate);
-    }
-    const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
-    const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
-
-    for (let f = 0; f < this.tess.faces.length; f += 1) {
-      const face = this.tess.faces[f];
-      for (let c = 0; c < 4; c += 1) {
-        const v = verts[face[c]];
-        const o = (f * 4 + c) * 3;
-        this.facePositions[o] = v.x;
-        this.facePositions[o + 1] = v.y;
-        this.facePositions[o + 2] = v.z;
+    try {
+      if (!projectedOverride) {
+        this.tess.rotate(time, this.xwRate, this.ywRate);
       }
-    }
-    this.faceMesh.geometry.attributes.position.needsUpdate = true;
-    this.faceMesh.geometry.computeVertexNormals();
+      const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
+      const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
 
-    for (let e = 0; e < this.tess.edges.length; e += 1) {
-      const [a, b] = this.tess.edges[e];
-      alignCylinder(this.edgeMeshes[e], verts[a], verts[b]);
-      this.edgeMeshes[e].material.uniforms.uTime.value = time;
-      this.edgeMeshes[e].material.uniforms.uPulseBoost.value = this.edgePulseBoost;
-    }
-
-    const flare = {};
-    for (let e = 0; e < this.tess.edges.length; e += 1) {
-      const t = (time * this.edgeMeshes[e].material.uniforms.uSpeed.value +
-        this.edgeMeshes[e].material.uniforms.uPhase.value) % 1;
-      const [a, b] = this.tess.edges[e];
-      const nearA = Math.abs(t - 0) < 0.08 || Math.abs(t - 1) < 0.08;
-      const nearB = Math.abs(t - 0.5) < 0.08;
-      if (nearA) flare[a] = (flare[a] ?? 1) + 0.6;
-      if (nearB) flare[b] = (flare[b] ?? 1) + 0.4;
-    }
-
-    for (let i = 0; i < 16; i += 1) {
-      this.vertexMeshes[i].position.copy(verts[i]);
-      const s = 0.85 + (flare[i] ?? 0) * 0.35;
-      this.vertexMeshes[i].scale.setScalar(s);
-      this.vertexMeshes[i].material.emissiveIntensity = 1.8 + (flare[i] ?? 0) * 1.2;
-    }
-
-    if (!this.withCells) return verts;
-
-    for (const [axis, cell] of this.cells) {
-      const indices = this.tess.cells[axis];
-      for (let i = 0; i < indices.length; i += 1) {
-        const v = verts[indices[i]];
-        cell.ptPositions[i * 3] = v.x;
-        cell.ptPositions[i * 3 + 1] = v.y;
-        cell.ptPositions[i * 3 + 2] = v.z;
+      for (let f = 0; f < this.tess.faces.length; f += 1) {
+        const face = this.tess.faces[f];
+        if (isDegenerateQuad(verts, face)) continue;
+        for (let c = 0; c < 4; c += 1) {
+          const v = verts[face[c]];
+          const o = (f * 4 + c) * 3;
+          this.facePositions[o] = v.x;
+          this.facePositions[o + 1] = v.y;
+          this.facePositions[o + 2] = v.z;
+        }
       }
-      cell.points.geometry.attributes.position.needsUpdate = true;
+      this.faceMesh.geometry.attributes.position.needsUpdate = true;
+      refreshFaceGeometryNormals(this.faceMesh.geometry);
 
-      const center = this.tess.getCellCenter(axis, this.scale);
-      cell.hit.position.set(center.x, center.y, center.z);
-      cell.label.position.set(center.x, center.y + 0.35, center.z);
+      for (let e = 0; e < this.tess.edges.length; e += 1) {
+        const [a, b] = this.tess.edges[e];
+        alignCylinder(this.edgeMeshes[e], verts[a], verts[b]);
+        this.edgeMeshes[e].material.uniforms.uTime.value = time;
+        this.edgeMeshes[e].material.uniforms.uPulseBoost.value = this.edgePulseBoost;
+      }
+
+      const flare = {};
+      for (let e = 0; e < this.tess.edges.length; e += 1) {
+        const t = (time * this.edgeMeshes[e].material.uniforms.uSpeed.value +
+          this.edgeMeshes[e].material.uniforms.uPhase.value) % 1;
+        const [a, b] = this.tess.edges[e];
+        const nearA = Math.abs(t - 0) < 0.08 || Math.abs(t - 1) < 0.08;
+        const nearB = Math.abs(t - 0.5) < 0.08;
+        if (nearA) flare[a] = (flare[a] ?? 1) + 0.6;
+        if (nearB) flare[b] = (flare[b] ?? 1) + 0.4;
+      }
+
+      for (let i = 0; i < 16; i += 1) {
+        this.vertexMeshes[i].position.copy(verts[i]);
+        const s = 0.85 + (flare[i] ?? 0) * 0.35;
+        this.vertexMeshes[i].scale.setScalar(s);
+        this.vertexMeshes[i].material.emissiveIntensity = 1.8 + (flare[i] ?? 0) * 1.2;
+      }
+
+      if (!this.withCells) return verts;
+
+      for (const [axis, cell] of this.cells) {
+        const indices = this.tess.cells[axis];
+        for (let i = 0; i < indices.length; i += 1) {
+          const v = verts[indices[i]];
+          cell.ptPositions[i * 3] = v.x;
+          cell.ptPositions[i * 3 + 1] = v.y;
+          cell.ptPositions[i * 3 + 2] = v.z;
+        }
+        cell.points.geometry.attributes.position.needsUpdate = true;
+
+        const center = this.tess.getCellCenter(axis, this.scale);
+        cell.hit.position.set(center.x, center.y, center.z);
+        cell.label.position.set(center.x, center.y + 0.35, center.z);
+      }
+
+      return verts;
+    } catch (err) {
+      console.error("[galaxy] tesseract update skipped a frame:", err);
+      return null;
     }
-
-    return verts;
   }
 
   setCellOpacity(cellAxis, opacity) {
@@ -337,6 +422,7 @@ class HolographicTesseract {
  * @param {HTMLElement} root
  */
 export function initGalaxy(root) {
+  try {
   const mount = root.querySelector(".product-galaxy");
   const canvas = root.querySelector("canvas");
   const hintEls = root.querySelectorAll(".galaxy-hint");
@@ -503,6 +589,9 @@ export function initGalaxy(root) {
     ghosts.push(new HolographicTesseract({ scale: 1.75, opacity: 0.03, xwRate: 0.12, ywRate: 0.085, withCells: false, quality }));
   }
   for (const g of ghosts) scene.add(g.group);
+
+  validateGeometryAttributes(scene, "init");
+  console.info("[galaxy] canvas size at init:", canvas.clientWidth, canvas.clientHeight);
 
   const bloomStrength = quality === "mobile" ? 1.2 : 1.6;
   const bloomRadius = quality === "high" ? 0.8 : quality === "medium" ? 0.65 : 0.55;
@@ -742,4 +831,8 @@ export function initGalaxy(root) {
     labelRenderer.domElement.remove();
     if (hintTimer) clearTimeout(hintTimer);
   };
+  } catch (err) {
+    console.error("[galaxy] initGalaxy failed:", err);
+    throw err;
+  }
 }
