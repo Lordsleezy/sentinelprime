@@ -17,6 +17,11 @@ export const CONNECTIONS = [
   ["forge", "forge-lite"]
 ];
 
+/** Kepler-style: inner orbits move faster; speeds stay contemplative. */
+function orbitSpeedForRadius(radius) {
+  return 0.12 * Math.pow(5 / radius, 1.35);
+}
+
 export const PRODUCTS = [
   {
     slug: "sentinelos",
@@ -26,9 +31,9 @@ export const PRODUCTS = [
     statusLabel: "Building",
     color: CSS_COLORS.building,
     orbitRadius: 5,
-    orbitSpeed: 0.09,
-    orbitPhase: 0.4,
-    orbitTilt: 0.12,
+    orbitSpeed: orbitSpeedForRadius(5),
+    orbitPhase: 0,
+    orbitTilt: 0.03,
     planetRadius: 0.78,
     pageUrl: "sentinelos.html",
     features: [
@@ -47,10 +52,10 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.cyan,
-    orbitRadius: 7,
-    orbitSpeed: 0.075,
-    orbitPhase: 1.8,
-    orbitTilt: -0.18,
+    orbitRadius: 7.5,
+    orbitSpeed: orbitSpeedForRadius(7.5),
+    orbitPhase: Math.PI / 3,
+    orbitTilt: -0.025,
     planetRadius: 0.88,
     pageUrl: "sentinel-x.html",
     features: [
@@ -69,10 +74,10 @@ export const PRODUCTS = [
     status: "available",
     statusLabel: "Available Now",
     color: CSS_COLORS.cyanBright,
-    orbitRadius: 9,
-    orbitSpeed: 0.11,
-    orbitPhase: 3.2,
-    orbitTilt: 0.22,
+    orbitRadius: 10,
+    orbitSpeed: orbitSpeedForRadius(10),
+    orbitPhase: (Math.PI * 2) / 3,
+    orbitTilt: 0.02,
     planetRadius: 0.72,
     pageUrl: "personal-ai.html",
     features: [
@@ -96,10 +101,10 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.red,
-    orbitRadius: 11,
-    orbitSpeed: 0.065,
-    orbitPhase: 4.5,
-    orbitTilt: -0.14,
+    orbitRadius: 12.5,
+    orbitSpeed: orbitSpeedForRadius(12.5),
+    orbitPhase: Math.PI,
+    orbitTilt: -0.03,
     planetRadius: 0.82,
     pageUrl: "guardian.html",
     features: [
@@ -118,10 +123,10 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.cyanDim,
-    orbitRadius: 13,
-    orbitSpeed: 0.055,
-    orbitPhase: 5.7,
-    orbitTilt: 0.16,
+    orbitRadius: 15,
+    orbitSpeed: orbitSpeedForRadius(15),
+    orbitPhase: (Math.PI * 4) / 3,
+    orbitTilt: 0.025,
     planetRadius: 0.76,
     pageUrl: "forge.html",
     features: [
@@ -140,10 +145,10 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.muted,
-    orbitRadius: 15,
-    orbitSpeed: 0.095,
-    orbitPhase: 0.9,
-    orbitTilt: -0.2,
+    orbitRadius: 17.5,
+    orbitSpeed: orbitSpeedForRadius(17.5),
+    orbitPhase: (Math.PI * 5) / 3,
+    orbitTilt: -0.02,
     planetRadius: 0.58,
     pageUrl: "forge-lite.html",
     features: [

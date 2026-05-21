@@ -2,27 +2,35 @@ import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { PRODUCTS, CONNECTIONS } from "./products-config.js";
 
 const MOBILE_BREAK = 768;
 const CORE_COLOR = 0xccf8ff;
 const CORE_EMISSIVE = 0x00d4ff;
+const BASE_ORBIT_TILT = (20 * Math.PI) / 180;
+const CURVE_SEGMENTS = 50;
+const LABEL_PAD = 6;
+const MAX_LABEL_OFFSET = 120;
+const LEADER_THRESHOLD = 40;
+const CORE_SCREEN_PAD = 20;
+
+const _worldPos = new THREE.Vector3();
+const _tempMid = new THREE.Vector3();
+const _tempOut = new THREE.Vector3();
 
 function hexToThree(hex) {
   return parseInt(hex.replace("#", ""), 16);
 }
 
-function orbitPosition(product, time) {
+function orbitPositionLocal(product, time) {
   const angle = product.orbitPhase + time * product.orbitSpeed;
   const x = Math.cos(angle) * product.orbitRadius;
   const z = Math.sin(angle) * product.orbitRadius;
-  const y = 0;
   const tilt = product.orbitTilt;
   const cos = Math.cos(tilt);
   const sin = Math.sin(tilt);
-  return new THREE.Vector3(x, y * cos - z * sin, y * sin + z * cos);
+  return new THREE.Vector3(x, -z * sin, z * cos);
 }
 
 function createStarfield() {
@@ -91,6 +99,38 @@ function createStarfield() {
   return { points: new THREE.Points(geo, mat), geo, mat };
 }
 
+function curveAroundCore(start, end) {
+  _tempMid.copy(start).add(end).multiplyScalar(0.5);
+  _tempOut.copy(_tempMid);
+  if (_tempOut.lengthSq() < 0.01) {
+    _tempOut.set(0, 1.5, 0);
+  } else {
+    _tempOut.normalize().multiplyScalar(1.5);
+  }
+  const control = _tempMid.clone().add(_tempOut);
+  return new THREE.QuadraticBezierCurve3(start.clone(), control, end.clone()).getPoints(
+    CURVE_SEGMENTS
+  );
+}
+
+function projectToScreen(world, camera, width, height) {
+  const v = world.clone().project(camera);
+  return {
+    x: (v.x * 0.5 + 0.5) * width,
+    y: (-v.y * 0.5 + 0.5) * height,
+    behind: v.z > 1
+  };
+}
+
+function rectsOverlap(a, b) {
+  return !(
+    a.lx + a.w + LABEL_PAD < b.lx ||
+    b.lx + b.w + LABEL_PAD < a.lx ||
+    a.ly + a.h + LABEL_PAD < b.ly ||
+    b.ly + b.h + LABEL_PAD < a.ly
+  );
+}
+
 /**
  * @param {HTMLElement} root
  */
@@ -131,9 +171,14 @@ export function initGalaxy(root) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
 
-  const labelRenderer = new CSS2DRenderer();
-  labelRenderer.domElement.className = "galaxy-labels-layer";
-  mount.appendChild(labelRenderer.domElement);
+  const labelsLayer = document.createElement("div");
+  labelsLayer.className = "galaxy-labels-layer";
+  mount.appendChild(labelsLayer);
+
+  const leadersSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  leadersSvg.setAttribute("class", "galaxy-leaders");
+  leadersSvg.setAttribute("aria-hidden", "true");
+  mount.appendChild(leadersSvg);
 
   scene.add(new THREE.AmbientLight(0x0a1420, 0.35));
 
@@ -169,6 +214,10 @@ export function initGalaxy(root) {
   const starfield = createStarfield();
   scene.add(starfield.points);
 
+  const orbitSystem = new THREE.Group();
+  orbitSystem.rotation.x = BASE_ORBIT_TILT;
+  scene.add(orbitSystem);
+
   const slugToPlanet = new Map();
   /** @type {THREE.Mesh[]} */
   const planetMeshes = [];
@@ -192,6 +241,7 @@ export function initGalaxy(root) {
       })
     );
     mesh.userData = { product, baseEmissive: 0.65 };
+    orbitSystem.add(mesh);
 
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(product.orbitRadius - 0.04, product.orbitRadius + 0.04, 128),
@@ -204,56 +254,167 @@ export function initGalaxy(root) {
         depthWrite: false
       })
     );
-    ring.rotation.x = Math.PI / 2 + product.orbitTilt;
-    scene.add(ring);
+    ring.rotation.x = Math.PI / 2;
+    orbitSystem.add(ring);
 
     const labelDiv = document.createElement("div");
     labelDiv.className = "galaxy-label";
     labelDiv.innerHTML = `<strong>${product.name}</strong><span>${product.tagline}</span>`;
-    const label = new CSS2DObject(labelDiv);
-    label.position.set(radius + 0.55, radius * 0.65, 0);
-    mesh.add(label);
+    labelsLayer.appendChild(labelDiv);
 
-    scene.add(mesh);
     slugToPlanet.set(product.slug, mesh);
     planetMeshes.push(mesh);
     planets.push({ mesh, labelEl: labelDiv, ring, product });
   }
 
-  const linePositions = new Float32Array(CONNECTIONS.length * 2 * 3);
-  const lineGeo = new THREE.BufferGeometry();
-  lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-  const lineMat = new THREE.LineBasicMaterial({
-    color: CORE_EMISSIVE,
-    transparent: true,
-    opacity: 0.45,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
+  const connectionLines = CONNECTIONS.map(() => {
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array((CURVE_SEGMENTS + 1) * 3);
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const line = new THREE.Line(
+      geo,
+      new THREE.LineBasicMaterial({
+        color: CORE_EMISSIVE,
+        transparent: true,
+        opacity: 0.45,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
+    );
+    scene.add(line);
+    return { line, geo, positions };
   });
-  const lines = new THREE.LineSegments(lineGeo, lineMat);
-  scene.add(lines);
 
   function updateOrbits(time) {
-    for (const { mesh, ring, product } of planets) {
-      const pos = orbitPosition(product, time);
-      mesh.position.copy(pos);
-      ring.rotation.x = Math.PI / 2 + product.orbitTilt;
+    for (const { mesh, product } of planets) {
+      mesh.position.copy(orbitPositionLocal(product, time));
       mesh.rotation.y = time * 0.35 + product.orbitPhase;
       mesh.rotation.x = Math.sin(time * 0.2 + product.orbitPhase) * 0.08;
     }
 
-    let i = 0;
-    for (const [a, b] of CONNECTIONS) {
-      const pa = slugToPlanet.get(a).position;
-      const pb = slugToPlanet.get(b).position;
-      linePositions[i++] = pa.x;
-      linePositions[i++] = pa.y;
-      linePositions[i++] = pa.z;
-      linePositions[i++] = pb.x;
-      linePositions[i++] = pb.y;
-      linePositions[i++] = pb.z;
+    for (let c = 0; c < CONNECTIONS.length; c += 1) {
+      const [a, b] = CONNECTIONS[c];
+      slugToPlanet.get(a).getWorldPosition(_worldPos);
+      const start = _worldPos.clone();
+      slugToPlanet.get(b).getWorldPosition(_worldPos);
+      const end = _worldPos.clone();
+      const pts = curveAroundCore(start, end);
+      const { positions, geo } = connectionLines[c];
+      for (let i = 0; i < pts.length; i += 1) {
+        positions[i * 3] = pts[i].x;
+        positions[i * 3 + 1] = pts[i].y;
+        positions[i * 3 + 2] = pts[i].z;
+      }
+      geo.attributes.position.needsUpdate = true;
+      geo.setDrawRange(0, pts.length);
     }
-    lineGeo.attributes.position.needsUpdate = true;
+  }
+
+  function resolveLabels(hoveredMesh) {
+    const w = mount.clientWidth;
+    const h = mount.clientHeight;
+    if (w < 1 || h < 1) return;
+
+    const coreCenter = projectToScreen(new THREE.Vector3(0, 0, 0), camera, w, h);
+    const coreEdge = projectToScreen(new THREE.Vector3(2.45, 0, 0), camera, w, h);
+    const coreRadius =
+      Math.hypot(coreEdge.x - coreCenter.x, coreEdge.y - coreCenter.y) + CORE_SCREEN_PAD;
+
+    /** @type {Array<{ entry: typeof planets[0], planetX: number, planetY: number, lx: number, ly: number, w: number, h: number, crowded: boolean, offsetDist: number }>} */
+    const layout = planets.map((entry) => {
+      entry.mesh.getWorldPosition(_worldPos);
+      const planet = projectToScreen(_worldPos, camera, w, h);
+      const el = entry.labelEl;
+      const bw = el.offsetWidth || 140;
+      const bh = el.offsetHeight || 44;
+      const defaultOffsetX = isMobile() ? 8 : 14;
+      const defaultOffsetY = isMobile() ? -8 : -14;
+      return {
+        entry,
+        planetX: planet.x,
+        planetY: planet.y,
+        lx: planet.x + defaultOffsetX,
+        ly: planet.y + defaultOffsetY - bh,
+        w: bw,
+        h: bh,
+        crowded: false,
+        offsetDist: 0,
+        behind: planet.behind
+      };
+    });
+
+    layout.sort((a, b) => a.ly - b.ly);
+
+    for (const item of layout) {
+      const cx = item.lx + item.w * 0.5;
+      const cy = item.ly + item.h * 0.5;
+      const dist = Math.hypot(cx - coreCenter.x, cy - coreCenter.y);
+      if (dist < coreRadius) {
+        const angle = Math.atan2(cy - coreCenter.y, cx - coreCenter.x);
+        const push = coreRadius - dist + 10;
+        item.lx += Math.cos(angle) * push;
+        item.ly += Math.sin(angle) * push;
+      }
+    }
+
+    for (let pass = 0; pass < 10; pass += 1) {
+      layout.sort((a, b) => a.ly - b.ly);
+      let moved = false;
+      for (let i = 0; i < layout.length; i += 1) {
+        for (let j = i + 1; j < layout.length; j += 1) {
+          const a = layout[i];
+          const b = layout[j];
+          if (!rectsOverlap(a, b)) continue;
+
+          b.ly = a.ly + a.h + LABEL_PAD;
+          const dx = b.lx - b.planetX;
+          const dy = b.ly + b.h * 0.5 - b.planetY;
+          const offset = Math.hypot(dx, dy);
+
+          if (offset > MAX_LABEL_OFFSET) {
+            b.lx = b.planetX + MAX_LABEL_OFFSET * 0.65;
+            b.ly = b.planetY - b.h - LABEL_PAD;
+            b.crowded = true;
+          }
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+
+    leadersSvg.innerHTML = "";
+
+    for (const item of layout) {
+      const { entry, planetX, planetY, lx, ly, w: bw, h: bh, crowded, behind } = item;
+      item.offsetDist = Math.hypot(lx - planetX, ly + bh * 0.5 - planetY);
+
+      entry.labelEl.style.left = `${lx}px`;
+      entry.labelEl.style.top = `${ly}px`;
+
+      const hovered = hoveredMesh === entry.mesh;
+      entry.labelEl.classList.toggle("is-hovered", hovered);
+      entry.labelEl.classList.toggle("is-crowded", crowded && !hovered);
+
+      if (behind) {
+        entry.labelEl.style.opacity = "0.15";
+      } else if (hovered) {
+        entry.labelEl.style.opacity = "1";
+      } else if (crowded) {
+        entry.labelEl.style.opacity = "0.3";
+      } else {
+        entry.labelEl.style.opacity = "0.7";
+      }
+
+      if (item.offsetDist > LEADER_THRESHOLD && !behind) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", String(planetX));
+        line.setAttribute("y1", String(planetY));
+        line.setAttribute("x2", String(lx + bw * 0.15));
+        line.setAttribute("y2", String(ly + bh));
+        line.setAttribute("opacity", hovered ? "0.65" : "0.35");
+        leadersSvg.appendChild(line);
+      }
+    }
   }
 
   const controls = new OrbitControls(camera, canvas);
@@ -310,8 +471,6 @@ export function initGalaxy(root) {
     if (hoveredMesh) {
       hoveredMesh.scale.setScalar(1);
       hoveredMesh.material.emissiveIntensity = hoveredMesh.userData.baseEmissive;
-      const prev = planets.find((p) => p.mesh === hoveredMesh);
-      prev?.labelEl.classList.remove("is-hovered");
     }
 
     hoveredMesh = mesh;
@@ -319,8 +478,6 @@ export function initGalaxy(root) {
     if (mesh) {
       mesh.scale.setScalar(1.15);
       mesh.material.emissiveIntensity = 1.35;
-      const entry = planets.find((p) => p.mesh === mesh);
-      entry?.labelEl.classList.add("is-hovered");
     }
   }
 
@@ -385,7 +542,6 @@ export function initGalaxy(root) {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h, false);
-    labelRenderer.setSize(w, h);
     if (composer) composer.setSize(w, h);
     syncMobileControls();
   }
@@ -402,7 +558,10 @@ export function initGalaxy(root) {
       coreGroup.rotation.y = time * 0.12;
       coreLight.intensity = 2.8 + pulse * 0.8;
 
-      lineMat.opacity = 0.3 + 0.3 * (0.5 + 0.5 * Math.sin(time * 1.8));
+      const linePulse = 0.3 + 0.3 * (0.5 + 0.5 * Math.sin(time * 1.8));
+      for (const { line } of connectionLines) {
+        line.material.opacity = linePulse;
+      }
 
       starfield.mat.uniforms.uTime.value = time;
 
@@ -423,7 +582,8 @@ export function initGalaxy(root) {
     } else {
       renderer.render(scene, camera);
     }
-    labelRenderer.render(scene, camera);
+
+    resolveLabels(hoveredMesh);
   }
 
   function tick() {
@@ -482,15 +642,18 @@ export function initGalaxy(root) {
     window.removeEventListener("resize", resize);
     controls.dispose();
     renderer.dispose();
-    labelRenderer.domElement.remove();
+    labelsLayer.remove();
+    leadersSvg.remove();
     core.geometry.dispose();
     coreMat.dispose();
     coreAtmosphere.geometry.dispose();
     coreAtmosphere.material.dispose();
     starfield.geo.dispose();
     starfield.mat.dispose();
-    lineGeo.dispose();
-    lineMat.dispose();
+    for (const { geo, line } of connectionLines) {
+      geo.dispose();
+      line.material.dispose();
+    }
     for (const { mesh, ring } of planets) {
       mesh.geometry.dispose();
       mesh.material.dispose();

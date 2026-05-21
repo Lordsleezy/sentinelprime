@@ -40,24 +40,47 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 3;
+}
+
+.galaxy-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.galaxy-leaders line {
+  stroke: rgba(0, 212, 255, 0.35);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .galaxy-label {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.45rem 0.65rem;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(0, 0, 0, 0.4) inset;
   opacity: 0.7;
-  transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  transform: translate(12px, -12px);
+  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   max-width: 200px;
   white-space: nowrap;
+  will-change: left, top, opacity;
 }
 
 .galaxy-label strong {
@@ -66,20 +89,28 @@
   letter-spacing: 0.05em;
   color: #fff;
   text-transform: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .galaxy-label span {
   font-size: 0.62rem;
   line-height: 1.35;
-  color: var(--il-muted);
+  color: #c5cdd6;
   white-space: normal;
   max-width: 180px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .galaxy-label.is-hovered {
-  opacity: 1;
-  border-color: rgba(0, 212, 255, 0.45);
-  box-shadow: 0 0 18px rgba(0, 212, 255, 0.18);
+  opacity: 1 !important;
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(0, 212, 255, 0.15);
+}
+
+.galaxy-label.is-crowded {
+  opacity: 0.3;
 }
 
 .galaxy-hint {
@@ -93,7 +124,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(154, 163, 173, 0.45);
+  color: rgba(200, 208, 218, 0.7);
   pointer-events: none;
   transition: opacity 0.8s ease;
 }
@@ -110,7 +141,6 @@
   .galaxy-label {
     padding: 0.35rem 0.5rem;
     max-width: 150px;
-    transform: translate(8px, -8px);
   }
 
   .galaxy-label strong {
