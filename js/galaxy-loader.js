@@ -1,10 +1,8 @@
 /**
  * Lazy-loads the product galaxy when in view.
- * Skips entirely when prefers-reduced-motion is set.
+ * Reduced-motion users get a single static frame (handled inside galaxy.js).
  */
 (function initGalaxyLoader() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
   const roots = document.querySelectorAll("[data-galaxy-root]");
   if (!roots.length) return;
 

@@ -1,26 +1,22 @@
-/* Product galaxy map — decorative; cards remain accessible source */
-@media (prefers-reduced-motion: reduce) {
-  .product-galaxy-root {
-    display: none !important;
-  }
-}
-
 .product-galaxy-root {
   position: relative;
   width: 100%;
-  margin: 0 0 2rem;
-  border-radius: 18px;
+  margin: 0 0 2.5rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: radial-gradient(ellipse at 50% 40%, rgba(0, 212, 255, 0.06) 0%, transparent 55%),
-    #030305;
+  border-radius: 0;
+  border: none;
+  background: radial-gradient(
+    ellipse 85% 70% at 50% 45%,
+    #060a14 0%,
+    #020204 55%,
+    #000000 100%
+  );
 }
 
 .product-galaxy {
   position: relative;
   width: 100%;
-  height: min(52vh, 420px);
-  min-height: 280px;
+  min-height: 70vh;
   cursor: grab;
   touch-action: pan-y;
 }
@@ -40,62 +36,90 @@
   touch-action: auto;
 }
 
-.galaxy-tooltip {
+.galaxy-labels-layer {
   position: absolute;
-  left: 0;
-  top: 0;
+  inset: 0;
   pointer-events: none;
-  z-index: 3;
-  max-width: min(280px, 90vw);
-  padding: 0.65rem 0.9rem;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0;
-  transform: translate(-50%, -120%) scale(0.96);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  text-align: center;
+  overflow: hidden;
 }
 
-.galaxy-tooltip.is-visible {
-  opacity: 1;
-  transform: translate(-50%, -120%) scale(1);
+.galaxy-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.7;
+  transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transform: translate(12px, -12px);
+  max-width: 200px;
+  white-space: nowrap;
 }
 
-.galaxy-tooltip__name {
-  margin: 0;
-  font-size: 0.95rem;
+.galaxy-label strong {
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.05em;
   color: #fff;
-  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
-.galaxy-tooltip__tag {
-  margin: 0.25rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.4;
+.galaxy-label span {
+  font-size: 0.62rem;
+  line-height: 1.35;
   color: var(--il-muted);
+  white-space: normal;
+  max-width: 180px;
+}
+
+.galaxy-label.is-hovered {
+  opacity: 1;
+  border-color: rgba(0, 212, 255, 0.45);
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.18);
 }
 
 .galaxy-hint {
   position: absolute;
-  bottom: 0.75rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  z-index: 4;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(154, 163, 173, 0.65);
+  color: rgba(154, 163, 173, 0.45);
   pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+.galaxy-hint.is-faded {
+  opacity: 0;
 }
 
 @media (max-width: 767px) {
   .product-galaxy {
-    height: min(44vh, 340px);
-    min-height: 240px;
+    min-height: 50vh;
+  }
+
+  .galaxy-label {
+    padding: 0.35rem 0.5rem;
+    max-width: 150px;
+    transform: translate(8px, -8px);
+  }
+
+  .galaxy-label strong {
+    font-size: 0.62rem;
+  }
+
+  .galaxy-label span {
+    font-size: 0.55rem;
+    max-width: 140px;
   }
 
   .galaxy-hint--desktop {
@@ -105,6 +129,16 @@
 
 @media (min-width: 768px) {
   .galaxy-hint--mobile {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-galaxy {
+    cursor: default;
+  }
+
+  .galaxy-hint {
     display: none;
   }
 }
