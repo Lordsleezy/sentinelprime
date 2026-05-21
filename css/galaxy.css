@@ -3,12 +3,10 @@
   width: 100%;
   margin: 0 0 2.5rem;
   overflow: hidden;
-  border-radius: 0;
-  border: none;
   background: radial-gradient(
-    ellipse 85% 70% at 50% 45%,
-    #060a14 0%,
-    #020204 55%,
+    ellipse 90% 75% at 50% 48%,
+    #050810 0%,
+    #020204 50%,
     #000000 100%
   );
 }
@@ -33,7 +31,6 @@
 
 .product-galaxy--no-drag {
   cursor: default;
-  touch-action: auto;
 }
 
 .galaxy-labels-layer {
@@ -44,73 +41,60 @@
   z-index: 3;
 }
 
-.galaxy-leaders {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-  z-index: 2;
-}
-
-.galaxy-leaders line {
-  stroke: rgba(0, 212, 255, 0.35);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
-.galaxy-label {
-  position: absolute;
-  left: 0;
-  top: 0;
+.tess-cell-label {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.45rem 0.65rem;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  gap: 0.2rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6) inset,
+    0 4px 20px rgba(0, 0, 0, 0.55);
+  opacity: 0.55;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  max-width: 210px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(0, 0, 0, 0.4) inset;
-  opacity: 0.7;
-  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  max-width: 200px;
-  white-space: nowrap;
-  will-change: left, top, opacity;
 }
 
-.galaxy-label strong {
-  font-size: 0.72rem;
+.tess-cell-label__name {
+  font-family: "Inter", sans-serif;
+  font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: #fff;
-  text-transform: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+.tess-cell-label__tag {
+  font-family: "Inter", sans-serif;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: #9aa3ad;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
-.galaxy-label span {
-  font-size: 0.62rem;
-  line-height: 1.35;
-  color: #c5cdd6;
-  white-space: normal;
-  max-width: 180px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+.tess-cell-label__enter {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(0, 212, 255, 0.75);
+  margin-top: 0.15rem;
 }
 
-.galaxy-label.is-hovered {
-  opacity: 1 !important;
-  border-color: rgba(0, 212, 255, 0.5);
+.tess-cell-label.is-hovered,
+.tess-cell-label:hover {
+  opacity: 1;
+  border-color: rgba(0, 212, 255, 0.55);
   box-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.75),
-    0 0 20px rgba(0, 212, 255, 0.15);
-}
-
-.galaxy-label.is-crowded {
-  opacity: 0.3;
+    0 0 0 1px rgba(0, 212, 255, 0.15) inset,
+    0 0 24px rgba(0, 212, 255, 0.2);
 }
 
 .galaxy-hint {
@@ -133,23 +117,68 @@
   opacity: 0;
 }
 
+.galaxy-reduced-msg {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  color: #9aa3ad;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.galaxy-reduced-link {
+  color: #00d4ff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.galaxy-reduced-link:hover {
+  text-decoration: underline;
+}
+
+/* Product page entry fade (continuous with galaxy transition) */
+.galaxy-entry-fade {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9999;
+  pointer-events: none;
+  animation: galaxyEntryFade 0.8s ease-out forwards;
+}
+
+@keyframes galaxyEntryFade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 @media (max-width: 767px) {
   .product-galaxy {
     min-height: 50vh;
   }
 
-  .galaxy-label {
-    padding: 0.35rem 0.5rem;
-    max-width: 150px;
+  .tess-cell-label {
+    max-width: 160px;
+    padding: 0.4rem 0.55rem;
   }
 
-  .galaxy-label strong {
+  .tess-cell-label__name {
     font-size: 0.62rem;
   }
 
-  .galaxy-label span {
+  .tess-cell-label__tag {
     font-size: 0.55rem;
-    max-width: 140px;
   }
 
   .galaxy-hint--desktop {
@@ -173,27 +202,10 @@
   }
 }
 
-/* Standalone product pages */
 .product-standalone {
   max-width: 720px;
   margin: 0 auto;
   padding-bottom: 3rem;
-}
-
-.product-standalone__hero {
-  margin-bottom: 1.5rem;
-}
-
-.product-standalone__hero h1 {
-  font-size: clamp(2rem, 5vw, 2.75rem);
-  margin: 0 0 0.5rem;
-}
-
-.product-standalone__stub {
-  color: var(--il-muted);
-  font-size: 0.95rem;
-  margin: 1.5rem 0 0;
-  font-style: italic;
 }
 
 .product-standalone ul {

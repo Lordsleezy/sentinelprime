@@ -2,133 +2,335 @@ import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { PRODUCTS, CONNECTIONS } from "./products-config.js";
+import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
+import { Tesseract4D } from "./tesseract4d.js";
+import { PRODUCTS } from "./products-config.js";
+import { VignetteChromaticShader } from "./lib/shaders/vignette-chromatic.js";
+import { EdgePulseShader } from "./lib/shaders/edge-pulse.js";
 
 const MOBILE_BREAK = 768;
-const CORE_COLOR = 0xccf8ff;
+const DESKTOP_HIGH = 1200;
 const CORE_EMISSIVE = 0x00d4ff;
-const BASE_ORBIT_TILT = (20 * Math.PI) / 180;
-const CURVE_SEGMENTS = 50;
-const LABEL_PAD = 6;
-const MAX_LABEL_OFFSET = 120;
-const LEADER_THRESHOLD = 40;
-const CORE_SCREEN_PAD = 20;
 
-const _worldPos = new THREE.Vector3();
-const _tempMid = new THREE.Vector3();
-const _tempOut = new THREE.Vector3();
+const _vA = new THREE.Vector3();
+const _vB = new THREE.Vector3();
+const _vMid = new THREE.Vector3();
+const _vDir = new THREE.Vector3();
+const _vUp = new THREE.Vector3(0, 1, 0);
 
 function hexToThree(hex) {
   return parseInt(hex.replace("#", ""), 16);
 }
 
-function orbitPositionLocal(product, time) {
-  const angle = product.orbitPhase + time * product.orbitSpeed;
-  const x = Math.cos(angle) * product.orbitRadius;
-  const z = Math.sin(angle) * product.orbitRadius;
-  const tilt = product.orbitTilt;
-  const cos = Math.cos(tilt);
-  const sin = Math.sin(tilt);
-  return new THREE.Vector3(x, -z * sin, z * cos);
+function easePower3InOut(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
-function createStarfield() {
-  const count = 1800;
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-  const phases = new Float32Array(count);
+function getQualityTier() {
+  const w = window.innerWidth;
+  const dpr = window.devicePixelRatio || 1;
+  if (w < MOBILE_BREAK) return "mobile";
+  if (w >= DESKTOP_HIGH && dpr <= 2) return "high";
+  return "medium";
+}
 
-  for (let i = 0; i < count; i += 1) {
-    const r = 80 + Math.random() * 40;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-    positions[i * 3 + 2] = r * Math.cos(phi);
+function alignCylinder(mesh, a, b) {
+  _vA.copy(a);
+  _vB.copy(b);
+  _vMid.addVectors(_vA, _vB).multiplyScalar(0.5);
+  _vDir.subVectors(_vB, _vA);
+  const len = _vDir.length();
+  mesh.position.copy(_vMid);
+  mesh.scale.set(1, len, 1);
+  mesh.quaternion.setFromUnitVectors(_vUp, _vDir.normalize());
+}
 
-    const roll = Math.random();
-    sizes[i] = roll > 0.92 ? 1.8 : roll > 0.65 ? 1.0 : 0.45;
-    phases[i] = Math.random() * Math.PI * 2;
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-  geo.setAttribute("phase", new THREE.BufferAttribute(phases, 1));
-
-  const mat = new THREE.ShaderMaterial({
+function makeFresnelMaterial() {
+  return new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     uniforms: {
-      uTime: { value: 0 },
-      uParallax: { value: 0 }
+      uTime: { value: 0 }
     },
     vertexShader: `
-      attribute float size;
-      attribute float phase;
-      uniform float uTime;
-      uniform float uParallax;
-      varying float vAlpha;
+      varying vec3 vNormal;
+      varying vec3 vView;
       void main() {
-        vec3 pos = position;
-        float a = uParallax * 0.35;
-        float px = pos.x;
-        float pz = pos.z;
-        pos.x = px * cos(a) - pz * sin(a);
-        pos.z = px * sin(a) + pz * cos(a);
-        vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-        gl_PointSize = size * (180.0 / -mv.z);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vNormal = normalize(normalMatrix * normal);
+        vView = -mv.xyz;
         gl_Position = projectionMatrix * mv;
-        vAlpha = 0.35 + 0.45 * sin(uTime * 0.4 + phase);
       }
     `,
     fragmentShader: `
-      varying float vAlpha;
+      uniform float uTime;
+      varying vec3 vNormal;
+      varying vec3 vView;
       void main() {
-        vec2 c = gl_PointCoord - 0.5;
-        float d = length(c);
-        if (d > 0.5) discard;
-        float glow = smoothstep(0.5, 0.0, d);
-        gl_FragColor = vec4(0.85, 0.92, 1.0, glow * vAlpha);
+        float f = pow(1.0 - max(dot(normalize(vNormal), normalize(vView)), 0.0), 2.4);
+        vec3 col = vec3(0.0, 0.85, 1.0);
+        gl_FragColor = vec4(col, f * 0.7);
       }
     `
   });
-
-  return { points: new THREE.Points(geo, mat), geo, mat };
 }
 
-function curveAroundCore(start, end) {
-  _tempMid.copy(start).add(end).multiplyScalar(0.5);
-  _tempOut.copy(_tempMid);
-  if (_tempOut.lengthSq() < 0.01) {
-    _tempOut.set(0, 1.5, 0);
-  } else {
-    _tempOut.normalize().multiplyScalar(1.5);
+class HolographicTesseract {
+  /**
+   * @param {object} opts
+   * @param {number} opts.scale
+   * @param {number} opts.opacity
+   * @param {number} opts.xwRate
+   * @param {number} opts.ywRate
+   * @param {boolean} opts.withCells
+   * @param {string} opts.quality
+   */
+  constructor(opts) {
+    this.scale = opts.scale ?? 2.5;
+    this.opacity = opts.opacity ?? 1;
+    this.xwRate = opts.xwRate ?? 0.15;
+    this.ywRate = opts.ywRate ?? 0.1;
+    this.withCells = opts.withCells ?? true;
+    this.quality = opts.quality ?? "high";
+
+    this.tess = new Tesseract4D();
+    this.group = new THREE.Group();
+    this.edgePulseBoost = 1;
+
+    const faceCount = this.tess.faces.length;
+    const facePositions = new Float32Array(faceCount * 4 * 3);
+    const faceGeo = new THREE.BufferGeometry();
+    faceGeo.setAttribute("position", new THREE.BufferAttribute(facePositions, 3));
+    faceGeo.setIndex(
+      new Uint16Array(Array.from({ length: faceCount * 6 }, (_, i) => {
+        const f = Math.floor(i / 6);
+        const v = i % 6;
+        const map = [0, 1, 2, 0, 2, 3];
+        return f * 4 + map[v];
+      }))
+    );
+    faceGeo.computeVertexNormals();
+
+    this.faceMat = new THREE.MeshPhysicalMaterial({
+      color: CORE_EMISSIVE,
+      emissive: CORE_EMISSIVE,
+      emissiveIntensity: 0.15,
+      transmission: 0.9,
+      roughness: 0.05,
+      thickness: 0.5,
+      ior: 1.3,
+      transparent: true,
+      opacity: 0.08 * this.opacity,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    this.faceMesh = new THREE.Mesh(faceGeo, this.faceMat);
+    this.group.add(this.faceMesh);
+    this.facePositions = facePositions;
+
+    this.edgeMeshes = [];
+    this.baseCyan = new THREE.Color(CORE_EMISSIVE);
+    this.brightCyan = new THREE.Color(0xccfcff);
+
+    for (let i = 0; i < this.tess.edges.length; i += 1) {
+      const geo = new THREE.CylinderGeometry(0.015, 0.015, 1, 8, 1, true);
+      geo.translate(0, 0.5, 0);
+      const mat = new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.clone(EdgePulseShader.uniforms),
+        vertexShader: EdgePulseShader.vertexShader,
+        fragmentShader: EdgePulseShader.fragmentShader,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      mat.uniforms.uBaseColor.value = this.baseCyan;
+      mat.uniforms.uBrightColor.value = this.brightCyan;
+      mat.uniforms.uPhase.value = (i / this.tess.edges.length) * 2.3;
+      mat.uniforms.uSpeed.value = 0.35 + (i % 5) * 0.08;
+      mat.uniforms.uOpacity.value = 0.85 * this.opacity;
+      const mesh = new THREE.Mesh(geo, mat);
+      this.group.add(mesh);
+      this.edgeMeshes.push(mesh);
+    }
+
+    this.vertexMeshes = [];
+    const vGeo = new THREE.SphereGeometry(0.05, 10, 10);
+    const vMat = new THREE.MeshStandardMaterial({
+      color: 0xccfcff,
+      emissive: CORE_EMISSIVE,
+      emissiveIntensity: 2.2,
+      transparent: true,
+      opacity: 0.95 * this.opacity
+    });
+    for (let i = 0; i < 16; i += 1) {
+      const m = new THREE.Mesh(vGeo, vMat.clone());
+      this.group.add(m);
+      this.vertexMeshes.push(m);
+    }
+
+    /** @type {Map<string, { product: typeof PRODUCTS[0], points: THREE.Points, hit: THREE.Mesh, label: CSS2DObject, labelEl: HTMLElement, edgeIndices: number[] }>} */
+    this.cells = new Map();
+
+    if (this.withCells) {
+      for (const product of PRODUCTS) {
+        const indices = this.tess.cells[product.cellAxis];
+        const pts = new Float32Array(indices.length * 3);
+        const pGeo = new THREE.BufferGeometry();
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+        const color = hexToThree(product.color);
+        const pMat = new THREE.PointsMaterial({
+          color,
+          size: 0.22,
+          transparent: true,
+          opacity: 0.12 * this.opacity,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          sizeAttenuation: true
+        });
+        const points = new THREE.Points(pGeo, pMat);
+        this.group.add(points);
+
+        const hit = new THREE.Mesh(
+          new THREE.SphereGeometry(0.85, 12, 12),
+          new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hit.userData.product = product;
+        this.group.add(hit);
+
+        const labelEl = document.createElement("div");
+        labelEl.className = "tess-cell-label";
+        labelEl.innerHTML = `<span class="tess-cell-label__name">${product.name}</span><span class="tess-cell-label__tag">${product.tagline}</span><span class="tess-cell-label__enter">ENTER →</span>`;
+        const label = new CSS2DObject(labelEl);
+        this.group.add(label);
+
+        const edgeIndices = [];
+        for (let e = 0; e < this.tess.edges.length; e += 1) {
+          const [a, b] = this.tess.edges[e];
+          if (indices.includes(a) && indices.includes(b)) edgeIndices.push(e);
+        }
+
+        this.cells.set(product.cellAxis, {
+          product,
+          points,
+          hit,
+          label,
+          labelEl,
+          edgeIndices,
+          ptPositions: pts
+        });
+      }
+    }
   }
-  const control = _tempMid.clone().add(_tempOut);
-  return new THREE.QuadraticBezierCurve3(start.clone(), control, end.clone()).getPoints(
-    CURVE_SEGMENTS
-  );
-}
 
-function projectToScreen(world, camera, width, height) {
-  const v = world.clone().project(camera);
-  return {
-    x: (v.x * 0.5 + 0.5) * width,
-    y: (-v.y * 0.5 + 0.5) * height,
-    behind: v.z > 1
-  };
-}
+  update(time, projectedOverride) {
+    if (!projectedOverride) {
+      this.tess.rotate(time, this.xwRate, this.ywRate);
+    }
+    const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
+    const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
 
-function rectsOverlap(a, b) {
-  return !(
-    a.lx + a.w + LABEL_PAD < b.lx ||
-    b.lx + b.w + LABEL_PAD < a.lx ||
-    a.ly + a.h + LABEL_PAD < b.ly ||
-    b.ly + b.h + LABEL_PAD < a.ly
-  );
+    for (let f = 0; f < this.tess.faces.length; f += 1) {
+      const face = this.tess.faces[f];
+      for (let c = 0; c < 4; c += 1) {
+        const v = verts[face[c]];
+        const o = (f * 4 + c) * 3;
+        this.facePositions[o] = v.x;
+        this.facePositions[o + 1] = v.y;
+        this.facePositions[o + 2] = v.z;
+      }
+    }
+    this.faceMesh.geometry.attributes.position.needsUpdate = true;
+    this.faceMesh.geometry.computeVertexNormals();
+
+    for (let e = 0; e < this.tess.edges.length; e += 1) {
+      const [a, b] = this.tess.edges[e];
+      alignCylinder(this.edgeMeshes[e], verts[a], verts[b]);
+      this.edgeMeshes[e].material.uniforms.uTime.value = time;
+      this.edgeMeshes[e].material.uniforms.uPulseBoost.value = this.edgePulseBoost;
+    }
+
+    const flare = {};
+    for (let e = 0; e < this.tess.edges.length; e += 1) {
+      const t = (time * this.edgeMeshes[e].material.uniforms.uSpeed.value +
+        this.edgeMeshes[e].material.uniforms.uPhase.value) % 1;
+      const [a, b] = this.tess.edges[e];
+      const nearA = Math.abs(t - 0) < 0.08 || Math.abs(t - 1) < 0.08;
+      const nearB = Math.abs(t - 0.5) < 0.08;
+      if (nearA) flare[a] = (flare[a] ?? 1) + 0.6;
+      if (nearB) flare[b] = (flare[b] ?? 1) + 0.4;
+    }
+
+    for (let i = 0; i < 16; i += 1) {
+      this.vertexMeshes[i].position.copy(verts[i]);
+      const s = 0.85 + (flare[i] ?? 0) * 0.35;
+      this.vertexMeshes[i].scale.setScalar(s);
+      this.vertexMeshes[i].material.emissiveIntensity = 1.8 + (flare[i] ?? 0) * 1.2;
+    }
+
+    if (!this.withCells) return verts;
+
+    for (const [axis, cell] of this.cells) {
+      const indices = this.tess.cells[axis];
+      for (let i = 0; i < indices.length; i += 1) {
+        const v = verts[indices[i]];
+        cell.ptPositions[i * 3] = v.x;
+        cell.ptPositions[i * 3 + 1] = v.y;
+        cell.ptPositions[i * 3 + 2] = v.z;
+      }
+      cell.points.geometry.attributes.position.needsUpdate = true;
+
+      const center = this.tess.getCellCenter(axis, this.scale);
+      cell.hit.position.set(center.x, center.y, center.z);
+      cell.label.position.set(center.x, center.y + 0.35, center.z);
+    }
+
+    return verts;
+  }
+
+  setCellOpacity(cellAxis, opacity) {
+    const cell = this.cells.get(cellAxis);
+    if (!cell) return;
+    cell.points.material.opacity = opacity * 0.12 * this.opacity;
+    cell.labelEl.style.opacity = String(Math.min(1, opacity * 0.55));
+  }
+
+  setCellHighlight(cellAxis, on) {
+    const cell = this.cells.get(cellAxis);
+    if (!cell) return;
+    cell.labelEl.classList.toggle("is-hovered", on);
+    cell.points.material.opacity = (on ? 0.35 : 0.12) * this.opacity;
+    cell.points.material.size = on ? 0.32 : 0.22;
+    for (const ei of cell.edgeIndices) {
+      this.edgeMeshes[ei].material.uniforms.uPulseBoost.value = on ? 2.2 : 1;
+      this.edgeMeshes[ei].material.uniforms.uSpeed.value = on ? 0.85 : 0.35 + (ei % 5) * 0.08;
+    }
+  }
+
+  fadeAllExcept(cellAxis, alpha) {
+    for (const [axis, cell] of this.cells) {
+      if (axis === cellAxis) continue;
+      this.setCellOpacity(axis, alpha);
+      cell.labelEl.style.opacity = String(alpha * 0.4);
+    }
+    this.faceMat.opacity = 0.08 * alpha * this.opacity;
+    for (const m of this.edgeMeshes) {
+      m.material.uniforms.uOpacity.value = 0.85 * alpha * this.opacity;
+    }
+    for (const m of this.vertexMeshes) {
+      m.material.opacity = 0.95 * alpha * this.opacity;
+    }
+  }
+
+  boostCell(cellAxis, boost) {
+    const cell = this.cells.get(cellAxis);
+    if (!cell) return;
+    cell.points.material.opacity = 0.12 * boost * this.opacity;
+    cell.points.material.size = 0.22 + boost * 0.15;
+    this.edgePulseBoost = boost;
+  }
 }
 
 /**
@@ -141,368 +343,264 @@ export function initGalaxy(root) {
   if (!mount || !canvas) return;
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let quality = getQualityTier();
   const isMobile = () => window.innerWidth < MOBILE_BREAK;
-  const useBloom = !isMobile() && !reducedMotion;
 
   let disposed = false;
   let running = false;
   let rafId = 0;
   let elapsed = 0;
   let lastDragEnd = 0;
-  let hintFaded = false;
   let hintTimer = 0;
-  let prevCamAzimuth = 0;
-  let starParallax = 0;
+  let hoveredCell = null;
+  /** @type {{ product: typeof PRODUCTS[0], start: number, duration: number, fromPos: THREE.Vector3, toPos: THREE.Vector3, fromFov: number } | null} */
+  let transition = null;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x000000, 0.012);
 
-  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 250);
-  camera.position.set(0, 6, 26);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 1.5, 7);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: quality !== "mobile",
     alpha: true,
     powerPreference: "high-performance"
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.08;
 
-  const labelsLayer = document.createElement("div");
-  labelsLayer.className = "galaxy-labels-layer";
-  mount.appendChild(labelsLayer);
+  const labelRenderer = new CSS2DRenderer();
+  labelRenderer.domElement.className = "galaxy-labels-layer";
+  mount.appendChild(labelRenderer.domElement);
 
-  const leadersSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  leadersSvg.setAttribute("class", "galaxy-leaders");
-  leadersSvg.setAttribute("aria-hidden", "true");
-  mount.appendChild(leadersSvg);
+  if (reducedMotion) {
+    const msg = document.createElement("p");
+    msg.className = "galaxy-reduced-msg";
+    msg.textContent = "Animations reduced — click a cell label to navigate.";
+    mount.appendChild(msg);
+    for (const product of PRODUCTS) {
+      const link = document.createElement("a");
+      link.href = product.pageUrl;
+      link.className = "galaxy-reduced-link";
+      link.textContent = product.name;
+      msg.appendChild(document.createElement("br"));
+      msg.appendChild(link);
+    }
+  }
 
-  scene.add(new THREE.AmbientLight(0x0a1420, 0.35));
-
-  const coreLight = new THREE.PointLight(CORE_EMISSIVE, 3.2, 80, 1.4);
-  coreLight.position.set(0, 0, 0);
+  scene.add(new THREE.AmbientLight(0x060a12, 0.4));
+  const coreLight = new THREE.PointLight(CORE_EMISSIVE, 2.5, 20, 1.6);
   scene.add(coreLight);
 
   const coreGroup = new THREE.Group();
   scene.add(coreGroup);
 
-  const coreMat = new THREE.MeshStandardMaterial({
-    color: CORE_COLOR,
-    emissive: CORE_EMISSIVE,
-    emissiveIntensity: 1.4,
-    metalness: 0.35,
-    roughness: 0.25
-  });
-  const core = new THREE.Mesh(new THREE.SphereGeometry(2.0, 48, 48), coreMat);
-  coreGroup.add(core);
+  const innerCore = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 32, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0xccfcff,
+      emissive: CORE_EMISSIVE,
+      emissiveIntensity: 2.2,
+      metalness: 0.2,
+      roughness: 0.2
+    })
+  );
+  coreGroup.add(innerCore);
 
-  const coreAtmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(2.45, 32, 32),
-    new THREE.MeshBasicMaterial({
+  const fresnelMat = makeFresnelMaterial();
+  const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), fresnelMat);
+  coreGroup.add(atmosphere);
+
+  const particleCount = quality === "high" ? 300 : quality === "medium" ? 150 : 75;
+  const pPos = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i += 1) {
+    const r = Math.random() * 1.0;
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    pPos[i * 3] = r * Math.sin(p) * Math.cos(t);
+    pPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
+    pPos[i * 3 + 2] = r * Math.cos(p);
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+  const coreParticles = new THREE.Points(
+    pGeo,
+    new THREE.PointsMaterial({
       color: CORE_EMISSIVE,
+      size: 0.04,
       transparent: true,
-      opacity: 0.14,
+      opacity: 0.55,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     })
   );
-  coreGroup.add(coreAtmosphere);
+  coreGroup.add(coreParticles);
 
-  const starfield = createStarfield();
-  scene.add(starfield.points);
-
-  const orbitSystem = new THREE.Group();
-  orbitSystem.rotation.x = BASE_ORBIT_TILT;
-  scene.add(orbitSystem);
-
-  const slugToPlanet = new Map();
-  /** @type {THREE.Mesh[]} */
-  const planetMeshes = [];
-  /** @type {{ mesh: THREE.Mesh, labelEl: HTMLElement, ring: THREE.Mesh, product: typeof PRODUCTS[0] }[]} */
-  const planets = [];
-
-  for (const product of PRODUCTS) {
-    const color = hexToThree(product.color);
-    const radius = product.planetRadius ?? 0.7;
-
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 28, 28),
-      new THREE.MeshPhysicalMaterial({
-        color,
-        emissive: color,
-        emissiveIntensity: 0.65,
-        metalness: 0.25,
-        roughness: 0.35,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.4
-      })
-    );
-    mesh.userData = { product, baseEmissive: 0.65 };
-    orbitSystem.add(mesh);
-
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(product.orbitRadius - 0.04, product.orbitRadius + 0.04, 128),
-      new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0.06,
-        side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      })
-    );
-    ring.rotation.x = Math.PI / 2;
-    orbitSystem.add(ring);
-
-    const labelDiv = document.createElement("div");
-    labelDiv.className = "galaxy-label";
-    labelDiv.innerHTML = `<strong>${product.name}</strong><span>${product.tagline}</span>`;
-    labelsLayer.appendChild(labelDiv);
-
-    slugToPlanet.set(product.slug, mesh);
-    planetMeshes.push(mesh);
-    planets.push({ mesh, labelEl: labelDiv, ring, product });
-  }
-
-  const connectionLines = CONNECTIONS.map(() => {
-    const geo = new THREE.BufferGeometry();
-    const positions = new Float32Array((CURVE_SEGMENTS + 1) * 3);
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    const line = new THREE.Line(
-      geo,
-      new THREE.LineBasicMaterial({
-        color: CORE_EMISSIVE,
-        transparent: true,
-        opacity: 0.45,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      })
-    );
-    scene.add(line);
-    return { line, geo, positions };
-  });
-
-  function updateOrbits(time) {
-    for (const { mesh, product } of planets) {
-      mesh.position.copy(orbitPositionLocal(product, time));
-      mesh.rotation.y = time * 0.35 + product.orbitPhase;
-      mesh.rotation.x = Math.sin(time * 0.2 + product.orbitPhase) * 0.08;
-    }
-
-    for (let c = 0; c < CONNECTIONS.length; c += 1) {
-      const [a, b] = CONNECTIONS[c];
-      slugToPlanet.get(a).getWorldPosition(_worldPos);
-      const start = _worldPos.clone();
-      slugToPlanet.get(b).getWorldPosition(_worldPos);
-      const end = _worldPos.clone();
-      const pts = curveAroundCore(start, end);
-      const { positions, geo } = connectionLines[c];
-      for (let i = 0; i < pts.length; i += 1) {
-        positions[i * 3] = pts[i].x;
-        positions[i * 3 + 1] = pts[i].y;
-        positions[i * 3 + 2] = pts[i].z;
-      }
-      geo.attributes.position.needsUpdate = true;
-      geo.setDrawRange(0, pts.length);
-    }
-  }
-
-  function resolveLabels(hoveredMesh) {
-    const w = mount.clientWidth;
-    const h = mount.clientHeight;
-    if (w < 1 || h < 1) return;
-
-    const coreCenter = projectToScreen(new THREE.Vector3(0, 0, 0), camera, w, h);
-    const coreEdge = projectToScreen(new THREE.Vector3(2.45, 0, 0), camera, w, h);
-    const coreRadius =
-      Math.hypot(coreEdge.x - coreCenter.x, coreEdge.y - coreCenter.y) + CORE_SCREEN_PAD;
-
-    /** @type {Array<{ entry: typeof planets[0], planetX: number, planetY: number, lx: number, ly: number, w: number, h: number, crowded: boolean, offsetDist: number }>} */
-    const layout = planets.map((entry) => {
-      entry.mesh.getWorldPosition(_worldPos);
-      const planet = projectToScreen(_worldPos, camera, w, h);
-      const el = entry.labelEl;
-      const bw = el.offsetWidth || 140;
-      const bh = el.offsetHeight || 44;
-      const defaultOffsetX = isMobile() ? 8 : 14;
-      const defaultOffsetY = isMobile() ? -8 : -14;
-      return {
-        entry,
-        planetX: planet.x,
-        planetY: planet.y,
-        lx: planet.x + defaultOffsetX,
-        ly: planet.y + defaultOffsetY - bh,
-        w: bw,
-        h: bh,
-        crowded: false,
-        offsetDist: 0,
-        behind: planet.behind
-      };
-    });
-
-    layout.sort((a, b) => a.ly - b.ly);
-
-    for (const item of layout) {
-      const cx = item.lx + item.w * 0.5;
-      const cy = item.ly + item.h * 0.5;
-      const dist = Math.hypot(cx - coreCenter.x, cy - coreCenter.y);
-      if (dist < coreRadius) {
-        const angle = Math.atan2(cy - coreCenter.y, cx - coreCenter.x);
-        const push = coreRadius - dist + 10;
-        item.lx += Math.cos(angle) * push;
-        item.ly += Math.sin(angle) * push;
-      }
-    }
-
-    for (let pass = 0; pass < 10; pass += 1) {
-      layout.sort((a, b) => a.ly - b.ly);
-      let moved = false;
-      for (let i = 0; i < layout.length; i += 1) {
-        for (let j = i + 1; j < layout.length; j += 1) {
-          const a = layout[i];
-          const b = layout[j];
-          if (!rectsOverlap(a, b)) continue;
-
-          b.ly = a.ly + a.h + LABEL_PAD;
-          const dx = b.lx - b.planetX;
-          const dy = b.ly + b.h * 0.5 - b.planetY;
-          const offset = Math.hypot(dx, dy);
-
-          if (offset > MAX_LABEL_OFFSET) {
-            b.lx = b.planetX + MAX_LABEL_OFFSET * 0.65;
-            b.ly = b.planetY - b.h - LABEL_PAD;
-            b.crowded = true;
-          }
-          moved = true;
+  const godRays = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 8),
+    new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: { uIntensity: { value: 0.35 } },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-      }
-      if (!moved) break;
-    }
+      `,
+      fragmentShader: `
+        uniform float uIntensity;
+        varying vec2 vUv;
+        void main() {
+          vec2 c = vUv - 0.5;
+          float d = length(c);
+          float ray = smoothstep(0.55, 0.0, d) * uIntensity;
+          gl_FragColor = vec4(0.0, 0.85, 1.0, ray * (1.0 - d));
+        }
+      `
+    })
+  );
+  godRays.position.z = -0.5;
+  coreGroup.add(godRays);
 
-    leadersSvg.innerHTML = "";
-
-    for (const item of layout) {
-      const { entry, planetX, planetY, lx, ly, w: bw, h: bh, crowded, behind } = item;
-      item.offsetDist = Math.hypot(lx - planetX, ly + bh * 0.5 - planetY);
-
-      entry.labelEl.style.left = `${lx}px`;
-      entry.labelEl.style.top = `${ly}px`;
-
-      const hovered = hoveredMesh === entry.mesh;
-      entry.labelEl.classList.toggle("is-hovered", hovered);
-      entry.labelEl.classList.toggle("is-crowded", crowded && !hovered);
-
-      if (behind) {
-        entry.labelEl.style.opacity = "0.15";
-      } else if (hovered) {
-        entry.labelEl.style.opacity = "1";
-      } else if (crowded) {
-        entry.labelEl.style.opacity = "0.3";
-      } else {
-        entry.labelEl.style.opacity = "0.7";
-      }
-
-      if (item.offsetDist > LEADER_THRESHOLD && !behind) {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", String(planetX));
-        line.setAttribute("y1", String(planetY));
-        line.setAttribute("x2", String(lx + bw * 0.15));
-        line.setAttribute("y2", String(ly + bh));
-        line.setAttribute("opacity", hovered ? "0.65" : "0.35");
-        leadersSvg.appendChild(line);
-      }
-    }
+  const starCount = quality === "high" ? 800 : quality === "medium" ? 500 : 350;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i += 1) {
+    const r = 30 + Math.random() * 50;
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    starPos[i * 3] = r * Math.sin(p) * Math.cos(t);
+    starPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
+    starPos[i * 3 + 2] = r * Math.cos(p);
   }
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(
+    starGeo,
+    new THREE.PointsMaterial({
+      color: 0xaaccff,
+      size: quality === "high" ? 0.08 : 0.06,
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false
+    })
+  );
+  scene.add(stars);
+
+  const mainTess = new HolographicTesseract({ scale: 2.5, quality, withCells: true });
+  scene.add(mainTess.group);
+
+  const ghosts = [];
+  if (quality === "high") {
+    ghosts.push(new HolographicTesseract({ scale: 1.0, opacity: 0.03, xwRate: 0.11, ywRate: 0.08, withCells: false, quality }));
+    ghosts.push(new HolographicTesseract({ scale: 1.75, opacity: 0.03, xwRate: 0.13, ywRate: 0.09, withCells: false, quality }));
+  } else if (quality === "medium") {
+    ghosts.push(new HolographicTesseract({ scale: 1.75, opacity: 0.03, xwRate: 0.12, ywRate: 0.085, withCells: false, quality }));
+  }
+  for (const g of ghosts) scene.add(g.group);
+
+  const bloomStrength = quality === "mobile" ? 1.2 : 1.6;
+  const bloomRadius = quality === "high" ? 0.8 : quality === "medium" ? 0.65 : 0.55;
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.1);
+  composer.addPass(bloomPass);
+
+  const fxPass = new ShaderPass(VignetteChromaticShader);
+  fxPass.uniforms.uStrength.value = 0.4;
+  fxPass.uniforms.uGrain.value = quality === "mobile" ? 0 : 0.035;
+  composer.addPass(fxPass);
 
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
-  controls.minDistance = 15;
-  controls.maxDistance = 45;
-  controls.minPolarAngle = Math.PI * 0.22;
-  controls.maxPolarAngle = Math.PI * 0.62;
+  controls.minDistance = 4;
+  controls.maxDistance = 12;
+  controls.minPolarAngle = 0.3;
+  controls.maxPolarAngle = Math.PI - 0.3;
   controls.target.set(0, 0, 0);
-  controls.enableRotate = !isMobile() && !reducedMotion;
+  controls.enableRotate = !reducedMotion && !isMobile();
   controls.autoRotate = !reducedMotion;
-  controls.autoRotateSpeed = isMobile() ? 0.35 : 0.28;
-
-  let composer = null;
-  if (useBloom) {
-    composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 1.2, 0.6, 0.15);
-    composer.addPass(bloom);
-  }
+  controls.autoRotateSpeed = 0.3;
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  let hoveredMesh = null;
+  const hitTargets = [];
+  for (const [, cell] of mainTess.cells) hitTargets.push(cell.hit);
 
   function scheduleHintFade() {
     if (hintTimer) return;
-    hintTimer = window.setTimeout(fadeHint, 5000);
+    hintTimer = window.setTimeout(() => {
+      hintEls.forEach((el) => el.classList.add("is-faded"));
+    }, 5000);
   }
 
-  function fadeHint() {
-    if (hintFaded) return;
-    hintFaded = true;
-    hintEls.forEach((el) => el.classList.add("is-faded"));
-  }
-
-  function setPointer(clientX, clientY) {
+  function setPointer(cx, cy) {
     const rect = canvas.getBoundingClientRect();
-    pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    pointer.x = ((cx - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
   }
 
-  function pickPlanet() {
+  function pickCell() {
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(planetMeshes, false);
-    return hits.length ? hits[0].object : null;
+    const hits = raycaster.intersectObjects(hitTargets, false);
+    return hits.length ? hits[0].object.userData.product : null;
   }
 
-  function setHover(mesh) {
-    if (hoveredMesh === mesh) return;
+  function setHover(product) {
+    if (hoveredCell?.cellAxis === product?.cellAxis) return;
+    if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, false);
+    hoveredCell = product ? PRODUCTS.find((p) => p.slug === product.slug) : null;
+    if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, true);
+  }
 
-    if (hoveredMesh) {
-      hoveredMesh.scale.setScalar(1);
-      hoveredMesh.material.emissiveIntensity = hoveredMesh.userData.baseEmissive;
-    }
-
-    hoveredMesh = mesh;
-
-    if (mesh) {
-      mesh.scale.setScalar(1.15);
-      mesh.material.emissiveIntensity = 1.35;
-    }
+  function startTransition(product) {
+    if (transition) return;
+    transition = {
+      product,
+      start: performance.now(),
+      duration: 1400,
+      fromPos: camera.position.clone(),
+      toPos: new THREE.Vector3(),
+      fromFov: camera.fov
+    };
+    const center = mainTess.tess.getCellCenter(product.cellAxis, 2.5);
+    transition.toPos.set(center.x, center.y, center.z);
+    transition.toPos.multiplyScalar(0.35);
+    transition.toPos.z += 1.2;
+    controls.enabled = false;
+    scheduleHintFade();
   }
 
   function onPointerMove(e) {
-    if (isMobile()) return;
+    if (transition || reducedMotion || isMobile()) return;
     setPointer(e.clientX, e.clientY);
-    setHover(pickPlanet());
+    setHover(pickCell());
   }
 
   function onClick(e) {
+    if (transition) return;
+    if (reducedMotion) return;
     setPointer(e.clientX, e.clientY);
-    const hit = pickPlanet();
-    if (hit?.userData?.product?.pageUrl) {
-      window.location.href = hit.userData.product.pageUrl;
-    }
+    const product = pickCell();
+    if (product) startTransition(product);
   }
 
-  function onTouchEnd(e) {
-    if (!e.changedTouches?.length) return;
-    const t = e.changedTouches[0];
-    setPointer(t.clientX, t.clientY);
-    const hit = pickPlanet();
-    if (hit?.userData?.product?.pageUrl) {
-      window.location.href = hit.userData.product.pageUrl;
-    }
+  function onLabelClick(e) {
+    const axis = e.currentTarget.dataset.cellAxis;
+    const product = PRODUCTS.find((p) => p.cellAxis === axis);
+    if (product && !transition) startTransition(product);
+  }
+
+  for (const [, cell] of mainTess.cells) {
+    cell.labelEl.dataset.cellAxis = cell.product.cellAxis;
+    cell.labelEl.addEventListener("click", onLabelClick);
   }
 
   function onControlStart() {
@@ -519,76 +617,88 @@ export function initGalaxy(root) {
 
   controls.addEventListener("start", onControlStart);
   controls.addEventListener("end", onControlEnd);
-
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerdown", scheduleHintFade);
   canvas.addEventListener("click", onClick);
-  canvas.addEventListener("touchstart", scheduleHintFade, { passive: true });
-  canvas.addEventListener("touchend", onTouchEnd, { passive: true });
-
-  function syncMobileControls() {
-    const mobile = isMobile();
-    controls.enableRotate = !mobile && !reducedMotion;
-    if (!reducedMotion) {
-      controls.autoRotate = mobile || performance.now() - lastDragEnd > 2000;
-    }
-    mount.classList.toggle("product-galaxy--no-drag", mobile || reducedMotion);
-  }
+  canvas.addEventListener(
+    "touchend",
+    (e) => {
+      if (transition || !e.changedTouches?.length) return;
+      const t = e.changedTouches[0];
+      setPointer(t.clientX, t.clientY);
+      const product = pickCell();
+      if (product) startTransition(product);
+    },
+    { passive: true }
+  );
 
   function resize() {
+    quality = getQualityTier();
     const w = mount.clientWidth;
     const h = mount.clientHeight;
     if (w < 1 || h < 1) return;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h, false);
-    if (composer) composer.setSize(w, h);
-    syncMobileControls();
+    labelRenderer.setSize(w, h);
+    composer.setSize(w, h);
+    controls.enableRotate = !reducedMotion && !isMobile();
   }
 
   function renderFrame(time) {
-    updateOrbits(time);
+    if (!reducedMotion && !transition) {
+      const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
+      const scale = THREE.MathUtils.lerp(1.0, 1.04, pulse);
+      innerCore.scale.setScalar(scale);
+      innerCore.material.emissiveIntensity = 2.0 + pulse * 0.5;
+      coreLight.intensity = 2.2 + pulse * 0.6;
+      fresnelMat.uniforms.uTime.value = time;
+      coreGroup.rotation.y = time * 0.08;
+      coreParticles.rotation.y = -time * 0.05;
+      coreParticles.rotation.x = time * 0.03;
+      stars.rotation.y = -time * 0.002;
 
-    if (!reducedMotion) {
-      const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 3));
-      const scale = THREE.MathUtils.lerp(1.0, 1.06, pulse);
-      core.scale.setScalar(scale);
-      coreMat.emissiveIntensity = 1.2 + pulse * 0.35;
-      coreAtmosphere.scale.setScalar(1 + pulse * 0.04);
-      coreGroup.rotation.y = time * 0.12;
-      coreLight.intensity = 2.8 + pulse * 0.8;
+      mainTess.update(time);
+      for (const g of ghosts) g.update(time * (g.xwRate / 0.15));
 
-      const linePulse = 0.3 + 0.3 * (0.5 + 0.5 * Math.sin(time * 1.8));
-      for (const { line } of connectionLines) {
-        line.material.opacity = linePulse;
-      }
-
-      starfield.mat.uniforms.uTime.value = time;
-
-      const azimuth = Math.atan2(camera.position.x, camera.position.z);
-      starParallax += (azimuth - prevCamAzimuth) * -0.4;
-      prevCamAzimuth = azimuth;
-      starfield.mat.uniforms.uParallax.value = starParallax;
-
-      if (!isMobile() && performance.now() - lastDragEnd > 2000) {
+      if (!isMobile() && performance.now() - lastDragEnd > 3000) {
         controls.autoRotate = true;
       }
+    } else if (reducedMotion) {
+      mainTess.tess.rotate(0, 0, 0);
+      mainTess.update(0);
     }
 
-    controls.update();
+    if (transition) {
+      const t = Math.min(1, (performance.now() - transition.start) / transition.duration);
+      const e = easePower3InOut(t);
+      camera.position.lerpVectors(transition.fromPos, transition.toPos, e + Math.sin(e * Math.PI) * 0.08);
+      camera.fov = THREE.MathUtils.lerp(transition.fromFov, 80, e);
+      camera.updateProjectionMatrix();
+      camera.lookAt(0, 0, 0);
 
-    if (composer) {
-      composer.render();
+      mainTess.fadeAllExcept(transition.product.cellAxis, Math.max(0, 1 - t / 0.7));
+      mainTess.boostCell(transition.product.cellAxis, 1 + e * 2.5);
+      mainTess.setCellHighlight(transition.product.cellAxis, true);
+
+      bloomPass.strength = THREE.MathUtils.lerp(bloomStrength, 3.0, e);
+      fxPass.uniforms.uRadialBlur.value = e;
+      fxPass.uniforms.uWhiteFlash.value = Math.max(0, (t - 0.72) / 0.28);
+
+      if (t >= 1) {
+        window.location.href = transition.product.pageUrl;
+      }
     } else {
-      renderer.render(scene, camera);
+      controls.update();
     }
 
-    resolveLabels(hoveredMesh);
+    composer.render();
+    labelRenderer.render(scene, camera);
   }
 
   function tick() {
     if (!running || disposed) return;
-    if (!reducedMotion) elapsed += 0.016;
+    elapsed += 0.016;
     renderFrame(elapsed);
     rafId = requestAnimationFrame(tick);
   }
@@ -616,49 +726,20 @@ export function initGalaxy(root) {
         else if (!reducedMotion) stop();
       }
     },
-    { root: null, rootMargin: "80px", threshold: 0.05 }
+    { rootMargin: "80px", threshold: 0.05 }
   );
   observer.observe(root);
-
   window.addEventListener("resize", resize, { passive: true });
   resize();
-
-  if (reducedMotion) {
-    renderFrame(0);
-  }
+  if (reducedMotion) renderFrame(0);
 
   return () => {
     disposed = true;
     stop();
     observer.disconnect();
-    controls.removeEventListener("start", onControlStart);
-    controls.removeEventListener("end", onControlEnd);
-    canvas.removeEventListener("pointermove", onPointerMove);
-    canvas.removeEventListener("pointerdown", scheduleHintFade);
-    canvas.removeEventListener("click", onClick);
-    canvas.removeEventListener("touchstart", scheduleHintFade);
-    canvas.removeEventListener("touchend", onTouchEnd);
-    if (hintTimer) clearTimeout(hintTimer);
-    window.removeEventListener("resize", resize);
     controls.dispose();
     renderer.dispose();
-    labelsLayer.remove();
-    leadersSvg.remove();
-    core.geometry.dispose();
-    coreMat.dispose();
-    coreAtmosphere.geometry.dispose();
-    coreAtmosphere.material.dispose();
-    starfield.geo.dispose();
-    starfield.mat.dispose();
-    for (const { geo, line } of connectionLines) {
-      geo.dispose();
-      line.material.dispose();
-    }
-    for (const { mesh, ring } of planets) {
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-      ring.geometry.dispose();
-      ring.material.dispose();
-    }
+    labelRenderer.domElement.remove();
+    if (hintTimer) clearTimeout(hintTimer);
   };
 }

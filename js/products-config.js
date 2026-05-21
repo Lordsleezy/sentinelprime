@@ -9,19 +9,6 @@ export const CSS_COLORS = {
   white: "#ffffff"
 };
 
-export const CONNECTIONS = [
-  ["sentinelos", "sentinel-x"],
-  ["sentinelos", "personal-ai"],
-  ["sentinelos", "guardian"],
-  ["sentinelos", "forge"],
-  ["forge", "forge-lite"]
-];
-
-/** Kepler-style: inner orbits move faster; speeds stay contemplative. */
-function orbitSpeedForRadius(radius) {
-  return 0.12 * Math.pow(5 / radius, 1.35);
-}
-
 export const PRODUCTS = [
   {
     slug: "sentinelos",
@@ -29,12 +16,8 @@ export const PRODUCTS = [
     tagline: "GrapheneOS security. BlissLauncher3 UI. Sentinel AI built in.",
     status: "building",
     statusLabel: "Building",
-    color: CSS_COLORS.building,
-    orbitRadius: 5,
-    orbitSpeed: orbitSpeedForRadius(5),
-    orbitPhase: 0,
-    orbitTilt: 0.03,
-    planetRadius: 0.78,
+    color: CSS_COLORS.cyan,
+    cellAxis: "+X",
     pageUrl: "sentinelos.html",
     features: [
       "GrapheneOS foundation with hardened defaults",
@@ -51,12 +34,8 @@ export const PRODUCTS = [
     tagline: "The phone Big Tech won't make.",
     status: "soon",
     statusLabel: "Coming Soon",
-    color: CSS_COLORS.cyan,
-    orbitRadius: 7.5,
-    orbitSpeed: orbitSpeedForRadius(7.5),
-    orbitPhase: Math.PI / 3,
-    orbitTilt: -0.025,
-    planetRadius: 0.88,
+    color: CSS_COLORS.cyanBright,
+    cellAxis: "-X",
     pageUrl: "sentinel-x.html",
     features: [
       "Pre-loaded with SentinelOS — ready out of the box",
@@ -73,12 +52,8 @@ export const PRODUCTS = [
     tagline: "Your AI. On your device. Forever private.",
     status: "available",
     statusLabel: "Available Now",
-    color: CSS_COLORS.cyanBright,
-    orbitRadius: 10,
-    orbitSpeed: orbitSpeedForRadius(10),
-    orbitPhase: (Math.PI * 2) / 3,
-    orbitTilt: 0.02,
-    planetRadius: 0.72,
+    color: CSS_COLORS.cyan,
+    cellAxis: "+Y",
     pageUrl: "personal-ai.html",
     features: [
       "Free iOS app — download today",
@@ -101,11 +76,7 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.red,
-    orbitRadius: 12.5,
-    orbitSpeed: orbitSpeedForRadius(12.5),
-    orbitPhase: Math.PI,
-    orbitTilt: -0.03,
-    planetRadius: 0.82,
+    cellAxis: "-Y",
     pageUrl: "guardian.html",
     features: [
       "AI-powered cyber defense for personal and business use",
@@ -123,11 +94,7 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.cyanDim,
-    orbitRadius: 15,
-    orbitSpeed: orbitSpeedForRadius(15),
-    orbitPhase: (Math.PI * 4) / 3,
-    orbitTilt: 0.025,
-    planetRadius: 0.76,
+    cellAxis: "+Z",
     pageUrl: "forge.html",
     features: [
       "Builds apps, ROMs, and security tools from natural language",
@@ -145,11 +112,7 @@ export const PRODUCTS = [
     status: "soon",
     statusLabel: "Coming Soon",
     color: CSS_COLORS.muted,
-    orbitRadius: 17.5,
-    orbitSpeed: orbitSpeedForRadius(17.5),
-    orbitPhase: (Math.PI * 5) / 3,
-    orbitTilt: -0.02,
-    planetRadius: 0.58,
+    cellAxis: "-Z",
     pageUrl: "forge-lite.html",
     features: [
       "SSH terminal for iPhone and Android",
@@ -166,11 +129,6 @@ export function getProduct(slug) {
   return PRODUCTS.find((p) => p.slug === slug);
 }
 
-export function getConnectionsForSlug(slug) {
-  const linked = new Set();
-  for (const [a, b] of CONNECTIONS) {
-    if (a === slug) linked.add(b);
-    if (b === slug) linked.add(a);
-  }
-  return [...linked];
+export function getProductByCell(cellAxis) {
+  return PRODUCTS.find((p) => p.cellAxis === cellAxis);
 }
