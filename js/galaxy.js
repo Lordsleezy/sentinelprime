@@ -71,7 +71,9 @@ function createTesseractFaceGeometry(faceCount) {
   }
 
   const faceGeo = new THREE.BufferGeometry();
-  faceGeo.setAttribute("position", new THREE.BufferAttribute(facePositions, 3));
+  const positionAttr = new THREE.BufferAttribute(facePositions, 3);
+  positionAttr.usage = THREE.DynamicDrawUsage;
+  faceGeo.setAttribute("position", positionAttr);
   faceGeo.setAttribute("uv", new THREE.BufferAttribute(faceUvs, 2));
   faceGeo.setIndex(
     new Uint16Array(
