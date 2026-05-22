@@ -12,13 +12,24 @@ import { EdgePulseShader } from "./lib/shaders/edge-pulse.js";
 
 const MOBILE_BREAK = 768;
 const DESKTOP_HIGH = 1200;
-const CORE_EMISSIVE = 0x00d4ff;
+const CORE_EMISSIVE = 0x00a8cc;
+const EDGE_BRIGHT = 0x7ee8ff;
+const VERTEX_COLOR = 0xb8f4ff;
 
 const _vA = new THREE.Vector3();
 const _vB = new THREE.Vector3();
 const _vMid = new THREE.Vector3();
 const _vDir = new THREE.Vector3();
 const _vUp = new THREE.Vector3(0, 1, 0);
+
+/** Shared edge tube — one GPU buffer for all tesseract instances. */
+const SHARED_EDGE_GEO = (() => {
+  const geo = new THREE.CylinderGeometry(0.006, 0.006, 1, 6, 1, true);
+  geo.translate(0, 0.5, 0);
+  return geo;
+})();
+
+const SHARED_VERTEX_GEO = new THREE.SphereGeometry(0.042, 8, 8);
 
 function hexToThree(hex) {
   return parseInt(hex.replace("#", ""), 16);
@@ -36,138 +47,71 @@ function getQualityTier() {
   return "medium";
 }
 
-function validateGeometryAttributes(scene, label = "scene") {
-  scene.traverse((obj) => {
-    if (!obj.isMesh && !obj.isLine && !obj.isPoints) return;
-    const geom = obj.geometry;
-    if (!geom) {
-      console.error(`[galaxy] Object has no geometry (${label}):`, obj.name || obj.type, obj);
-      return;
-    }
-    for (const [name, attr] of Object.entries(geom.attributes)) {
-      if (!attr || !attr.array || attr.array.length === 0) {
-        console.error(`[galaxy] Bad attribute "${name}" on (${label}):`, obj.name || obj.type, obj, attr);
-      }
-    }
-    if (geom.index) {
-      const idx = getGeometryIndexArray(geom);
-      if (!idx?.length) {
-        console.error(`[galaxy] Bad index on (${label}):`, obj.name || obj.type, obj);
-      }
-    }
-  });
+function readGalaxyFlags() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    debug: params.has("galaxyDebug"),
+    wireframeOnly: params.has("galaxyWireframe")
+  };
 }
 
-function createTesseractFaceGeometry(faceCount) {
-  const facePositions = new Float32Array(faceCount * 4 * 3);
-  const faceUvs = new Float32Array(faceCount * 4 * 2);
-  for (let f = 0; f < faceCount; f += 1) {
-    const uo = f * 8;
-    faceUvs[uo] = 0;
-    faceUvs[uo + 1] = 0;
-    faceUvs[uo + 2] = 1;
-    faceUvs[uo + 3] = 0;
-    faceUvs[uo + 4] = 1;
-    faceUvs[uo + 5] = 1;
-    faceUvs[uo + 6] = 0;
-    faceUvs[uo + 7] = 1;
+class GalaxyPerformanceMonitor {
+  constructor() {
+    this.frameTimes = [];
+    this.fps = 60;
+    this.degradeLevel = 0;
+    this.lastFrame = performance.now();
+    this.lastReport = performance.now();
+    this.contextLost = false;
   }
 
-  const faceGeo = new THREE.BufferGeometry();
-  const positionAttr = new THREE.BufferAttribute(facePositions, 3);
-  positionAttr.usage = THREE.DynamicDrawUsage;
-  faceGeo.setAttribute("position", positionAttr);
-  faceGeo.setAttribute("uv", new THREE.BufferAttribute(faceUvs, 2));
+  tick() {
+    const now = performance.now();
+    const dt = now - this.lastFrame;
+    this.lastFrame = now;
+    this.frameTimes.push(dt);
+    if (this.frameTimes.length > 90) this.frameTimes.shift();
+
+    if (now - this.lastReport < 1000) return;
+    const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+    this.fps = avg > 0 ? 1000 / avg : 60;
+    this.lastReport = now;
+
+    if (this.fps < 22) this.degradeLevel = Math.min(3, this.degradeLevel + 1);
+    else if (this.fps > 52 && this.degradeLevel > 0) this.degradeLevel -= 1;
+  }
+
+  shouldHideGhosts() {
+    return this.degradeLevel >= 1;
+  }
+
+  shouldHideSubtleFaces() {
+    return this.degradeLevel >= 2;
+  }
+
+  forceWireframeOnly() {
+    return this.degradeLevel >= 3;
+  }
+
+  bloomMultiplier() {
+    return [1, 0.78, 0.58, 0.4][this.degradeLevel];
+  }
+}
+
+function createSubtleFaceGeometry(faceCount) {
+  const positions = new Float32Array(faceCount * 4 * 3);
+  const geo = new THREE.BufferGeometry();
+  const attr = new THREE.BufferAttribute(positions, 3);
+  attr.usage = THREE.DynamicDrawUsage;
+  geo.setAttribute("position", attr);
 
   const indexArray = [];
   for (let f = 0; f < faceCount; f += 1) {
     const base = f * 4;
     indexArray.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
-  // Must pass a plain Array so Three.js wraps it in BufferAttribute (not raw TypedArray).
-  faceGeo.setIndex(indexArray);
-
-  return { faceGeo, facePositions };
-}
-
-function isDegenerateQuad(verts, indices) {
-  const a = verts[indices[0]];
-  const b = verts[indices[1]];
-  const c = verts[indices[2]];
-  const d = verts[indices[3]];
-  const eps = 0.001;
-  const dist = (p, q) => p.distanceTo(q);
-  return (
-    dist(a, b) < eps ||
-    dist(b, c) < eps ||
-    dist(c, d) < eps ||
-    dist(d, a) < eps ||
-    dist(a, c) < eps ||
-    dist(b, d) < eps
-  );
-}
-
-function getGeometryIndexArray(geometry) {
-  if (!geometry?.index) return null;
-  // setIndex(TypedArray) stores raw array on geometry.index in Three.js — not BufferAttribute.
-  return geometry.index.array ?? geometry.index;
-}
-
-function hasFinitePositions(geometry) {
-  const arr = geometry?.attributes?.position?.array;
-  if (!arr?.length) return false;
-  for (let i = 0; i < arr.length; i += 1) {
-    if (!Number.isFinite(arr[i])) return false;
-  }
-  return true;
-}
-
-let faceGeometryDebugCount = 0;
-
-function logFaceGeometryState(geometry, reason) {
-  if (faceGeometryDebugCount >= 3) return;
-  faceGeometryDebugCount += 1;
-  const pos = geometry?.attributes?.position;
-  const idx = getGeometryIndexArray(geometry);
-  console.warn("[galaxy] Face geometry issue:", reason, {
-    uuid: geometry?.uuid,
-    positionCount: pos?.count,
-    positionLength: pos?.array?.length,
-    uvLength: geometry?.attributes?.uv?.array?.length,
-    indexLength: idx?.length,
-    indexIsBufferAttribute: !!geometry?.index?.isBufferAttribute,
-    hasFinitePositions: hasFinitePositions(geometry),
-    boundingSphere: geometry?.boundingSphere
-  });
-}
-
-function isProceduralFaceGeometryReady(geometry) {
-  const pos = geometry?.attributes?.position?.array;
-  const uv = geometry?.attributes?.uv?.array;
-  const idx = getGeometryIndexArray(geometry);
-  if (!pos?.length || pos.length % 3 !== 0) return false;
-  if (!uv?.length) return false;
-  if (!idx?.length) return false;
-  if (!hasFinitePositions(geometry)) return false;
-  return true;
-}
-
-/** Procedural tesseract faces — never call computeTangents() here. */
-function refreshFaceGeometryNormals(geometry) {
-  if (!isProceduralFaceGeometryReady(geometry)) {
-    logFaceGeometryState(geometry, "not ready before normal refresh");
-    return false;
-  }
-
-  try {
-    geometry.attributes.position.needsUpdate = true;
-    geometry.computeVertexNormals();
-    geometry.computeBoundingSphere();
-    return true;
-  } catch (err) {
-    console.warn("[galaxy] Face normal refresh failed (non-fatal):", err);
-    return false;
-  }
+  geo.setIndex(indexArray);
+  return { geo, positions };
 }
 
 function alignCylinder(mesh, a, b) {
@@ -178,12 +122,13 @@ function alignCylinder(mesh, a, b) {
   const len = _vDir.length();
   if (len < 0.0001) {
     mesh.visible = false;
-    return;
+    return false;
   }
   mesh.visible = true;
   mesh.position.copy(_vMid);
   mesh.scale.set(1, len, 1);
   mesh.quaternion.setFromUnitVectors(_vUp, _vDir.normalize());
+  return true;
 }
 
 function makeFresnelMaterial() {
@@ -191,9 +136,7 @@ function makeFresnelMaterial() {
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
-    uniforms: {
-      uTime: { value: 0 }
-    },
+    uniforms: { uTime: { value: 0 } },
     vertexShader: `
       varying vec3 vNormal;
       varying vec3 vView;
@@ -209,9 +152,9 @@ function makeFresnelMaterial() {
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
-        float f = pow(1.0 - max(dot(normalize(vNormal), normalize(vView)), 0.0), 2.4);
-        vec3 col = vec3(0.0, 0.85, 1.0);
-        gl_FragColor = vec4(col, f * 0.7);
+        float f = pow(1.0 - max(dot(normalize(vNormal), normalize(vView)), 0.0), 2.8);
+        vec3 col = vec3(0.0, 0.55, 0.72);
+        gl_FragColor = vec4(col, f * 0.35);
       }
     `
   });
@@ -226,6 +169,8 @@ class HolographicTesseract {
    * @param {number} opts.ywRate
    * @param {boolean} opts.withCells
    * @param {string} opts.quality
+   * @param {boolean} opts.subtleFaces
+   * @param {boolean} opts.wireframeOnly
    */
   constructor(opts) {
     this.scale = opts.scale ?? 2.5;
@@ -234,46 +179,42 @@ class HolographicTesseract {
     this.ywRate = opts.ywRate ?? 0.1;
     this.withCells = opts.withCells ?? true;
     this.quality = opts.quality ?? "high";
+    this.wireframeOnly = opts.wireframeOnly ?? false;
 
     this.tess = new Tesseract4D();
     this.group = new THREE.Group();
     this.edgePulseBoost = 1;
+    this.verts = Array.from({ length: 16 }, () => new THREE.Vector3());
 
-    const faceCount = this.tess.faces.length;
-    const { faceGeo, facePositions } = createTesseractFaceGeometry(faceCount);
+    const showSubtleFaces =
+      !this.wireframeOnly &&
+      opts.subtleFaces !== false &&
+      this.quality !== "mobile";
 
-    this.faceMat = new THREE.MeshPhysicalMaterial({
-      color: CORE_EMISSIVE,
-      emissive: CORE_EMISSIVE,
-      emissiveIntensity: 0.15,
-      transmission: 0.9,
-      roughness: 0.05,
-      thickness: 0.5,
-      ior: 1.3,
-      transparent: true,
-      opacity: 0.12 * this.opacity,
-      side: THREE.DoubleSide,
-      depthWrite: false
-    });
-    this.faceMesh = new THREE.Mesh(faceGeo, this.faceMat);
-    this.group.add(this.faceMesh);
-    this.facePositions = facePositions;
-    this._faceRebuilds = 0;
+    this.faceMesh = null;
+    this.faceMat = null;
+    this.facePositions = null;
 
-    // Populate vertices before first GPU upload — transmission materials require valid UV/normal.
-    try {
-      this.update(0);
-    } catch (err) {
-      console.warn("[galaxy] Initial tesseract update failed (non-fatal):", err);
+    if (showSubtleFaces) {
+      const { geo, positions } = createSubtleFaceGeometry(this.tess.faces.length);
+      this.facePositions = positions;
+      this.faceMat = new THREE.MeshBasicMaterial({
+        color: 0x006688,
+        transparent: true,
+        opacity: 0.028 * this.opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      this.faceMesh = new THREE.Mesh(geo, this.faceMat);
+      this.group.add(this.faceMesh);
     }
 
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
-    this.brightCyan = new THREE.Color(0xccfcff);
+    this.brightCyan = new THREE.Color(EDGE_BRIGHT);
 
     for (let i = 0; i < this.tess.edges.length; i += 1) {
-      const geo = new THREE.CylinderGeometry(0.015, 0.015, 1, 8, 1, true);
-      geo.translate(0, 0.5, 0);
       const mat = new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.clone(EdgePulseShader.uniforms),
         vertexShader: EdgePulseShader.vertexShader,
@@ -285,24 +226,26 @@ class HolographicTesseract {
       mat.uniforms.uBaseColor.value = this.baseCyan;
       mat.uniforms.uBrightColor.value = this.brightCyan;
       mat.uniforms.uPhase.value = (i / this.tess.edges.length) * 2.3;
-      mat.uniforms.uSpeed.value = 0.35 + (i % 5) * 0.08;
-      mat.uniforms.uOpacity.value = 0.85 * this.opacity;
-      const mesh = new THREE.Mesh(geo, mat);
+      mat.uniforms.uSpeed.value = 0.28 + (i % 5) * 0.06;
+      mat.uniforms.uOpacity.value = 0.72 * this.opacity;
+      mat.uniforms.uScanStrength.value = this.quality === "high" ? 0.18 : 0.1;
+      mat.uniforms.uShimmer.value = this.quality === "high" ? 0.22 : 0.12;
+
+      const mesh = new THREE.Mesh(SHARED_EDGE_GEO, mat);
       this.group.add(mesh);
       this.edgeMeshes.push(mesh);
     }
 
     this.vertexMeshes = [];
-    const vGeo = new THREE.SphereGeometry(0.05, 10, 10);
-    const vMat = new THREE.MeshStandardMaterial({
-      color: 0xccfcff,
-      emissive: CORE_EMISSIVE,
-      emissiveIntensity: 2.2,
+    const vMat = new THREE.MeshBasicMaterial({
+      color: VERTEX_COLOR,
       transparent: true,
-      opacity: 0.95 * this.opacity
+      opacity: 0.92 * this.opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     for (let i = 0; i < 16; i += 1) {
-      const m = new THREE.Mesh(vGeo.clone(), vMat.clone());
+      const m = new THREE.Mesh(SHARED_VERTEX_GEO, vMat.clone());
       this.group.add(m);
       this.vertexMeshes.push(m);
     }
@@ -319,9 +262,9 @@ class HolographicTesseract {
         const color = hexToThree(product.color);
         const pMat = new THREE.PointsMaterial({
           color,
-          size: 0.22,
+          size: 0.18,
           transparent: true,
-          opacity: 0.12 * this.opacity,
+          opacity: 0.1 * this.opacity,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           sizeAttenuation: true
@@ -330,7 +273,7 @@ class HolographicTesseract {
         this.group.add(points);
 
         const hit = new THREE.Mesh(
-          new THREE.SphereGeometry(0.85, 12, 12),
+          new THREE.SphereGeometry(0.85, 8, 8),
           new THREE.MeshBasicMaterial({ visible: false })
         );
         hit.userData.product = product;
@@ -359,85 +302,63 @@ class HolographicTesseract {
         });
       }
     }
+
+    this.update(0);
   }
 
-  rebuildFaceGeometry(positionSnapshot) {
-    if (this._faceRebuilds >= 2) return false;
-    this._faceRebuilds += 1;
-    const prev = this.faceMesh.geometry;
-    const { faceGeo, facePositions } = createTesseractFaceGeometry(this.tess.faces.length);
-    this.faceMesh.geometry = faceGeo;
-    this.facePositions = facePositions;
-    if (positionSnapshot?.length === facePositions.length) {
-      facePositions.set(positionSnapshot);
-      faceGeo.attributes.position.array.set(positionSnapshot);
-    }
-    if (prev && prev !== faceGeo) prev.dispose();
-    console.warn("[galaxy] Rebuilt tesseract face geometry (fallback)", faceGeo.uuid);
-    return true;
-  }
-
-  ensureFaceGeometry() {
-    if (isProceduralFaceGeometryReady(this.faceMesh.geometry)) {
-      return refreshFaceGeometryNormals(this.faceMesh.geometry);
-    }
-    logFaceGeometryState(this.faceMesh.geometry, "invalid after writeFacePositions");
-    if (this.rebuildFaceGeometry(new Float32Array(this.facePositions))) {
-      this.faceMesh.geometry.attributes.position.needsUpdate = true;
-      return refreshFaceGeometryNormals(this.faceMesh.geometry);
-    }
-    return false;
-  }
-
-  writeFacePositions(time, projectedOverride) {
+  writePositions(time, projectedOverride) {
     if (!projectedOverride) {
       this.tess.rotate(time, this.xwRate, this.ywRate);
     }
     const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
-    const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
 
-    for (let f = 0; f < this.tess.faces.length; f += 1) {
-      const face = this.tess.faces[f];
-      if (isDegenerateQuad(verts, face)) continue;
-      for (let c = 0; c < 4; c += 1) {
-        const v = verts[face[c]];
-        const o = (f * 4 + c) * 3;
-        this.facePositions[o] = v.x;
-        this.facePositions[o + 1] = v.y;
-        this.facePositions[o + 2] = v.z;
-      }
+    for (let i = 0; i < 16; i += 1) {
+      this.verts[i].set(projected[i].x, projected[i].y, projected[i].z);
     }
-    return verts;
+
+    if (this.faceMesh && this.facePositions) {
+      for (let f = 0; f < this.tess.faces.length; f += 1) {
+        const face = this.tess.faces[f];
+        for (let c = 0; c < 4; c += 1) {
+          const v = this.verts[face[c]];
+          const o = (f * 4 + c) * 3;
+          this.facePositions[o] = v.x;
+          this.facePositions[o + 1] = v.y;
+          this.facePositions[o + 2] = v.z;
+        }
+      }
+      this.faceMesh.geometry.attributes.position.needsUpdate = true;
+    }
+
+    return this.verts;
   }
 
   update(time, projectedOverride) {
     try {
-      const verts = this.writeFacePositions(time, projectedOverride);
-      this.ensureFaceGeometry();
+      const verts = this.writePositions(time, projectedOverride);
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
         const [a, b] = this.tess.edges[e];
         alignCylinder(this.edgeMeshes[e], verts[a], verts[b]);
-        this.edgeMeshes[e].material.uniforms.uTime.value = time;
-        this.edgeMeshes[e].material.uniforms.uPulseBoost.value = this.edgePulseBoost;
+        const u = this.edgeMeshes[e].material.uniforms;
+        u.uTime.value = time;
+        u.uPulseBoost.value = this.edgePulseBoost;
       }
 
-      const flare = {};
+      const flare = new Array(16).fill(0);
       for (let e = 0; e < this.tess.edges.length; e += 1) {
-        const t = (time * this.edgeMeshes[e].material.uniforms.uSpeed.value +
-          this.edgeMeshes[e].material.uniforms.uPhase.value) % 1;
+        const u = this.edgeMeshes[e].material.uniforms;
+        const t = (time * u.uSpeed.value + u.uPhase.value) % 1;
         const [a, b] = this.tess.edges[e];
-        const nearA = Math.abs(t - 0) < 0.08 || Math.abs(t - 1) < 0.08;
-        const nearB = Math.abs(t - 0.5) < 0.08;
-        if (nearA) flare[a] = (flare[a] ?? 1) + 0.6;
-        if (nearB) flare[b] = (flare[b] ?? 1) + 0.4;
+        if (Math.abs(t) < 0.07 || Math.abs(t - 1) < 0.07) flare[a] += 0.55;
+        if (Math.abs(t - 0.5) < 0.07) flare[b] += 0.35;
       }
 
       for (let i = 0; i < 16; i += 1) {
         this.vertexMeshes[i].position.copy(verts[i]);
-        const s = 0.85 + (flare[i] ?? 0) * 0.35;
+        const s = 0.75 + flare[i] * 0.45;
         this.vertexMeshes[i].scale.setScalar(s);
-        this.vertexMeshes[i].material.emissiveIntensity = 1.8 + (flare[i] ?? 0) * 1.2;
+        this.vertexMeshes[i].material.opacity = (0.75 + flare[i] * 0.25) * this.opacity;
       }
 
       if (!this.withCells) return verts;
@@ -464,10 +385,14 @@ class HolographicTesseract {
     }
   }
 
+  setWireframeMode(on) {
+    if (this.faceMesh) this.faceMesh.visible = !on;
+  }
+
   setCellOpacity(cellAxis, opacity) {
     const cell = this.cells.get(cellAxis);
     if (!cell) return;
-    cell.points.material.opacity = opacity * 0.12 * this.opacity;
+    cell.points.material.opacity = opacity * 0.1 * this.opacity;
     cell.labelEl.style.opacity = String(Math.min(1, opacity * 0.55));
   }
 
@@ -475,11 +400,11 @@ class HolographicTesseract {
     const cell = this.cells.get(cellAxis);
     if (!cell) return;
     cell.labelEl.classList.toggle("is-hovered", on);
-    cell.points.material.opacity = (on ? 0.35 : 0.12) * this.opacity;
-    cell.points.material.size = on ? 0.32 : 0.22;
+    cell.points.material.opacity = (on ? 0.28 : 0.1) * this.opacity;
+    cell.points.material.size = on ? 0.26 : 0.18;
     for (const ei of cell.edgeIndices) {
-      this.edgeMeshes[ei].material.uniforms.uPulseBoost.value = on ? 2.2 : 1;
-      this.edgeMeshes[ei].material.uniforms.uSpeed.value = on ? 0.85 : 0.35 + (ei % 5) * 0.08;
+      this.edgeMeshes[ei].material.uniforms.uPulseBoost.value = on ? 1.8 : 1;
+      this.edgeMeshes[ei].material.uniforms.uSpeed.value = on ? 0.72 : 0.28 + (ei % 5) * 0.06;
     }
   }
 
@@ -489,20 +414,20 @@ class HolographicTesseract {
       this.setCellOpacity(axis, alpha);
       cell.labelEl.style.opacity = String(alpha * 0.4);
     }
-    this.faceMat.opacity = 0.08 * alpha * this.opacity;
+    if (this.faceMat) this.faceMat.opacity = 0.028 * alpha * this.opacity;
     for (const m of this.edgeMeshes) {
-      m.material.uniforms.uOpacity.value = 0.85 * alpha * this.opacity;
+      m.material.uniforms.uOpacity.value = 0.72 * alpha * this.opacity;
     }
     for (const m of this.vertexMeshes) {
-      m.material.opacity = 0.95 * alpha * this.opacity;
+      m.material.opacity = 0.92 * alpha * this.opacity;
     }
   }
 
   boostCell(cellAxis, boost) {
     const cell = this.cells.get(cellAxis);
     if (!cell) return;
-    cell.points.material.opacity = 0.12 * boost * this.opacity;
-    cell.points.material.size = 0.22 + boost * 0.15;
+    cell.points.material.opacity = 0.1 * boost * this.opacity;
+    cell.points.material.size = 0.18 + boost * 0.12;
     this.edgePulseBoost = boost;
   }
 }
@@ -512,418 +437,515 @@ class HolographicTesseract {
  */
 export function initGalaxy(root) {
   try {
-  const mount = root.querySelector(".product-galaxy");
-  const canvas = root.querySelector("canvas");
-  const hintEls = root.querySelectorAll(".galaxy-hint");
-  if (!mount || !canvas) return;
+    const mount = root.querySelector(".product-galaxy");
+    const canvas = root.querySelector("canvas");
+    const hintEls = root.querySelectorAll(".galaxy-hint");
+    if (!mount || !canvas) return;
 
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let quality = getQualityTier();
-  const isMobile = () => window.innerWidth < MOBILE_BREAK;
+    const flags = readGalaxyFlags();
+    const perf = new GalaxyPerformanceMonitor();
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let quality = getQualityTier();
+    const isMobile = () => window.innerWidth < MOBILE_BREAK;
 
-  let disposed = false;
-  let running = false;
-  let rafId = 0;
-  let elapsed = 0;
-  let lastDragEnd = 0;
-  let hintTimer = 0;
-  let hoveredCell = null;
-  /** @type {{ product: typeof PRODUCTS[0], start: number, duration: number, fromPos: THREE.Vector3, toPos: THREE.Vector3, fromFov: number } | null} */
-  let transition = null;
+    let disposed = false;
+    let running = false;
+    let rafId = 0;
+    let elapsed = 0;
+    let lastDragEnd = 0;
+    let hintTimer = 0;
+    let hoveredCell = null;
+    /** @type {{ product: typeof PRODUCTS[0], start: number, duration: number, fromPos: THREE.Vector3, toPos: THREE.Vector3, fromFov: number } | null} */
+    let transition = null;
 
-  const scene = new THREE.Scene();
-
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-  camera.position.set(0, 1.5, 7);
-
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: quality !== "mobile",
-    alpha: true,
-    powerPreference: "high-performance"
-  });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.08;
-
-  const labelRenderer = new CSS2DRenderer();
-  labelRenderer.domElement.className = "galaxy-labels-layer";
-  mount.appendChild(labelRenderer.domElement);
-
-  if (reducedMotion) {
-    const msg = document.createElement("p");
-    msg.className = "galaxy-reduced-msg";
-    msg.textContent = "Animations reduced — click a cell label to navigate.";
-    mount.appendChild(msg);
-    for (const product of PRODUCTS) {
-      const link = document.createElement("a");
-      link.href = product.pageUrl;
-      link.className = "galaxy-reduced-link";
-      link.textContent = product.name;
-      msg.appendChild(document.createElement("br"));
-      msg.appendChild(link);
+    let debugEl = null;
+    if (flags.debug) {
+      debugEl = document.createElement("div");
+      debugEl.className = "galaxy-debug-hud";
+      mount.appendChild(debugEl);
     }
-  }
 
-  scene.add(new THREE.AmbientLight(0x060a12, 0.4));
-  const coreLight = new THREE.PointLight(CORE_EMISSIVE, 2.5, 20, 1.6);
-  scene.add(coreLight);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x020204, quality === "mobile" ? 0.055 : 0.042);
+    scene.background = new THREE.Color(0x020204);
 
-  const coreGroup = new THREE.Group();
-  scene.add(coreGroup);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(0, 1.5, 7);
 
-  const innerCore = new THREE.Mesh(
-    new THREE.SphereGeometry(0.4, 32, 32),
-    new THREE.MeshStandardMaterial({
-      color: 0xccfcff,
-      emissive: CORE_EMISSIVE,
-      emissiveIntensity: 2.2,
-      metalness: 0.2,
-      roughness: 0.2
-    })
-  );
-  coreGroup.add(innerCore);
+    const maxDpr = quality === "mobile" ? 1.5 : 2;
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: quality !== "mobile",
+      alpha: false,
+      powerPreference: "high-performance",
+      stencil: false
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.92;
 
-  const fresnelMat = makeFresnelMaterial();
-  const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), fresnelMat);
-  coreGroup.add(atmosphere);
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.domElement.className = "galaxy-labels-layer";
+    mount.appendChild(labelRenderer.domElement);
 
-  const particleCount = quality === "high" ? 300 : quality === "medium" ? 150 : 75;
-  const pPos = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i += 1) {
-    const r = Math.random() * 1.0;
-    const t = Math.random() * Math.PI * 2;
-    const p = Math.acos(2 * Math.random() - 1);
-    pPos[i * 3] = r * Math.sin(p) * Math.cos(t);
-    pPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
-    pPos[i * 3 + 2] = r * Math.cos(p);
-  }
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-  const coreParticles = new THREE.Points(
-    pGeo,
-    new THREE.PointsMaterial({
-      color: CORE_EMISSIVE,
-      size: 0.04,
-      transparent: true,
-      opacity: 0.55,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    })
-  );
-  coreGroup.add(coreParticles);
+    if (reducedMotion) {
+      const msg = document.createElement("p");
+      msg.className = "galaxy-reduced-msg";
+      msg.textContent = "Animations reduced — click a cell label to navigate.";
+      mount.appendChild(msg);
+      for (const product of PRODUCTS) {
+        const link = document.createElement("a");
+        link.href = product.pageUrl;
+        link.className = "galaxy-reduced-link";
+        link.textContent = product.name;
+        msg.appendChild(document.createElement("br"));
+        msg.appendChild(link);
+      }
+    }
 
-  const godRays = new THREE.Mesh(
-    new THREE.PlaneGeometry(8, 8),
-    new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: { uIntensity: { value: 0.35 } },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform float uIntensity;
-        varying vec2 vUv;
-        void main() {
-          vec2 c = vUv - 0.5;
-          float d = length(c);
-          float ray = smoothstep(0.55, 0.0, d) * uIntensity;
-          gl_FragColor = vec4(0.0, 0.85, 1.0, ray * (1.0 - d));
-        }
-      `
-    })
-  );
-  godRays.position.z = -0.5;
-  coreGroup.add(godRays);
+    scene.add(new THREE.AmbientLight(0x040608, 0.35));
+    const coreLight = new THREE.PointLight(CORE_EMISSIVE, 1.6, 18, 1.8);
+    scene.add(coreLight);
 
-  const starCount = quality === "high" ? 800 : quality === "medium" ? 500 : 350;
-  const starPos = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i += 1) {
-    const r = 30 + Math.random() * 50;
-    const t = Math.random() * Math.PI * 2;
-    const p = Math.acos(2 * Math.random() - 1);
-    starPos[i * 3] = r * Math.sin(p) * Math.cos(t);
-    starPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
-    starPos[i * 3 + 2] = r * Math.cos(p);
-  }
-  const starGeo = new THREE.BufferGeometry();
-  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-  const stars = new THREE.Points(
-    starGeo,
-    new THREE.PointsMaterial({
-      color: 0xaaccff,
-      size: quality === "high" ? 0.08 : 0.06,
-      transparent: true,
-      opacity: 0.45,
-      depthWrite: false
-    })
-  );
-  scene.add(stars);
+    const coreGroup = new THREE.Group();
+    scene.add(coreGroup);
 
-  const mainTess = new HolographicTesseract({ scale: 2.5, quality, withCells: true });
-  scene.add(mainTess.group);
+    const innerCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32, 24, 24),
+      new THREE.MeshBasicMaterial({
+        color: 0x66cce8,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
+    );
+    coreGroup.add(innerCore);
 
-  const ghosts = [];
-  if (quality === "high") {
-    ghosts.push(new HolographicTesseract({ scale: 1.0, opacity: 0.03, xwRate: 0.11, ywRate: 0.08, withCells: false, quality }));
-    ghosts.push(new HolographicTesseract({ scale: 1.75, opacity: 0.03, xwRate: 0.13, ywRate: 0.09, withCells: false, quality }));
-  } else if (quality === "medium") {
-    ghosts.push(new HolographicTesseract({ scale: 1.75, opacity: 0.03, xwRate: 0.12, ywRate: 0.085, withCells: false, quality }));
-  }
-  for (const g of ghosts) scene.add(g.group);
+    const fresnelMat = makeFresnelMaterial();
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), fresnelMat);
+    coreGroup.add(atmosphere);
 
-  validateGeometryAttributes(scene, "init");
-  console.info("[galaxy] canvas size at init:", canvas.clientWidth, canvas.clientHeight);
+    const particleCount = quality === "high" ? 180 : quality === "medium" ? 100 : 45;
+    const pPos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i += 1) {
+      const r = Math.random() * 0.85;
+      const t = Math.random() * Math.PI * 2;
+      const p = Math.acos(2 * Math.random() - 1);
+      pPos[i * 3] = r * Math.sin(p) * Math.cos(t);
+      pPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
+      pPos[i * 3 + 2] = r * Math.cos(p);
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const coreParticles = new THREE.Points(
+      pGeo,
+      new THREE.PointsMaterial({
+        color: CORE_EMISSIVE,
+        size: 0.035,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
+    );
+    coreGroup.add(coreParticles);
 
-  const bloomStrength = quality === "mobile" ? 1.2 : 1.6;
-  const bloomRadius = quality === "high" ? 0.8 : quality === "medium" ? 0.65 : 0.55;
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.1);
-  composer.addPass(bloomPass);
+    const godRays = new THREE.Mesh(
+      new THREE.PlaneGeometry(6, 6),
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        uniforms: { uIntensity: { value: 0.12 } },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uIntensity;
+          varying vec2 vUv;
+          void main() {
+            vec2 c = vUv - 0.5;
+            float d = length(c);
+            float ray = smoothstep(0.5, 0.0, d) * uIntensity;
+            gl_FragColor = vec4(0.0, 0.55, 0.72, ray * (1.0 - d));
+          }
+        `
+      })
+    );
+    godRays.position.z = -0.5;
+    coreGroup.add(godRays);
 
-  const fxPass = new ShaderPass(VignetteChromaticShader);
-  fxPass.uniforms.uStrength.value = 0.4;
-  fxPass.uniforms.uGrain.value = quality === "mobile" ? 0 : 0.035;
-  composer.addPass(fxPass);
+    const starCount = quality === "high" ? 500 : quality === "medium" ? 320 : 200;
+    const starPos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i += 1) {
+      const r = 30 + Math.random() * 50;
+      const t = Math.random() * Math.PI * 2;
+      const p = Math.acos(2 * Math.random() - 1);
+      starPos[i * 3] = r * Math.sin(p) * Math.cos(t);
+      starPos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t);
+      starPos[i * 3 + 2] = r * Math.cos(p);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+    const stars = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({
+        color: 0x8899aa,
+        size: quality === "high" ? 0.06 : 0.05,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false
+      })
+    );
+    scene.add(stars);
 
-  const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.enablePan = false;
-  controls.minDistance = 4;
-  controls.maxDistance = 12;
-  controls.minPolarAngle = 0.3;
-  controls.maxPolarAngle = Math.PI - 0.3;
-  controls.target.set(0, 0, 0);
-  controls.enableRotate = !reducedMotion && !isMobile();
-  controls.autoRotate = !reducedMotion;
-  controls.autoRotateSpeed = 0.3;
+    const wireframeOnly = flags.wireframeOnly || quality === "mobile";
+    const mainTess = new HolographicTesseract({
+      scale: 2.5,
+      quality,
+      withCells: true,
+      wireframeOnly
+    });
+    scene.add(mainTess.group);
 
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-  const hitTargets = [];
-  for (const [, cell] of mainTess.cells) hitTargets.push(cell.hit);
+    const ghosts = [];
+    if (quality === "high") {
+      ghosts.push(
+        new HolographicTesseract({
+          scale: 1.0,
+          opacity: 0.45,
+          xwRate: 0.11,
+          ywRate: 0.08,
+          withCells: false,
+          quality,
+          subtleFaces: false,
+          wireframeOnly: true
+        })
+      );
+      ghosts.push(
+        new HolographicTesseract({
+          scale: 1.75,
+          opacity: 0.35,
+          xwRate: 0.13,
+          ywRate: 0.09,
+          withCells: false,
+          quality,
+          subtleFaces: false,
+          wireframeOnly: true
+        })
+      );
+    } else if (quality === "medium") {
+      ghosts.push(
+        new HolographicTesseract({
+          scale: 1.75,
+          opacity: 0.3,
+          xwRate: 0.12,
+          ywRate: 0.085,
+          withCells: false,
+          quality,
+          subtleFaces: false,
+          wireframeOnly: true
+        })
+      );
+    }
+    for (const g of ghosts) scene.add(g.group);
 
-  function scheduleHintFade() {
-    if (hintTimer) return;
-    hintTimer = window.setTimeout(() => {
-      hintEls.forEach((el) => el.classList.add("is-faded"));
-    }, 5000);
-  }
+    const bloomStrength = quality === "mobile" ? 0.55 : quality === "medium" ? 0.72 : 0.88;
+    const bloomRadius = quality === "high" ? 0.45 : quality === "medium" ? 0.38 : 0.32;
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.35);
+    composer.addPass(bloomPass);
 
-  function setPointer(cx, cy) {
-    const rect = canvas.getBoundingClientRect();
-    pointer.x = ((cx - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
-  }
+    const fxPass = new ShaderPass(VignetteChromaticShader);
+    fxPass.uniforms.uStrength.value = 0.48;
+    fxPass.uniforms.uGrain.value = quality === "mobile" ? 0 : 0.025;
+    composer.addPass(fxPass);
 
-  function pickCell() {
-    raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(hitTargets, false);
-    return hits.length ? hits[0].object.userData.product : null;
-  }
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.085;
+    controls.enablePan = false;
+    controls.minDistance = 4;
+    controls.maxDistance = 12;
+    controls.minPolarAngle = 0.3;
+    controls.maxPolarAngle = Math.PI - 0.3;
+    controls.target.set(0, 0, 0);
+    controls.rotateSpeed = 0.45;
+    controls.enableRotate = !reducedMotion && !isMobile();
+    controls.autoRotate = !reducedMotion;
+    controls.autoRotateSpeed = 0.22;
 
-  function setHover(product) {
-    if (hoveredCell?.cellAxis === product?.cellAxis) return;
-    if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, false);
-    hoveredCell = product ? PRODUCTS.find((p) => p.slug === product.slug) : null;
-    if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, true);
-  }
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const hitTargets = [];
+    for (const [, cell] of mainTess.cells) hitTargets.push(cell.hit);
 
-  function startTransition(product) {
-    if (transition) return;
-    transition = {
-      product,
-      start: performance.now(),
-      duration: 1400,
-      fromPos: camera.position.clone(),
-      toPos: new THREE.Vector3(),
-      fromFov: camera.fov
-    };
-    const center = mainTess.tess.getCellCenter(product.cellAxis, 2.5);
-    transition.toPos.set(center.x, center.y, center.z);
-    transition.toPos.multiplyScalar(0.35);
-    transition.toPos.z += 1.2;
-    controls.enabled = false;
-    scheduleHintFade();
-  }
+    function applyPerformanceDegrade() {
+      const hideGhosts = perf.shouldHideGhosts() || perf.contextLost;
+      const hideFaces = perf.shouldHideSubtleFaces() || perf.forceWireframeOnly() || wireframeOnly;
+      for (const g of ghosts) g.group.visible = !hideGhosts;
+      mainTess.setWireframeMode(hideFaces);
+      coreParticles.visible = perf.degradeLevel < 2;
+      godRays.visible = perf.degradeLevel < 1;
+      bloomPass.strength = bloomStrength * perf.bloomMultiplier();
+      if (perf.degradeLevel >= 2) {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+      }
+    }
 
-  function onPointerMove(e) {
-    if (transition || reducedMotion || isMobile()) return;
-    setPointer(e.clientX, e.clientY);
-    setHover(pickCell());
-  }
+    function scheduleHintFade() {
+      if (hintTimer) return;
+      hintTimer = window.setTimeout(() => {
+        hintEls.forEach((el) => el.classList.add("is-faded"));
+      }, 5000);
+    }
 
-  function onClick(e) {
-    if (transition) return;
-    if (reducedMotion) return;
-    setPointer(e.clientX, e.clientY);
-    const product = pickCell();
-    if (product) startTransition(product);
-  }
+    function setPointer(cx, cy) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((cx - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
+    }
 
-  function onLabelClick(e) {
-    const axis = e.currentTarget.dataset.cellAxis;
-    const product = PRODUCTS.find((p) => p.cellAxis === axis);
-    if (product && !transition) startTransition(product);
-  }
+    function pickCell() {
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(hitTargets, false);
+      return hits.length ? hits[0].object.userData.product : null;
+    }
 
-  for (const [, cell] of mainTess.cells) {
-    cell.labelEl.dataset.cellAxis = cell.product.cellAxis;
-    cell.labelEl.addEventListener("click", onLabelClick);
-  }
+    function setHover(product) {
+      if (hoveredCell?.cellAxis === product?.cellAxis) return;
+      if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, false);
+      hoveredCell = product ? PRODUCTS.find((p) => p.slug === product.slug) : null;
+      if (hoveredCell) mainTess.setCellHighlight(hoveredCell.cellAxis, true);
+    }
 
-  function onControlStart() {
-    scheduleHintFade();
-    lastDragEnd = performance.now();
-    controls.autoRotate = false;
-    mount.classList.add("is-dragging");
-  }
+    function startTransition(product) {
+      if (transition) return;
+      transition = {
+        product,
+        start: performance.now(),
+        duration: 1400,
+        fromPos: camera.position.clone(),
+        toPos: new THREE.Vector3(),
+        fromFov: camera.fov
+      };
+      const center = mainTess.tess.getCellCenter(product.cellAxis, 2.5);
+      transition.toPos.set(center.x, center.y, center.z);
+      transition.toPos.multiplyScalar(0.35);
+      transition.toPos.z += 1.2;
+      controls.enabled = false;
+      scheduleHintFade();
+    }
 
-  function onControlEnd() {
-    lastDragEnd = performance.now();
-    mount.classList.remove("is-dragging");
-  }
+    function onPointerMove(e) {
+      if (transition || reducedMotion || isMobile()) return;
+      setPointer(e.clientX, e.clientY);
+      setHover(pickCell());
+    }
 
-  controls.addEventListener("start", onControlStart);
-  controls.addEventListener("end", onControlEnd);
-  canvas.addEventListener("pointermove", onPointerMove);
-  canvas.addEventListener("pointerdown", scheduleHintFade);
-  canvas.addEventListener("click", onClick);
-  canvas.addEventListener(
-    "touchend",
-    (e) => {
-      if (transition || !e.changedTouches?.length) return;
-      const t = e.changedTouches[0];
-      setPointer(t.clientX, t.clientY);
+    function onClick(e) {
+      if (transition) return;
+      if (reducedMotion) return;
+      setPointer(e.clientX, e.clientY);
       const product = pickCell();
       if (product) startTransition(product);
-    },
-    { passive: true }
-  );
-
-  function resize() {
-    quality = getQualityTier();
-    const w = mount.clientWidth;
-    const h = mount.clientHeight;
-    if (w < 1 || h < 1) return;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
-    labelRenderer.setSize(w, h);
-    composer.setSize(w, h);
-    controls.enableRotate = !reducedMotion && !isMobile();
-  }
-
-  function renderFrame(time) {
-    if (!reducedMotion && !transition) {
-      const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
-      const scale = THREE.MathUtils.lerp(1.0, 1.04, pulse);
-      innerCore.scale.setScalar(scale);
-      innerCore.material.emissiveIntensity = 2.0 + pulse * 0.5;
-      coreLight.intensity = 2.2 + pulse * 0.6;
-      fresnelMat.uniforms.uTime.value = time;
-      coreGroup.rotation.y = time * 0.08;
-      coreParticles.rotation.y = -time * 0.05;
-      coreParticles.rotation.x = time * 0.03;
-      stars.rotation.y = -time * 0.002;
-
-      mainTess.update(time);
-      for (const g of ghosts) g.update(time * (g.xwRate / 0.15));
-
-      if (!isMobile() && performance.now() - lastDragEnd > 3000) {
-        controls.autoRotate = true;
-      }
-    } else if (reducedMotion) {
-      mainTess.tess.rotate(0, 0, 0);
-      mainTess.update(0);
     }
 
-    if (transition) {
-      const t = Math.min(1, (performance.now() - transition.start) / transition.duration);
-      const e = easePower3InOut(t);
-      camera.position.lerpVectors(transition.fromPos, transition.toPos, e + Math.sin(e * Math.PI) * 0.08);
-      camera.fov = THREE.MathUtils.lerp(transition.fromFov, 80, e);
+    function onLabelClick(e) {
+      const axis = e.currentTarget.dataset.cellAxis;
+      const product = PRODUCTS.find((p) => p.cellAxis === axis);
+      if (product && !transition) startTransition(product);
+    }
+
+    for (const [, cell] of mainTess.cells) {
+      cell.labelEl.dataset.cellAxis = cell.product.cellAxis;
+      cell.labelEl.addEventListener("click", onLabelClick);
+    }
+
+    function onControlStart() {
+      scheduleHintFade();
+      lastDragEnd = performance.now();
+      controls.autoRotate = false;
+      mount.classList.add("is-dragging");
+    }
+
+    function onControlEnd() {
+      lastDragEnd = performance.now();
+      mount.classList.remove("is-dragging");
+    }
+
+    controls.addEventListener("start", onControlStart);
+    controls.addEventListener("end", onControlEnd);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerdown", scheduleHintFade);
+    canvas.addEventListener("click", onClick);
+    canvas.addEventListener(
+      "touchend",
+      (e) => {
+        if (transition || !e.changedTouches?.length) return;
+        const t = e.changedTouches[0];
+        setPointer(t.clientX, t.clientY);
+        const product = pickCell();
+        if (product) startTransition(product);
+      },
+      { passive: true }
+    );
+
+    canvas.addEventListener("webglcontextlost", (e) => {
+      e.preventDefault();
+      perf.contextLost = true;
+      stop();
+      console.warn("[galaxy] WebGL context lost — rendering paused");
+    });
+
+    canvas.addEventListener("webglcontextrestored", () => {
+      perf.contextLost = false;
+      console.info("[galaxy] WebGL context restored");
+      if (!reducedMotion) start();
+    });
+
+    function resize() {
+      quality = getQualityTier();
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      if (w < 1 || h < 1) return;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      camera.lookAt(0, 0, 0);
+      renderer.setSize(w, h, false);
+      labelRenderer.setSize(w, h);
+      composer.setSize(w, h);
+      controls.enableRotate = !reducedMotion && !isMobile();
+    }
 
-      mainTess.fadeAllExcept(transition.product.cellAxis, Math.max(0, 1 - t / 0.7));
-      mainTess.boostCell(transition.product.cellAxis, 1 + e * 2.5);
-      mainTess.setCellHighlight(transition.product.cellAxis, true);
+    function renderFrame(time) {
+      perf.tick();
+      applyPerformanceDegrade();
 
-      bloomPass.strength = THREE.MathUtils.lerp(bloomStrength, 3.0, e);
-      fxPass.uniforms.uRadialBlur.value = e;
-      fxPass.uniforms.uWhiteFlash.value = Math.max(0, (t - 0.72) / 0.28);
+      if (!reducedMotion && !transition) {
+        const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
+        const scale = THREE.MathUtils.lerp(1.0, 1.03, pulse);
+        innerCore.scale.setScalar(scale);
+        coreLight.intensity = 1.4 + pulse * 0.35;
+        fresnelMat.uniforms.uTime.value = time;
+        coreGroup.rotation.y = time * 0.06;
+        coreParticles.rotation.y = -time * 0.04;
+        coreParticles.rotation.x = time * 0.025;
+        stars.rotation.y = -time * 0.0015;
 
-      if (t >= 1) {
-        window.location.href = transition.product.pageUrl;
+        mainTess.update(time);
+        for (const g of ghosts) {
+          if (g.group.visible) g.update(time * (g.xwRate / 0.15));
+        }
+
+        if (!isMobile() && performance.now() - lastDragEnd > 3000) {
+          controls.autoRotate = true;
+        }
+      } else if (reducedMotion) {
+        mainTess.tess.rotate(0, 0, 0);
+        mainTess.update(0);
       }
-    } else {
-      controls.update();
+
+      if (transition) {
+        const t = Math.min(1, (performance.now() - transition.start) / transition.duration);
+        const e = easePower3InOut(t);
+        camera.position.lerpVectors(transition.fromPos, transition.toPos, e + Math.sin(e * Math.PI) * 0.08);
+        camera.fov = THREE.MathUtils.lerp(transition.fromFov, 80, e);
+        camera.updateProjectionMatrix();
+        camera.lookAt(0, 0, 0);
+
+        mainTess.fadeAllExcept(transition.product.cellAxis, Math.max(0, 1 - t / 0.7));
+        mainTess.boostCell(transition.product.cellAxis, 1 + e * 2.5);
+        mainTess.setCellHighlight(transition.product.cellAxis, true);
+
+        bloomPass.strength = THREE.MathUtils.lerp(bloomStrength, 1.6, e);
+        fxPass.uniforms.uRadialBlur.value = e * 0.6;
+        fxPass.uniforms.uWhiteFlash.value = Math.max(0, (t - 0.78) / 0.22);
+
+        if (t >= 1) {
+          window.location.href = transition.product.pageUrl;
+        }
+      } else {
+        controls.update();
+      }
+
+      fxPass.uniforms.uTime.value = time;
+
+      if (debugEl) {
+        const info = renderer.info;
+        debugEl.textContent =
+          `FPS ${perf.fps.toFixed(0)} · degrade ${perf.degradeLevel}` +
+          ` · bloom ${bloomPass.strength.toFixed(2)}` +
+          ` · geo ${info.memory.geometries} · tex ${info.memory.textures}` +
+          (perf.contextLost ? " · CONTEXT LOST" : "");
+      }
+
+      try {
+        composer.render();
+        labelRenderer.render(scene, camera);
+      } catch (err) {
+        console.warn("[galaxy] Render frame failed (non-fatal):", err);
+        perf.degradeLevel = Math.min(3, perf.degradeLevel + 1);
+      }
     }
 
-    try {
-      composer.render();
-      labelRenderer.render(scene, camera);
-    } catch (err) {
-      console.warn("[galaxy] Render frame failed (non-fatal):", err);
+    function tick() {
+      if (!running || disposed || perf.contextLost) return;
+      elapsed += 0.016;
+      renderFrame(elapsed);
+      rafId = requestAnimationFrame(tick);
     }
-  }
 
-  function tick() {
-    if (!running || disposed) return;
-    elapsed += 0.016;
-    renderFrame(elapsed);
-    rafId = requestAnimationFrame(tick);
-  }
+    function start() {
+      if (running || perf.contextLost) return;
+      running = true;
+      resize();
+      if (flags.debug) {
+        console.info("[galaxy] debug mode — add ?galaxyWireframe=1 for wireframe-only");
+        console.info("[galaxy] renderer memory at start:", renderer.info.memory);
+      }
+      if (reducedMotion) {
+        renderFrame(0);
+        return;
+      }
+      tick();
+    }
 
-  function start() {
-    if (running) return;
-    running = true;
+    function stop() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) start();
+          else if (!reducedMotion) stop();
+        }
+      },
+      { rootMargin: "80px", threshold: 0.05 }
+    );
+    observer.observe(root);
+    window.addEventListener("resize", resize, { passive: true });
     resize();
-    if (reducedMotion) {
-      renderFrame(0);
-      return;
-    }
-    tick();
-  }
+    if (reducedMotion) renderFrame(0);
 
-  function stop() {
-    running = false;
-    if (rafId) cancelAnimationFrame(rafId);
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) start();
-        else if (!reducedMotion) stop();
-      }
-    },
-    { rootMargin: "80px", threshold: 0.05 }
-  );
-  observer.observe(root);
-  window.addEventListener("resize", resize, { passive: true });
-  resize();
-  if (reducedMotion) renderFrame(0);
-
-  return () => {
-    disposed = true;
-    stop();
-    observer.disconnect();
-    controls.dispose();
-    renderer.dispose();
-    labelRenderer.domElement.remove();
-    if (hintTimer) clearTimeout(hintTimer);
-  };
+    return () => {
+      disposed = true;
+      stop();
+      observer.disconnect();
+      controls.dispose();
+      renderer.dispose();
+      labelRenderer.domElement.remove();
+      if (debugEl) debugEl.remove();
+      if (hintTimer) clearTimeout(hintTimer);
+    };
   } catch (err) {
     console.error("[galaxy] initGalaxy failed:", err);
     throw err;

@@ -5,8 +5,8 @@
   overflow: hidden;
   background: radial-gradient(
     ellipse 90% 75% at 50% 48%,
-    #050810 0%,
-    #020204 50%,
+    #030508 0%,
+    #010102 55%,
     #000000 100%
   );
 }
@@ -142,6 +142,23 @@
 
 .galaxy-reduced-link:hover {
   text-decoration: underline;
+}
+
+.galaxy-debug-hud {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 6;
+  padding: 0.35rem 0.55rem;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: rgba(126, 232, 255, 0.85);
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(0, 168, 204, 0.25);
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* Product page entry fade (continuous with galaxy transition) */
