@@ -124,8 +124,15 @@ export class Tesseract4D {
   projectVertex(v4, scale = 2.5) {
     const [x, y, z, w] = v4;
     const d = 2 - w;
-    const f = Math.abs(d) < 0.08 ? 12 : 1 / d;
-    return { x: x * f * scale, y: y * f * scale, z: z * f * scale };
+    const safeD = Math.abs(d) < 0.08 ? (d >= 0 ? 0.08 : -0.08) : d;
+    const f = 1 / safeD;
+    const px = x * f * scale;
+    const py = y * f * scale;
+    const pz = z * f * scale;
+    if (!Number.isFinite(px) || !Number.isFinite(py) || !Number.isFinite(pz)) {
+      return { x: 0, y: 0, z: 0 };
+    }
+    return { x: px, y: py, z: pz };
   }
 
   /** @param {number} scale @returns {{ x: number, y: number, z: number }[]} */

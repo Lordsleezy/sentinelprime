@@ -49,8 +49,11 @@ function validateGeometryAttributes(scene, label = "scene") {
         console.error(`[galaxy] Bad attribute "${name}" on (${label}):`, obj.name || obj.type, obj, attr);
       }
     }
-    if (geom.index && (!geom.index.array || geom.index.array.length === 0)) {
-      console.error(`[galaxy] Bad index on (${label}):`, obj.name || obj.type, obj);
+    if (geom.index) {
+      const idx = getGeometryIndexArray(geom);
+      if (!idx?.length) {
+        console.error(`[galaxy] Bad index on (${label}):`, obj.name || obj.type, obj);
+      }
     }
   });
 }
@@ -75,16 +78,14 @@ function createTesseractFaceGeometry(faceCount) {
   positionAttr.usage = THREE.DynamicDrawUsage;
   faceGeo.setAttribute("position", positionAttr);
   faceGeo.setAttribute("uv", new THREE.BufferAttribute(faceUvs, 2));
-  faceGeo.setIndex(
-    new Uint16Array(
-      Array.from({ length: faceCount * 6 }, (_, i) => {
-        const f = Math.floor(i / 6);
-        const v = i % 6;
-        const map = [0, 1, 2, 0, 2, 3];
-        return f * 4 + map[v];
-      })
-    )
-  );
+
+  const indexArray = [];
+  for (let f = 0; f < faceCount; f += 1) {
+    const base = f * 4;
+    indexArray.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  // Must pass a plain Array so Three.js wraps it in BufferAttribute (not raw TypedArray).
+  faceGeo.setIndex(indexArray);
 
   return { faceGeo, facePositions };
 }
@@ -106,17 +107,55 @@ function isDegenerateQuad(verts, indices) {
   );
 }
 
+function getGeometryIndexArray(geometry) {
+  if (!geometry?.index) return null;
+  // setIndex(TypedArray) stores raw array on geometry.index in Three.js — not BufferAttribute.
+  return geometry.index.array ?? geometry.index;
+}
+
+function hasFinitePositions(geometry) {
+  const arr = geometry?.attributes?.position?.array;
+  if (!arr?.length) return false;
+  for (let i = 0; i < arr.length; i += 1) {
+    if (!Number.isFinite(arr[i])) return false;
+  }
+  return true;
+}
+
+let faceGeometryDebugCount = 0;
+
+function logFaceGeometryState(geometry, reason) {
+  if (faceGeometryDebugCount >= 3) return;
+  faceGeometryDebugCount += 1;
+  const pos = geometry?.attributes?.position;
+  const idx = getGeometryIndexArray(geometry);
+  console.warn("[galaxy] Face geometry issue:", reason, {
+    uuid: geometry?.uuid,
+    positionCount: pos?.count,
+    positionLength: pos?.array?.length,
+    uvLength: geometry?.attributes?.uv?.array?.length,
+    indexLength: idx?.length,
+    indexIsBufferAttribute: !!geometry?.index?.isBufferAttribute,
+    hasFinitePositions: hasFinitePositions(geometry),
+    boundingSphere: geometry?.boundingSphere
+  });
+}
+
 function isProceduralFaceGeometryReady(geometry) {
-  if (!geometry?.attributes?.position?.array?.length) return false;
-  if (!geometry.attributes.uv?.array?.length) return false;
-  if (!geometry.index?.array?.length) return false;
+  const pos = geometry?.attributes?.position?.array;
+  const uv = geometry?.attributes?.uv?.array;
+  const idx = getGeometryIndexArray(geometry);
+  if (!pos?.length || pos.length % 3 !== 0) return false;
+  if (!uv?.length) return false;
+  if (!idx?.length) return false;
+  if (!hasFinitePositions(geometry)) return false;
   return true;
 }
 
 /** Procedural tesseract faces — never call computeTangents() here. */
 function refreshFaceGeometryNormals(geometry) {
   if (!isProceduralFaceGeometryReady(geometry)) {
-    console.warn("[galaxy] Skipping face normal refresh — geometry not ready");
+    logFaceGeometryState(geometry, "not ready before normal refresh");
     return false;
   }
 
@@ -137,6 +176,11 @@ function alignCylinder(mesh, a, b) {
   _vMid.addVectors(_vA, _vB).multiplyScalar(0.5);
   _vDir.subVectors(_vB, _vA);
   const len = _vDir.length();
+  if (len < 0.0001) {
+    mesh.visible = false;
+    return;
+  }
+  mesh.visible = true;
   mesh.position.copy(_vMid);
   mesh.scale.set(1, len, 1);
   mesh.quaternion.setFromUnitVectors(_vUp, _vDir.normalize());
@@ -207,13 +251,14 @@ class HolographicTesseract {
       thickness: 0.5,
       ior: 1.3,
       transparent: true,
-      opacity: 0.08 * this.opacity,
+      opacity: 0.12 * this.opacity,
       side: THREE.DoubleSide,
       depthWrite: false
     });
     this.faceMesh = new THREE.Mesh(faceGeo, this.faceMat);
     this.group.add(this.faceMesh);
     this.facePositions = facePositions;
+    this._faceRebuilds = 0;
 
     // Populate vertices before first GPU upload — transmission materials require valid UV/normal.
     try {
@@ -316,26 +361,59 @@ class HolographicTesseract {
     }
   }
 
+  rebuildFaceGeometry(positionSnapshot) {
+    if (this._faceRebuilds >= 2) return false;
+    this._faceRebuilds += 1;
+    const prev = this.faceMesh.geometry;
+    const { faceGeo, facePositions } = createTesseractFaceGeometry(this.tess.faces.length);
+    this.faceMesh.geometry = faceGeo;
+    this.facePositions = facePositions;
+    if (positionSnapshot?.length === facePositions.length) {
+      facePositions.set(positionSnapshot);
+      faceGeo.attributes.position.array.set(positionSnapshot);
+    }
+    if (prev && prev !== faceGeo) prev.dispose();
+    console.warn("[galaxy] Rebuilt tesseract face geometry (fallback)", faceGeo.uuid);
+    return true;
+  }
+
+  ensureFaceGeometry() {
+    if (isProceduralFaceGeometryReady(this.faceMesh.geometry)) {
+      return refreshFaceGeometryNormals(this.faceMesh.geometry);
+    }
+    logFaceGeometryState(this.faceMesh.geometry, "invalid after writeFacePositions");
+    if (this.rebuildFaceGeometry(new Float32Array(this.facePositions))) {
+      this.faceMesh.geometry.attributes.position.needsUpdate = true;
+      return refreshFaceGeometryNormals(this.faceMesh.geometry);
+    }
+    return false;
+  }
+
+  writeFacePositions(time, projectedOverride) {
+    if (!projectedOverride) {
+      this.tess.rotate(time, this.xwRate, this.ywRate);
+    }
+    const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
+    const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
+
+    for (let f = 0; f < this.tess.faces.length; f += 1) {
+      const face = this.tess.faces[f];
+      if (isDegenerateQuad(verts, face)) continue;
+      for (let c = 0; c < 4; c += 1) {
+        const v = verts[face[c]];
+        const o = (f * 4 + c) * 3;
+        this.facePositions[o] = v.x;
+        this.facePositions[o + 1] = v.y;
+        this.facePositions[o + 2] = v.z;
+      }
+    }
+    return verts;
+  }
+
   update(time, projectedOverride) {
     try {
-      if (!projectedOverride) {
-        this.tess.rotate(time, this.xwRate, this.ywRate);
-      }
-      const projected = projectedOverride ?? this.tess.getProjectedVertices(this.scale);
-      const verts = projected.map((p) => new THREE.Vector3(p.x, p.y, p.z));
-
-      for (let f = 0; f < this.tess.faces.length; f += 1) {
-        const face = this.tess.faces[f];
-        if (isDegenerateQuad(verts, face)) continue;
-        for (let c = 0; c < 4; c += 1) {
-          const v = verts[face[c]];
-          const o = (f * 4 + c) * 3;
-          this.facePositions[o] = v.x;
-          this.facePositions[o + 1] = v.y;
-          this.facePositions[o + 2] = v.z;
-        }
-      }
-      refreshFaceGeometryNormals(this.faceMesh.geometry);
+      const verts = this.writeFacePositions(time, projectedOverride);
+      this.ensureFaceGeometry();
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
         const [a, b] = this.tess.edges[e];
