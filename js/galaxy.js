@@ -106,21 +106,28 @@ function isDegenerateQuad(verts, indices) {
   );
 }
 
+function isProceduralFaceGeometryReady(geometry) {
+  if (!geometry?.attributes?.position?.array?.length) return false;
+  if (!geometry.attributes.uv?.array?.length) return false;
+  if (!geometry.index?.array?.length) return false;
+  return true;
+}
+
+/** Procedural tesseract faces — never call computeTangents() here. */
 function refreshFaceGeometryNormals(geometry) {
-  if (!geometry.attributes.normal) {
-    geometry.setAttribute(
-      "normal",
-      new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3)
-    );
+  if (!isProceduralFaceGeometryReady(geometry)) {
+    console.warn("[galaxy] Skipping face normal refresh — geometry not ready");
+    return false;
   }
-  geometry.computeVertexNormals();
-  if (
-    geometry.index &&
-    geometry.attributes.position &&
-    geometry.attributes.normal &&
-    geometry.attributes.uv
-  ) {
-    geometry.computeTangents();
+
+  try {
+    geometry.attributes.position.needsUpdate = true;
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return true;
+  } catch (err) {
+    console.warn("[galaxy] Face normal refresh failed (non-fatal):", err);
+    return false;
   }
 }
 
@@ -209,8 +216,11 @@ class HolographicTesseract {
     this.facePositions = facePositions;
 
     // Populate vertices before first GPU upload — transmission materials require valid UV/normal.
-    this.update(0);
-    refreshFaceGeometryNormals(this.faceMesh.geometry);
+    try {
+      this.update(0);
+    } catch (err) {
+      console.warn("[galaxy] Initial tesseract update failed (non-fatal):", err);
+    }
 
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
@@ -325,7 +335,6 @@ class HolographicTesseract {
           this.facePositions[o + 2] = v.z;
         }
       }
-      this.faceMesh.geometry.attributes.position.needsUpdate = true;
       refreshFaceGeometryNormals(this.faceMesh.geometry);
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
@@ -372,7 +381,7 @@ class HolographicTesseract {
 
       return verts;
     } catch (err) {
-      console.error("[galaxy] tesseract update skipped a frame:", err);
+      console.warn("[galaxy] Tesseract update skipped a frame (non-fatal):", err);
       return null;
     }
   }
@@ -783,8 +792,12 @@ export function initGalaxy(root) {
       controls.update();
     }
 
-    composer.render();
-    labelRenderer.render(scene, camera);
+    try {
+      composer.render();
+      labelRenderer.render(scene, camera);
+    } catch (err) {
+      console.warn("[galaxy] Render frame failed (non-fatal):", err);
+    }
   }
 
   function tick() {
