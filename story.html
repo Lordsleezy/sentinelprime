@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Sentinel Prime story — standing on the shoulders of open privacy projects to build a complete privacy-first computing stack.">
+  <meta property="og:title" content="Our Story | Sentinel Prime">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sentinelprime.org/story.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <title>Our Story | Sentinel Prime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index-landing.css">
+  <link rel="stylesheet" href="css/story.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./js/lib/three.module.js",
+      "three/addons/": "./js/lib/three-addons/"
+    }
+  }
+  </script>
+</head>
+<body class="il-body story-page" data-page="story">
+  <div class="story-progress" aria-hidden="true"><div class="story-progress__bar"></div></div>
+  <div id="webgl-root" aria-hidden="true"></div>
+
+  <div class="il-wrap">
+    <div id="site-header"></div>
+
+    <main class="shell-main">
+      <div class="story-layout">
+        <aside class="story-nav" aria-label="Story sections">
+          <p class="story-nav__title">Foundations</p>
+          <ul class="story-nav__list">
+            <li><a href="#story-hero">Introduction</a></li>
+            <li><a href="#mission">Mission</a></li>
+            <li><a href="#quote">Founder's note</a></li>
+            <li><a href="#bricks">The bricks</a></li>
+            <li><a href="#grapheneos">GrapheneOS</a></li>
+            <li><a href="#murena">Murena</a></li>
+            <li><a href="#purism">Purism</a></li>
+            <li><a href="#calyxos">CalyxOS</a></li>
+            <li><a href="#pine64">Pine64</a></li>
+            <li><a href="#tower">The tower</a></li>
+            <li><a href="#lineage">Lineage</a></li>
+            <li><a href="#ecosystem-map">Ecosystem</a></li>
+            <li><a href="#vision">Vision</a></li>
+          </ul>
+        </aside>
+
+        <div class="story-content">
+          <header id="story-hero" class="story-hero story-reveal">
+            <div class="story-hero__grid" aria-hidden="true"></div>
+            <div class="story-hero__glow" aria-hidden="true"></div>
+            <div class="story-hero__inner">
+              <p class="story-kicker">Foundations</p>
+              <h1>Standing on the Shoulders of Failures</h1>
+              <p class="story-hero__lead">
+                Sentinel Prime did not appear from nowhere. It is the synthesis of a decade of open privacy work — projects that proved what was possible, exposed what was missing, and left clear lessons for anyone willing to build the whole stack.
+              </p>
+              <div class="story-cta">
+                <a class="il-btn il-btn--cyan" href="#bricks">Read the bricks</a>
+                <a class="il-btn" href="index.html#ecosystem">Explore the ecosystem</a>
+              </div>
+            </div>
+          </header>
+
+          <section id="mission" class="story-section story-reveal">
+            <div class="story-section__inner">
+              <h2>Mission</h2>
+              <p>
+                Sentinel Prime exists to prove that privacy-first technology can be powerful, beautiful, and complete — without surveillance economics, without opaque cloud dependency, and without asking users to assemble a dozen half-solutions themselves.
+              </p>
+              <p>
+                We build on-device AI, a hardened Android operating system, privacy hardware, and developer tools that respect the same principles: <strong style="color:#fff">local execution, explicit consent, auditable architecture.</strong>
+              </p>
+              <p>
+                AI built for people, not corporations. That is not a tagline. It is a constraint on every product decision we make.
+              </p>
+            </div>
+          </section>
+
+          <section id="quote" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner">
+              <div class="story-quote">
+                <blockquote>“I combined everyone else's failures.”</blockquote>
+                <cite>— Paul Green, Founder, Sentinel Prime Inc.</cite>
+              </div>
+              <p>
+                That line is not a dismissal of the projects that came before. Each “failure” here means an incomplete outcome — not a lack of integrity or effort. GrapheneOS hardened Android but did not ship a consumer phone. Murena de-Googled mobile but could not unify AI and OS development. Purism pursued hardware sovereignty at a scale most people could not reach. CalyxOS made privacy accessible but stopped short of a full product company. Pine64 opened hardware but left the software stack fragmented.
+              </p>
+              <p>
+                Sentinel's job is synthesis: learn honestly, credit openly, and build the tower those bricks were always pointing toward.
+              </p>
+            </div>
+          </section>
+
+          <section id="bricks" class="story-section story-reveal">
+            <div class="story-section__inner">
+              <h2>The Bricks</h2>
+              <p>
+                Every serious privacy project teaches something structural. We treat them as predecessors — not competitors, not enemies, not punchlines. Their work is part of our lineage.
+              </p>
+
+              <div class="story-timeline" aria-label="Privacy project timeline">
+                <div class="story-timeline__item">
+                  <div class="story-timeline__year">Foundation era</div>
+                  <div class="story-timeline__title">Security &amp; trust models established</div>
+                  <p class="story-timeline__text">GrapheneOS and CalyxOS proved hardened Android could exist outside Google's product matrix.</p>
+                </div>
+                <div class="story-timeline__item">
+                  <div class="story-timeline__year">Experience era</div>
+                  <div class="story-timeline__title">De-Googled UX matures</div>
+                  <p class="story-timeline__text">Murena / eOS demonstrated that everyday users would choose privacy when the interface stopped punishing them.</p>
+                </div>
+                <div class="story-timeline__item">
+                  <div class="story-timeline__year">Hardware era</div>
+                  <div class="story-timeline__title">Open devices enter the conversation</div>
+                  <p class="story-timeline__text">Purism and Pine64 expanded the question from software alone to supply chain, repair, and ownership.</p>
+                </div>
+                <div class="story-timeline__item">
+                  <div class="story-timeline__year">Synthesis era</div>
+                  <div class="story-timeline__title">Sentinel Prime</div>
+                  <p class="story-timeline__text">OS, device, on-device AI, security tooling, and developer infrastructure — one coherent company.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="grapheneos" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner story-brick">
+              <div>
+                <div class="story-brick__meta">
+                  <div class="story-brick__icon">SEC</div>
+                  <div>
+                    <p class="story-brick__label">Brick I</p>
+                    <h2 class="story-brick__title">GrapheneOS</h2>
+                    <p class="story-brick__lesson">Lesson: security architecture first</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p>GrapheneOS set the technical bar for what a hardened Android baseline can be — sandboxing discipline, exploit mitigation, and a security culture that treats the OS as infrastructure, not marketing.</p>
+                <p>SentinelOS is built on that foundation. We do not reinvent security theater. We inherit serious engineering and extend it toward a complete consumer and developer experience.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="murena" class="story-section story-reveal">
+            <div class="story-section__inner story-brick">
+              <div>
+                <div class="story-brick__meta">
+                  <div class="story-brick__icon">UX</div>
+                  <div>
+                    <p class="story-brick__label">Brick II</p>
+                    <h2 class="story-brick__title">Murena / eOS</h2>
+                    <p class="story-brick__lesson">Lesson: privacy must feel normal</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p>Murena showed that de-Googled mobile does not have to feel like a compromise. BlissLauncher and the eOS ecosystem proved users want clean interfaces, not ideological suffering.</p>
+                <p>SentinelOS integrates BlissLauncher3 for that same clarity — modern, calm, and usable on day one. Privacy should feel like upgrade, not exile.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="purism" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner story-brick">
+              <div>
+                <div class="story-brick__meta">
+                  <div class="story-brick__icon">HW</div>
+                  <div>
+                    <p class="story-brick__label">Brick III</p>
+                    <h2 class="story-brick__title">Purism</h2>
+                    <p class="story-brick__lesson">Lesson: hardware is part of the promise</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p>Purism pushed the industry to ask who controls the device — firmware, radios, and supply chain included. That question belongs at the center of any serious privacy company.</p>
+                <p>Sentinel X is our answer at practical scale: a phone you can actually buy, pre-loaded with SentinelOS, without carrier surveillance defaults or Big Tech lock-in.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="calyxos" class="story-section story-reveal">
+            <div class="story-section__inner story-brick">
+              <div>
+                <div class="story-brick__meta">
+                  <div class="story-brick__icon">ACC</div>
+                  <div>
+                    <p class="story-brick__label">Brick IV</p>
+                    <h2 class="story-brick__title">CalyxOS</h2>
+                    <p class="story-brick__lesson">Lesson: accessibility scales trust</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p>CalyxOS made privacy Android approachable — realistic device support, sensible defaults, and a focus on people who need protection without becoming systems administrators.</p>
+                <p>Sentinel products follow that same instinct: powerful underneath, simple on the surface. Guardian for security professionals. Personal AI for everyone else. Same ethics, different depth.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="pine64" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner story-brick">
+              <div>
+                <div class="story-brick__meta">
+                  <div class="story-brick__icon">OSS</div>
+                  <div>
+                    <p class="story-brick__label">Brick V</p>
+                    <h2 class="story-brick__title">Pine64</h2>
+                    <p class="story-brick__lesson">Lesson: open hardware invites builders</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p>Pine64 democratized experimentation — affordable boards, community momentum, and proof that open hardware culture could survive outside corporate R&amp;D labs.</p>
+                <p>Forge and Forge Lite extend that builder ethic: local AI that compiles real Android artifacts, flashes real devices, and keeps the toolchain on your machine — not ours.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="tower" class="story-section story-reveal">
+            <div class="story-section__inner">
+              <h2>The Tower</h2>
+              <p>The bricks were never meant to stay scattered. Sentinel Prime is the vertical integration of lessons learned — one company attempting the full stack with one philosophy.</p>
+
+              <div class="story-tower story-reveal" aria-label="The bricks built this tower">
+                <div class="story-tower__stack">
+                  <div class="story-tower__layer" style="--w:92%">Pine64 — open builder culture</div>
+                  <div class="story-tower__layer" style="--w:88%">CalyxOS — accessible privacy</div>
+                  <div class="story-tower__layer" style="--w:84%">Purism — hardware sovereignty</div>
+                  <div class="story-tower__layer" style="--w:80%">Murena — de-Googled experience</div>
+                  <div class="story-tower__layer" style="--w:76%">GrapheneOS — hardened foundation</div>
+                  <div class="story-tower__layer story-tower__layer--cap">Sentinel Prime — OS · Device · AI · Security · Forge</div>
+                </div>
+              </div>
+
+              <h3>What we ship</h3>
+              <ul>
+                <li><strong style="color:#fff">SentinelOS</strong> — privacy-first Android with GrapheneOS security and BlissLauncher3</li>
+                <li><strong style="color:#fff">Sentinel X</strong> — the phone Big Tech won't make</li>
+                <li><strong style="color:#fff">Sentinel Personal AI</strong> — on-device intelligence, no server profile</li>
+                <li><strong style="color:#fff">Sentinel Guardian</strong> — security intelligence for defense and forensics</li>
+                <li><strong style="color:#fff">Forge &amp; Forge Lite</strong> — local AI development from desktop to pocket</li>
+              </ul>
+            </div>
+          </section>
+
+          <section id="lineage" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner">
+              <h2>GrapheneOS lineage</h2>
+              <p>SentinelOS is not a fork in name only. It inherits a security-first Android baseline and extends it with product-layer decisions — launcher, AI integration, update philosophy, and consumer readiness.</p>
+              <figure class="story-diagram">
+                <svg viewBox="0 0 640 200" role="img" aria-label="GrapheneOS to SentinelOS lineage diagram">
+                  <defs>
+                    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#00a8cc" stop-opacity="0.2"/>
+                      <stop offset="100%" stop-color="#00a8cc" stop-opacity="0.6"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="20" y="70" width="120" height="60" rx="6" fill="none" stroke="rgba(255,255,255,0.15)"/>
+                  <text x="80" y="105" text-anchor="middle" fill="#8a939e" font-size="11" font-family="Inter,sans-serif">AOSP</text>
+                  <line x1="140" y1="100" x2="180" y2="100" stroke="url(#lg)" stroke-width="2"/>
+                  <rect x="180" y="70" width="140" height="60" rx="6" fill="rgba(0,168,204,0.06)" stroke="rgba(0,168,204,0.35)"/>
+                  <text x="250" y="98" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">GrapheneOS</text>
+                  <text x="250" y="115" text-anchor="middle" fill="#8a939e" font-size="9" font-family="Inter,sans-serif">Security core</text>
+                  <line x1="320" y1="100" x2="360" y2="100" stroke="url(#lg)" stroke-width="2"/>
+                  <rect x="360" y="55" width="130" height="40" rx="6" fill="none" stroke="rgba(255,255,255,0.12)"/>
+                  <text x="425" y="80" text-anchor="middle" fill="#cfd3d8" font-size="10" font-family="Inter,sans-serif">BlissLauncher3</text>
+                  <rect x="360" y="105" width="130" height="40" rx="6" fill="none" stroke="rgba(255,255,255,0.12)"/>
+                  <text x="425" y="130" text-anchor="middle" fill="#cfd3d8" font-size="10" font-family="Inter,sans-serif">Sentinel AI layer</text>
+                  <line x1="490" y1="100" x2="530" y2="100" stroke="url(#lg)" stroke-width="2"/>
+                  <rect x="530" y="60" width="90" height="80" rx="6" fill="rgba(0,168,204,0.1)" stroke="#00a8cc"/>
+                  <text x="575" y="98" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="Inter,sans-serif">SentinelOS</text>
+                  <text x="575" y="118" text-anchor="middle" fill="#8a939e" font-size="9" font-family="Inter,sans-serif">Product OS</text>
+                </svg>
+                <figcaption class="story-diagram__caption">Security foundation → experience layer → integrated Sentinel stack</figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <section id="ecosystem-map" class="story-section story-reveal">
+            <div class="story-section__inner">
+              <h2>Ecosystem relationship map</h2>
+              <p>Each product occupies a distinct role. Together they form a navigable system — not a bundle of unrelated apps.</p>
+              <figure class="story-diagram">
+                <svg viewBox="0 0 640 340" role="img" aria-label="Sentinel ecosystem relationship map">
+                  <circle cx="320" cy="170" r="44" fill="rgba(0,168,204,0.12)" stroke="#00a8cc" stroke-width="1.5"/>
+                  <text x="320" y="174" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="Inter,sans-serif">SentinelOS</text>
+                  <line x1="320" y1="126" x2="320" y2="60" stroke="rgba(0,168,204,0.4)" stroke-width="1"/>
+                  <rect x="260" y="24" width="120" height="36" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.15)"/>
+                  <text x="320" y="47" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="700" font-family="Inter,sans-serif">Sentinel X</text>
+                  <line x1="276" y1="170" x2="120" y2="170" stroke="rgba(0,168,204,0.25)" stroke-width="1"/>
+                  <rect x="40" y="152" width="110" height="36" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+                  <text x="95" y="174" text-anchor="middle" fill="#cfd3d8" font-size="9" font-family="Inter,sans-serif">Personal AI</text>
+                  <line x1="364" y1="170" x2="520" y2="170" stroke="rgba(204,68,68,0.35)" stroke-width="1"/>
+                  <rect x="490" y="152" width="110" height="36" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(204,68,68,0.25)"/>
+                  <text x="545" y="174" text-anchor="middle" fill="#cfd3d8" font-size="9" font-family="Inter,sans-serif">Guardian</text>
+                  <line x1="320" y1="214" x2="320" y2="280" stroke="rgba(0,168,204,0.25)" stroke-width="1"/>
+                  <rect x="250" y="280" width="90" height="32" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)"/>
+                  <text x="295" y="300" text-anchor="middle" fill="#8a939e" font-size="9" font-family="Inter,sans-serif">Forge</text>
+                  <rect x="350" y="280" width="90" height="32" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)"/>
+                  <text x="395" y="300" text-anchor="middle" fill="#8a939e" font-size="9" font-family="Inter,sans-serif">Forge Lite</text>
+                </svg>
+                <figcaption class="story-diagram__caption">Hero products anchor the stack; secondary and developer tools extend outward</figcaption>
+              </figure>
+              <div class="story-cta">
+                <a class="il-btn il-btn--cyan" href="index.html#ecosystem">View interactive tesseract</a>
+                <a class="il-btn" href="products.html">All products</a>
+              </div>
+            </div>
+          </section>
+
+          <section id="vision" class="story-section story-section--alt story-reveal">
+            <div class="story-section__inner">
+              <h2>Closing vision</h2>
+              <p>
+                The future of computing does not have to be a trade between capability and dignity. It should feel impossible in the best way — dimensional, precise, human — and still be understandable when you look closely.
+              </p>
+              <p>
+                Sentinel Prime is building that future one layer at a time: honest about where we came from, direct about what we ship, and committed to technology you can inspect, own, and trust.
+              </p>
+              <p style="font-size:1.15rem;font-weight:700;color:#fff;margin-top:1.5rem">
+                Privacy · Transparency · Accessibility · Security
+              </p>
+              <div class="story-cta">
+                <a class="il-btn il-btn--cyan" href="index.html#waitlist">Join the waitlist</a>
+                <a class="il-btn" href="contact.html">Contact us</a>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script type="module" src="js/index-tesseract.js"></script>
+  <script src="js/site-config.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/shell.js" defer></script>
+  <script src="js/index-landing.js" defer></script>
+  <script src="js/story.js" defer></script>
+</body>
+</html>

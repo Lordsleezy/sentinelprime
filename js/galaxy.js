@@ -6,7 +6,8 @@ import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 import { Tesseract4D } from "./tesseract4d.js";
-import { PRODUCTS } from "./products-config.js";
+import { PRODUCTS, getTierStyle } from "./products-config.js";
+import { GalaxyLabelLayout } from "./galaxy-labels.js";
 import { VignetteChromaticShader } from "./lib/shaders/vignette-chromatic.js";
 import { EdgePulseShader } from "./lib/shaders/edge-pulse.js";
 
@@ -14,7 +15,8 @@ const MOBILE_BREAK = 768;
 const DESKTOP_HIGH = 1200;
 const CORE_EMISSIVE = 0x00a8cc;
 const EDGE_BRIGHT = 0x7ee8ff;
-const VERTEX_COLOR = 0xb8f4ff;
+const VERTEX_COLOR = 0xc8f8ff;
+const MAX_EDGE_LEN = { mobile: 3.6, medium: 4.2, high: 4.8 };
 
 const _vA = new THREE.Vector3();
 const _vB = new THREE.Vector3();
@@ -29,7 +31,16 @@ const SHARED_EDGE_GEO = (() => {
   return geo;
 })();
 
-const SHARED_VERTEX_GEO = new THREE.SphereGeometry(0.042, 8, 8);
+const SHARED_VERTEX_GEO = new THREE.SphereGeometry(0.048, 8, 8);
+
+const AXIS_EDGE_TINTS = {
+  "+X": new THREE.Color(0x00a8cc),
+  "-X": new THREE.Color(0x88ddff),
+  "+Y": new THREE.Color(0x00c4e8),
+  "-Y": new THREE.Color(0xcc4444),
+  "+Z": new THREE.Color(0x008899),
+  "-Z": new THREE.Color(0x667788)
+};
 
 function hexToThree(hex) {
   return parseInt(hex.replace("#", ""), 16);
@@ -114,19 +125,22 @@ function createSubtleFaceGeometry(faceCount) {
   return { geo, positions };
 }
 
-function alignCylinder(mesh, a, b) {
+function alignCylinder(mesh, a, b, camera, maxLen, quality) {
   _vA.copy(a);
   _vB.copy(b);
   _vMid.addVectors(_vA, _vB).multiplyScalar(0.5);
   _vDir.subVectors(_vB, _vA);
   const len = _vDir.length();
-  if (len < 0.0001) {
+  if (len < 0.0001 || len > maxLen) {
     mesh.visible = false;
     return false;
   }
   mesh.visible = true;
   mesh.position.copy(_vMid);
-  mesh.scale.set(1, len, 1);
+  const midDist = camera ? camera.position.distanceTo(_vMid) : 6;
+  const thickness = THREE.MathUtils.clamp(1.3 - midDist * 0.045, 0.7, 1.4);
+  const qualityMul = quality === "mobile" ? 0.85 : 1;
+  mesh.scale.set(thickness * qualityMul, len, thickness * qualityMul);
   mesh.quaternion.setFromUnitVectors(_vUp, _vDir.normalize());
   return true;
 }
@@ -213,8 +227,28 @@ class HolographicTesseract {
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
     this.brightCyan = new THREE.Color(EDGE_BRIGHT);
+    this.maxEdgeLen = MAX_EDGE_LEN[this.quality] ?? MAX_EDGE_LEN.medium;
+
+    /** @type {Map<number, string>} edge index → dominant cell axis for tint */
+    this.edgeAxisTint = new Map();
+    if (this.withCells) {
+      for (const product of PRODUCTS) {
+        const indices = this.tess.cells[product.cellAxis];
+        const tier = getTierStyle(product.tier);
+        for (let e = 0; e < this.tess.edges.length; e += 1) {
+          const [a, b] = this.tess.edges[e];
+          if (!indices.includes(a) || !indices.includes(b)) continue;
+          const prev = this.edgeAxisTint.get(e);
+          if (!prev || getTierStyle(PRODUCTS.find((p) => p.cellAxis === prev)?.tier ?? "developer").priority < tier.priority) {
+            this.edgeAxisTint.set(e, product.cellAxis);
+          }
+        }
+      }
+    }
 
     for (let i = 0; i < this.tess.edges.length; i += 1) {
+      const axis = this.edgeAxisTint.get(i) ?? "+X";
+      const tint = AXIS_EDGE_TINTS[axis] ?? this.baseCyan;
       const mat = new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.clone(EdgePulseShader.uniforms),
         vertexShader: EdgePulseShader.vertexShader,
@@ -223,13 +257,16 @@ class HolographicTesseract {
         depthWrite: false,
         blending: THREE.AdditiveBlending
       });
-      mat.uniforms.uBaseColor.value = this.baseCyan;
-      mat.uniforms.uBrightColor.value = this.brightCyan;
+      mat.uniforms.uBaseColor.value = tint.clone().multiplyScalar(0.55);
+      mat.uniforms.uBrightColor.value = tint.clone().lerp(this.brightCyan, 0.45);
       mat.uniforms.uPhase.value = (i / this.tess.edges.length) * 2.3;
-      mat.uniforms.uSpeed.value = 0.28 + (i % 5) * 0.06;
-      mat.uniforms.uOpacity.value = 0.72 * this.opacity;
-      mat.uniforms.uScanStrength.value = this.quality === "high" ? 0.18 : 0.1;
-      mat.uniforms.uShimmer.value = this.quality === "high" ? 0.22 : 0.12;
+      mat.uniforms.uSpeed.value = 0.26 + (i % 5) * 0.05;
+      mat.uniforms.uOpacity.value = 0.62 * this.opacity;
+      mat.uniforms.uScanStrength.value = this.quality === "high" ? 0.14 : 0.08;
+      mat.uniforms.uShimmer.value = this.quality === "high" ? 0.16 : 0.08;
+      if (this.quality === "mobile" && i % 2 === 1) {
+        mat.uniforms.uOpacity.value *= 0.4;
+      }
 
       const mesh = new THREE.Mesh(SHARED_EDGE_GEO, mat);
       this.group.add(mesh);
@@ -256,15 +293,16 @@ class HolographicTesseract {
     if (this.withCells) {
       for (const product of PRODUCTS) {
         const indices = this.tess.cells[product.cellAxis];
+        const tier = getTierStyle(product.tier);
         const pts = new Float32Array(indices.length * 3);
         const pGeo = new THREE.BufferGeometry();
         pGeo.setAttribute("position", new THREE.BufferAttribute(pts, 3));
         const color = hexToThree(product.color);
         const pMat = new THREE.PointsMaterial({
           color,
-          size: 0.18,
+          size: tier.pointSize,
           transparent: true,
-          opacity: 0.1 * this.opacity,
+          opacity: 0.1 * this.opacity * tier.glow,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           sizeAttenuation: true
@@ -281,6 +319,7 @@ class HolographicTesseract {
 
         const labelEl = document.createElement("div");
         labelEl.className = "tess-cell-label";
+        labelEl.dataset.tier = product.tier;
         labelEl.innerHTML = `<span class="tess-cell-label__name">${product.name}</span><span class="tess-cell-label__tag">${product.tagline}</span><span class="tess-cell-label__enter">ENTER →</span>`;
         const label = new CSS2DObject(labelEl);
         this.group.add(label);
@@ -298,7 +337,9 @@ class HolographicTesseract {
           label,
           labelEl,
           edgeIndices,
-          ptPositions: pts
+          ptPositions: pts,
+          labelPx: { x: 0, y: 0 },
+          tier
         });
       }
     }
@@ -333,13 +374,13 @@ class HolographicTesseract {
     return this.verts;
   }
 
-  update(time, projectedOverride) {
+  update(time, projectedOverride, camera) {
     try {
       const verts = this.writePositions(time, projectedOverride);
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
         const [a, b] = this.tess.edges[e];
-        alignCylinder(this.edgeMeshes[e], verts[a], verts[b]);
+        alignCylinder(this.edgeMeshes[e], verts[a], verts[b], camera, this.maxEdgeLen, this.quality);
         const u = this.edgeMeshes[e].material.uniforms;
         u.uTime.value = time;
         u.uPulseBoost.value = this.edgePulseBoost;
@@ -375,7 +416,6 @@ class HolographicTesseract {
 
         const center = this.tess.getCellCenter(axis, this.scale);
         cell.hit.position.set(center.x, center.y, center.z);
-        cell.label.position.set(center.x, center.y + 0.35, center.z);
       }
 
       return verts;
@@ -400,11 +440,15 @@ class HolographicTesseract {
     const cell = this.cells.get(cellAxis);
     if (!cell) return;
     cell.labelEl.classList.toggle("is-hovered", on);
-    cell.points.material.opacity = (on ? 0.28 : 0.1) * this.opacity;
-    cell.points.material.size = on ? 0.26 : 0.18;
+    const tier = cell.tier ?? getTierStyle(cell.product.tier);
+    cell.points.material.opacity = (on ? 0.28 : 0.1) * this.opacity * tier.glow;
+    cell.points.material.size = (on ? tier.pointSize + 0.08 : tier.pointSize);
     for (const ei of cell.edgeIndices) {
-      this.edgeMeshes[ei].material.uniforms.uPulseBoost.value = on ? 1.8 : 1;
-      this.edgeMeshes[ei].material.uniforms.uSpeed.value = on ? 0.72 : 0.28 + (ei % 5) * 0.06;
+      this.edgeMeshes[ei].material.uniforms.uPulseBoost.value = on ? 1.6 * tier.edgeBoost : 1;
+      this.edgeMeshes[ei].material.uniforms.uSpeed.value = on ? 0.65 : 0.26 + (ei % 5) * 0.05;
+      this.edgeMeshes[ei].material.uniforms.uOpacity.value = on
+        ? 0.78 * this.opacity * tier.glow
+        : 0.62 * this.opacity;
     }
   }
 
@@ -416,7 +460,7 @@ class HolographicTesseract {
     }
     if (this.faceMat) this.faceMat.opacity = 0.028 * alpha * this.opacity;
     for (const m of this.edgeMeshes) {
-      m.material.uniforms.uOpacity.value = 0.72 * alpha * this.opacity;
+      m.material.uniforms.uOpacity.value = 0.62 * alpha * this.opacity;
     }
     for (const m of this.vertexMeshes) {
       m.material.opacity = 0.92 * alpha * this.opacity;
@@ -469,8 +513,12 @@ export function initGalaxy(root) {
     scene.fog = new THREE.FogExp2(0x020204, quality === "mobile" ? 0.055 : 0.042);
     scene.background = new THREE.Color(0x020204);
 
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-    camera.position.set(0, 1.5, 7);
+    const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+    camera.position.set(0, 1.15, 7.8);
+
+    const labelLayout = new GalaxyLabelLayout();
+    let isDragging = false;
+    const focusTarget = new THREE.Vector3();
 
     const maxDpr = quality === "mobile" ? 1.5 : 2;
     const renderer = new THREE.WebGLRenderer({
@@ -504,19 +552,19 @@ export function initGalaxy(root) {
       }
     }
 
-    scene.add(new THREE.AmbientLight(0x040608, 0.35));
-    const coreLight = new THREE.PointLight(CORE_EMISSIVE, 1.6, 18, 1.8);
+    scene.add(new THREE.AmbientLight(0x040608, 0.28));
+    const coreLight = new THREE.PointLight(CORE_EMISSIVE, 1.15, 16, 2);
     scene.add(coreLight);
 
     const coreGroup = new THREE.Group();
     scene.add(coreGroup);
 
     const innerCore = new THREE.Mesh(
-      new THREE.SphereGeometry(0.32, 24, 24),
+      new THREE.SphereGeometry(0.28, 20, 20),
       new THREE.MeshBasicMaterial({
-        color: 0x66cce8,
+        color: 0x55aac4,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.62,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       })
@@ -524,7 +572,7 @@ export function initGalaxy(root) {
     coreGroup.add(innerCore);
 
     const fresnelMat = makeFresnelMaterial();
-    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), fresnelMat);
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 20), fresnelMat);
     coreGroup.add(atmosphere);
 
     const particleCount = quality === "high" ? 180 : quality === "medium" ? 100 : 45;
@@ -558,7 +606,7 @@ export function initGalaxy(root) {
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        uniforms: { uIntensity: { value: 0.12 } },
+        uniforms: { uIntensity: { value: 0.07 } },
         vertexShader: `
           varying vec2 vUv;
           void main() {
@@ -606,8 +654,9 @@ export function initGalaxy(root) {
     scene.add(stars);
 
     const wireframeOnly = flags.wireframeOnly || quality === "mobile";
+    const tessScale = quality === "mobile" ? 2.05 : quality === "medium" ? 2.25 : 2.35;
     const mainTess = new HolographicTesseract({
-      scale: 2.5,
+      scale: tessScale,
       quality,
       withCells: true,
       wireframeOnly
@@ -656,8 +705,8 @@ export function initGalaxy(root) {
     }
     for (const g of ghosts) scene.add(g.group);
 
-    const bloomStrength = quality === "mobile" ? 0.55 : quality === "medium" ? 0.72 : 0.88;
-    const bloomRadius = quality === "high" ? 0.45 : quality === "medium" ? 0.38 : 0.32;
+    const bloomStrength = quality === "mobile" ? 0.48 : quality === "medium" ? 0.62 : 0.76;
+    const bloomRadius = quality === "high" ? 0.4 : quality === "medium" ? 0.34 : 0.28;
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.35);
@@ -670,17 +719,17 @@ export function initGalaxy(root) {
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.085;
+    controls.dampingFactor = 0.095;
     controls.enablePan = false;
-    controls.minDistance = 4;
-    controls.maxDistance = 12;
-    controls.minPolarAngle = 0.3;
-    controls.maxPolarAngle = Math.PI - 0.3;
+    controls.minDistance = 4.5;
+    controls.maxDistance = 11;
+    controls.minPolarAngle = 0.35;
+    controls.maxPolarAngle = Math.PI - 0.35;
     controls.target.set(0, 0, 0);
-    controls.rotateSpeed = 0.45;
+    controls.rotateSpeed = 0.38;
     controls.enableRotate = !reducedMotion && !isMobile();
     controls.autoRotate = !reducedMotion;
-    controls.autoRotateSpeed = 0.22;
+    controls.autoRotateSpeed = 0.18;
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -736,7 +785,7 @@ export function initGalaxy(root) {
         toPos: new THREE.Vector3(),
         fromFov: camera.fov
       };
-      const center = mainTess.tess.getCellCenter(product.cellAxis, 2.5);
+      const center = mainTess.tess.getCellCenter(product.cellAxis, tessScale);
       transition.toPos.set(center.x, center.y, center.z);
       transition.toPos.multiplyScalar(0.35);
       transition.toPos.z += 1.2;
@@ -772,12 +821,14 @@ export function initGalaxy(root) {
     function onControlStart() {
       scheduleHintFade();
       lastDragEnd = performance.now();
+      isDragging = true;
       controls.autoRotate = false;
       mount.classList.add("is-dragging");
     }
 
     function onControlEnd() {
       lastDragEnd = performance.now();
+      isDragging = false;
       mount.classList.remove("is-dragging");
     }
 
@@ -830,26 +881,42 @@ export function initGalaxy(root) {
 
       if (!reducedMotion && !transition) {
         const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
-        const scale = THREE.MathUtils.lerp(1.0, 1.03, pulse);
+        const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse);
         innerCore.scale.setScalar(scale);
-        coreLight.intensity = 1.4 + pulse * 0.35;
+        coreLight.intensity = 1.05 + pulse * 0.25;
         fresnelMat.uniforms.uTime.value = time;
-        coreGroup.rotation.y = time * 0.06;
-        coreParticles.rotation.y = -time * 0.04;
-        coreParticles.rotation.x = time * 0.025;
-        stars.rotation.y = -time * 0.0015;
+        coreGroup.rotation.y = time * 0.05;
+        coreParticles.rotation.y = -time * 0.035;
+        coreParticles.rotation.x = time * 0.02;
+        stars.rotation.y = -time * 0.0012;
 
-        mainTess.update(time);
-        for (const g of ghosts) {
-          if (g.group.visible) g.update(time * (g.xwRate / 0.15));
+        if (!isDragging && controls.autoRotate) {
+          camera.position.y = 1.12 + Math.sin(time * 0.12) * 0.06;
+          camera.position.x = Math.sin(time * 0.09) * 0.12;
         }
+
+        if (hoveredCell) {
+          const c = mainTess.tess.getCellCenter(hoveredCell.cellAxis, tessScale);
+          focusTarget.set(c.x * 0.12, c.y * 0.12, c.z * 0.08);
+        } else {
+          focusTarget.set(0, 0, 0);
+        }
+        controls.target.lerp(focusTarget, hoveredCell ? 0.06 : 0.04);
+
+        mainTess.update(time, undefined, camera);
+        for (const g of ghosts) {
+          if (g.group.visible) g.update(time * (g.xwRate / 0.15), undefined, camera);
+        }
+
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile());
 
         if (!isMobile() && performance.now() - lastDragEnd > 3000) {
           controls.autoRotate = true;
         }
       } else if (reducedMotion) {
         mainTess.tess.rotate(0, 0, 0);
-        mainTess.update(0);
+        mainTess.update(0, undefined, camera);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile());
       }
 
       if (transition) {
@@ -864,7 +931,7 @@ export function initGalaxy(root) {
         mainTess.boostCell(transition.product.cellAxis, 1 + e * 2.5);
         mainTess.setCellHighlight(transition.product.cellAxis, true);
 
-        bloomPass.strength = THREE.MathUtils.lerp(bloomStrength, 1.6, e);
+        bloomPass.strength = THREE.MathUtils.lerp(bloomStrength, 1.35, e);
         fxPass.uniforms.uRadialBlur.value = e * 0.6;
         fxPass.uniforms.uWhiteFlash.value = Math.max(0, (t - 0.78) / 0.22);
 
@@ -909,6 +976,13 @@ export function initGalaxy(root) {
       if (flags.debug) {
         console.info("[galaxy] debug mode — add ?galaxyWireframe=1 for wireframe-only");
         console.info("[galaxy] renderer memory at start:", renderer.info.memory);
+      }
+      // Optional ambient audio hook (disabled by default):
+      // window.GALAXY_AMBIENT_URL = "/assets/ambient.mp3"
+      if (window.GALAXY_AMBIENT_URL && !reducedMotion && !window.__galaxyAmbient) {
+        window.__galaxyAmbient = new Audio(window.GALAXY_AMBIENT_URL);
+        window.__galaxyAmbient.loop = true;
+        window.__galaxyAmbient.volume = 0.08;
       }
       if (reducedMotion) {
         renderFrame(0);

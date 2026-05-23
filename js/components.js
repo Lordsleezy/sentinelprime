@@ -1,6 +1,7 @@
 const navItems = [
   { label: "Home", href: "/index.html", key: "home" },
   { label: "Products", href: "/products.html", key: "products" },
+  { label: "Story", href: "/story.html", key: "story" },
   { label: "SentinelOS", href: "/products.html#sentinelos", key: "sentinelos" },
   { label: "Pricing", href: "/pricing.html", key: "pricing" },
   { label: "About", href: "/about.html", key: "about" },
@@ -12,6 +13,7 @@ function navLinkClass(item, activePage) {
   if (item.tryCta) parts.push("landing-nav__link--try");
   if (item.key === "home" && activePage === "home") parts.push("active");
   if (item.key === "products" && activePage === "products") parts.push("active");
+  if (item.key === "story" && activePage === "story") parts.push("active");
   if (item.key === "about" && activePage === "about") parts.push("active");
   if (item.key === "pricing" && activePage === "pricing") parts.push("active");
   if (item.key === "contact" && activePage === "contact") parts.push("active");
@@ -61,10 +63,11 @@ function renderHeaderFooter() {
     footer.innerHTML = `
       <footer class="il-footer">
         <nav class="il-footer__links" aria-label="Footer">
+          <a href="/story.html">Our Story</a>
           <a href="/privacy.html">Privacy Policy</a>
           <a href="/contact.html">Contact</a>
         </nav>
-        <p class="il-footer__tag">Sentinal Prime Inc. 2026 — Building what big tech won't</p>
+        <p class="il-footer__tag">Sentinel Prime Inc. 2026 — Building what big tech won't</p>
       </footer>
     `;
   }

@@ -89,13 +89,40 @@
   margin-top: 0.15rem;
 }
 
+.tess-cell-label[data-tier="hero"] {
+  border-color: rgba(0, 212, 255, 0.38);
+  opacity: 0.72;
+}
+
+.tess-cell-label[data-tier="hero"] .tess-cell-label__name {
+  color: #e8f4ff;
+}
+
+.tess-cell-label[data-tier="secondary"] {
+  opacity: 0.58;
+}
+
+.tess-cell-label[data-tier="developer"] {
+  opacity: 0.48;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tess-cell-label[data-tier="developer"] .tess-cell-label__tag {
+  display: none;
+}
+
 .tess-cell-label.is-hovered,
 .tess-cell-label:hover {
-  opacity: 1;
+  opacity: 1 !important;
   border-color: rgba(0, 212, 255, 0.55);
   box-shadow:
     0 0 0 1px rgba(0, 212, 255, 0.15) inset,
     0 0 24px rgba(0, 212, 255, 0.2);
+}
+
+.tess-cell-label.is-hovered[data-tier="developer"] .tess-cell-label__tag,
+.tess-cell-label[data-tier="developer"]:hover .tess-cell-label__tag {
+  display: block;
 }
 
 .galaxy-hint {
@@ -183,13 +210,21 @@
 
 @media (max-width: 767px) {
   .product-galaxy {
-    height: 50vh;
-    min-height: 50vh;
+    height: 52vh;
+    min-height: 320px;
+  }
+
+  .product-galaxy-root {
+    margin-bottom: 1.5rem;
   }
 
   .tess-cell-label {
-    max-width: 160px;
-    padding: 0.4rem 0.55rem;
+    max-width: 148px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .tess-cell-label[data-tier="developer"] {
+    max-width: 120px;
   }
 
   .tess-cell-label__name {

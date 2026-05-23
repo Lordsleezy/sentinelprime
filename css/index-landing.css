@@ -390,6 +390,15 @@ body.il-body {
   }
 }
 
+.il-pcard--hero {
+  border-color: rgba(0, 212, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.06) inset, 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.il-pcard--hero h3 {
+  font-size: 1.15rem;
+}
+
 .il-pcard {
   position: relative;
   border-radius: 20px;

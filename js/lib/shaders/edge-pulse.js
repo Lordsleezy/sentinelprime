@@ -52,8 +52,8 @@ export const EdgePulseShader = {
       float rim = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 2.5);
       col += uBrightColor * rim * 0.22;
 
-      float depthFade = smoothstep(18.0, 4.0, vDepth);
-      float alpha = uOpacity * (0.42 + pulse * 0.48 + scan * 0.35) * depthFade;
+      float depthFade = smoothstep(22.0, 3.5, vDepth);
+      float alpha = uOpacity * (0.38 + pulse * 0.42 + scan * 0.3) * depthFade;
       gl_FragColor = vec4(col, alpha);
     }
   `

@@ -9,6 +9,13 @@ export const CSS_COLORS = {
   white: "#ffffff"
 };
 
+/** Visual + narrative hierarchy for ecosystem layout */
+export const PRODUCT_TIERS = {
+  hero: { priority: 3, labelScale: 1.12, pointSize: 0.24, edgeBoost: 1.25, glow: 1.35 },
+  secondary: { priority: 2, labelScale: 1, pointSize: 0.18, edgeBoost: 1, glow: 1 },
+  developer: { priority: 1, labelScale: 0.9, pointSize: 0.14, edgeBoost: 0.82, glow: 0.78 }
+};
+
 export const PRODUCTS = [
   {
     slug: "sentinelos",
@@ -16,6 +23,7 @@ export const PRODUCTS = [
     tagline: "GrapheneOS security. BlissLauncher3 UI. Sentinel AI built in.",
     status: "building",
     statusLabel: "Building",
+    tier: "hero",
     color: CSS_COLORS.cyan,
     cellAxis: "+X",
     pageUrl: "sentinelos.html",
@@ -34,6 +42,7 @@ export const PRODUCTS = [
     tagline: "The phone Big Tech won't make.",
     status: "soon",
     statusLabel: "Coming Soon",
+    tier: "hero",
     color: CSS_COLORS.cyanBright,
     cellAxis: "-X",
     pageUrl: "sentinel-x.html",
@@ -52,6 +61,7 @@ export const PRODUCTS = [
     tagline: "Your AI. On your device. Forever private.",
     status: "available",
     statusLabel: "Available Now",
+    tier: "secondary",
     color: CSS_COLORS.cyan,
     cellAxis: "+Y",
     pageUrl: "personal-ai.html",
@@ -75,6 +85,7 @@ export const PRODUCTS = [
     tagline: "Security Intelligence. No limits.",
     status: "soon",
     statusLabel: "Coming Soon",
+    tier: "secondary",
     color: CSS_COLORS.red,
     cellAxis: "-Y",
     pageUrl: "guardian.html",
@@ -93,6 +104,7 @@ export const PRODUCTS = [
     tagline: "The AI dev platform that builds Android.",
     status: "soon",
     statusLabel: "Coming Soon",
+    tier: "developer",
     color: CSS_COLORS.cyanDim,
     cellAxis: "+Z",
     pageUrl: "forge.html",
@@ -111,6 +123,7 @@ export const PRODUCTS = [
     tagline: "Your machine in your pocket.",
     status: "soon",
     statusLabel: "Coming Soon",
+    tier: "developer",
     color: CSS_COLORS.muted,
     cellAxis: "-Z",
     pageUrl: "forge-lite.html",
@@ -131,4 +144,8 @@ export function getProduct(slug) {
 
 export function getProductByCell(cellAxis) {
   return PRODUCTS.find((p) => p.cellAxis === cellAxis);
+}
+
+export function getTierStyle(tier) {
+  return PRODUCT_TIERS[tier] ?? PRODUCT_TIERS.secondary;
 }
