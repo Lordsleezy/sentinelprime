@@ -7,10 +7,20 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { Tesseract4D } from "./tesseract4d.js";
 import { PRODUCTS, getTierStyle } from "./products-config.js";
 import { GalaxyLabelLayout } from "./galaxy-labels.js";
+import {
+  MOBILE_BREAK,
+  applyGalaxyCamera,
+  applyGalaxyControls,
+  getDesktopGalaxyConfig,
+  getMobileGalaxyConfig,
+  isLowEndMobile,
+  isPortrait,
+  mobileIdleRecenter
+} from "./galaxy-mobile.js";
 import { VignetteChromaticShader } from "./lib/shaders/vignette-chromatic.js";
 import { EdgePulseShader } from "./lib/shaders/edge-pulse.js";
 
-const MOBILE_BREAK = 768;
+const MOBILE_BREAK_LOCAL = MOBILE_BREAK;
 const DESKTOP_HIGH = 1200;
 const CORE_EMISSIVE = 0x00a8cc;
 const EDGE_BRIGHT = 0x7ee8ff;
@@ -54,7 +64,7 @@ function easePower3InOut(t) {
 function getQualityTier() {
   const w = window.innerWidth;
   const dpr = window.devicePixelRatio || 1;
-  if (w < MOBILE_BREAK) return "mobile";
+  if (w < MOBILE_BREAK_LOCAL) return "mobile";
   if (w >= DESKTOP_HIGH && dpr <= 2) return "high";
   return "medium";
 }
@@ -66,7 +76,8 @@ function readGalaxyFlags() {
     wireframeOnly: params.has("galaxyWireframe"),
     ecosystemDebug: params.has("ecosystemDebug"),
     ecosystemPhysics: !params.has("ecosystemPhysics") || params.get("ecosystemPhysics") !== "0",
-    ecosystemClampDebug: params.has("ecosystemClampDebug")
+    ecosystemClampDebug: params.has("ecosystemClampDebug"),
+    mobileDebug: params.has("mobileDebug")
   };
 }
 
@@ -240,6 +251,9 @@ class HolographicTesseract {
    * @param {boolean} opts.subtleFaces
    * @param {boolean} opts.wireframeOnly
    * @param {HTMLElement} [opts.labelLayer]
+   * @param {number} [opts.maxRadiusFactor]
+   * @param {number} [opts.maxEdgeLen]
+   * @param {number} [opts.edgeOpacityMul]
    */
   constructor(opts) {
     this.scale = opts.scale ?? 2.5;
@@ -288,8 +302,11 @@ class HolographicTesseract {
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
     this.brightCyan = new THREE.Color(EDGE_BRIGHT);
-    this.maxRadiusFactor = this.quality === "mobile" ? 2.18 : this.quality === "medium" ? 2.32 : 2.4;
-    this.maxEdgeLen = (MAX_EDGE_LEN[this.quality] ?? MAX_EDGE_LEN.medium) * 0.85;
+    this.maxRadiusFactor = opts.maxRadiusFactor
+      ?? (this.quality === "mobile" ? 2.18 : this.quality === "medium" ? 2.32 : 2.4);
+    this.maxEdgeLen = opts.maxEdgeLen
+      ?? (MAX_EDGE_LEN[this.quality] ?? MAX_EDGE_LEN.medium) * 0.85;
+    this.edgeOpacityMul = opts.edgeOpacityMul ?? 1;
 
     /** @type {Map<number, string>} edge index → dominant cell axis for tint */
     this.edgeAxisTint = new Map();
@@ -323,7 +340,7 @@ class HolographicTesseract {
       mat.uniforms.uBrightColor.value = tint.clone().lerp(this.brightCyan, 0.45);
       mat.uniforms.uPhase.value = (i / this.tess.edges.length) * 2.3;
       mat.uniforms.uSpeed.value = 0.26 + (i % 5) * 0.05;
-      mat.uniforms.uOpacity.value = 0.62 * this.opacity;
+      mat.uniforms.uOpacity.value = 0.62 * this.opacity * this.edgeOpacityMul;
       mat.uniforms.uScanStrength.value = this.quality === "high" ? 0.14 : 0.08;
       mat.uniforms.uShimmer.value = this.quality === "high" ? 0.16 : 0.08;
       if (this.quality === "mobile" && i % 2 === 1) {
@@ -415,6 +432,20 @@ class HolographicTesseract {
     this.update(0, null, null);
   }
 
+  applyRenderProfile(profile) {
+    if (profile.scale != null) this.scale = profile.scale;
+    if (profile.maxEdgeLen != null) this.maxEdgeLen = profile.maxEdgeLen;
+    if (profile.maxRadiusFactor != null) this.maxRadiusFactor = profile.maxRadiusFactor;
+    if (profile.edgeOpacityMul != null) {
+      this.edgeOpacityMul = profile.edgeOpacityMul;
+      for (const m of this.edgeMeshes) {
+        if (m.material.uniforms?.uOpacity) {
+          m.material.uniforms.uOpacity.value = 0.62 * this.opacity * this.edgeOpacityMul;
+        }
+      }
+    }
+  }
+
   /** Canonical frame — pristine 4D → project → validate. Resets group transform. */
   writePositions(time) {
     this.group.position.set(0, 0, 0);
@@ -480,7 +511,7 @@ class HolographicTesseract {
       let screenClamped = 0;
       const vw = viewport?.w ?? 0;
       const vh = viewport?.h ?? 0;
-      const maxScreenLen = viewport?.maxScreenEdge ?? (vw < MOBILE_BREAK ? 280 : 380);
+      const maxScreenLen = viewport?.maxScreenEdge ?? (vw < MOBILE_BREAK_LOCAL ? 280 : 380);
       const stabMul = THREE.MathUtils.clamp(this.stabilityScore, 0.2, 1);
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
@@ -613,8 +644,17 @@ export function initGalaxy(root) {
     const perf = new GalaxyPerformanceMonitor();
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let quality = getQualityTier();
-    const isMobile = () => window.innerWidth < MOBILE_BREAK;
+    const isMobile = () => window.innerWidth < MOBILE_BREAK_LOCAL;
 
+    function buildGalaxyConfig() {
+      if (isMobile()) {
+        return getMobileGalaxyConfig(isLowEndMobile(), isPortrait());
+      }
+      const tier = quality === "high" ? "high" : "medium";
+      return getDesktopGalaxyConfig(tier, flags.wireframeOnly);
+    }
+
+    let galaxyCfg = buildGalaxyConfig();
     let disposed = false;
     let running = false;
     let rafId = 0;
@@ -632,30 +672,36 @@ export function initGalaxy(root) {
       mount.appendChild(debugEl);
     }
 
+    let mobileDebugEl = null;
+    if (flags.mobileDebug && isMobile()) {
+      mobileDebugEl = document.createElement("div");
+      mobileDebugEl.className = "galaxy-mobile-debug-hud";
+      mount.appendChild(mobileDebugEl);
+    }
+
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x020204, quality === "mobile" ? 0.055 : 0.042);
+    scene.fog = new THREE.FogExp2(0x020204, galaxyCfg.fogDensity);
     scene.background = new THREE.Color(0x020204);
 
-    const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
-    camera.position.set(0, 1.15, 7.8);
+    const camera = new THREE.PerspectiveCamera(galaxyCfg.camera.fov, 1, 0.1, 100);
 
     const labelLayout = new GalaxyLabelLayout({
       motionEnabled: !reducedMotion,
-      debug: flags.ecosystemDebug
+      debug: flags.ecosystemDebug,
+      mobileDebug: flags.mobileDebug
     });
     let isDragging = false;
     const focusTarget = new THREE.Vector3();
     const homeTarget = new THREE.Vector3(0, 0, 0);
 
-    const maxDpr = quality === "mobile" ? 1.5 : 2;
     const renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: quality !== "mobile",
+      antialias: galaxyCfg.antialias,
       alpha: false,
       powerPreference: "high-performance",
       stencil: false
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, galaxyCfg.maxDpr));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.92;
@@ -702,7 +748,7 @@ export function initGalaxy(root) {
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 20), fresnelMat);
     coreGroup.add(atmosphere);
 
-    const particleCount = quality === "high" ? 180 : quality === "medium" ? 100 : 45;
+    const particleCount = galaxyCfg.particleCount;
     const pPos = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i += 1) {
       const r = Math.random() * 0.85;
@@ -733,7 +779,7 @@ export function initGalaxy(root) {
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        uniforms: { uIntensity: { value: 0.07 } },
+        uniforms: { uIntensity: { value: galaxyCfg.godRayIntensity } },
         vertexShader: `
           varying vec2 vUv;
           void main() {
@@ -754,9 +800,10 @@ export function initGalaxy(root) {
       })
     );
     godRays.position.z = -0.5;
+    godRays.visible = galaxyCfg.godRayIntensity > 0.045;
     coreGroup.add(godRays);
 
-    const starCount = quality === "high" ? 500 : quality === "medium" ? 320 : 200;
+    const starCount = galaxyCfg.starCount;
     const starPos = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i += 1) {
       const r = 30 + Math.random() * 50;
@@ -772,7 +819,7 @@ export function initGalaxy(root) {
       starGeo,
       new THREE.PointsMaterial({
         color: 0x8899aa,
-        size: quality === "high" ? 0.06 : 0.05,
+        size: galaxyCfg.starSize,
         transparent: true,
         opacity: 0.35,
         depthWrite: false
@@ -780,14 +827,17 @@ export function initGalaxy(root) {
     );
     scene.add(stars);
 
-    const wireframeOnly = flags.wireframeOnly || quality === "mobile";
-    const tessScale = quality === "mobile" ? 2.05 : quality === "medium" ? 2.25 : 2.35;
+    const wireframeOnly = galaxyCfg.wireframeOnly;
+    const tessScale = galaxyCfg.tessScale;
     const mainTess = new HolographicTesseract({
       scale: tessScale,
-      quality,
+      quality: galaxyCfg.mobile ? "mobile" : quality,
       withCells: true,
       wireframeOnly,
-      labelLayer
+      labelLayer,
+      maxRadiusFactor: galaxyCfg.maxRadiusFactor,
+      maxEdgeLen: galaxyCfg.maxEdgeLen,
+      edgeOpacityMul: galaxyCfg.edgeOpacityMul
     });
     scene.add(mainTess.group);
 
@@ -796,52 +846,54 @@ export function initGalaxy(root) {
     }
 
     const ghosts = [];
-    if (quality === "high") {
-      ghosts.push(
-        new HolographicTesseract({
-          scale: 1.0,
-          opacity: 0.45,
-          xwRate: 0.11,
-          ywRate: 0.08,
-          withCells: false,
-          quality,
-          subtleFaces: false,
-          wireframeOnly: true,
-          isGhost: true
-        })
-      );
-      ghosts.push(
-        new HolographicTesseract({
-          scale: 1.75,
-          opacity: 0.35,
-          xwRate: 0.13,
-          ywRate: 0.09,
-          withCells: false,
-          quality,
-          subtleFaces: false,
-          wireframeOnly: true,
-          isGhost: true
-        })
-      );
-    } else if (quality === "medium") {
-      ghosts.push(
-        new HolographicTesseract({
-          scale: 1.75,
-          opacity: 0.3,
-          xwRate: 0.12,
-          ywRate: 0.085,
-          withCells: false,
-          quality,
-          subtleFaces: false,
-          wireframeOnly: true,
-          isGhost: true
-        })
-      );
+    if (!galaxyCfg.mobile) {
+      if (quality === "high") {
+        ghosts.push(
+          new HolographicTesseract({
+            scale: 1.0,
+            opacity: 0.45,
+            xwRate: 0.11,
+            ywRate: 0.08,
+            withCells: false,
+            quality,
+            subtleFaces: false,
+            wireframeOnly: true,
+            isGhost: true
+          })
+        );
+        ghosts.push(
+          new HolographicTesseract({
+            scale: 1.75,
+            opacity: 0.35,
+            xwRate: 0.13,
+            ywRate: 0.09,
+            withCells: false,
+            quality,
+            subtleFaces: false,
+            wireframeOnly: true,
+            isGhost: true
+          })
+        );
+      } else if (quality === "medium") {
+        ghosts.push(
+          new HolographicTesseract({
+            scale: 1.75,
+            opacity: 0.3,
+            xwRate: 0.12,
+            ywRate: 0.085,
+            withCells: false,
+            quality,
+            subtleFaces: false,
+            wireframeOnly: true,
+            isGhost: true
+          })
+        );
+      }
     }
     for (const g of ghosts) scene.add(g.group);
 
-    const bloomStrength = quality === "mobile" ? 0.48 : quality === "medium" ? 0.62 : 0.76;
-    const bloomRadius = quality === "high" ? 0.4 : quality === "medium" ? 0.34 : 0.28;
+    const bloomStrength = galaxyCfg.bloomStrength;
+    const bloomRadius = galaxyCfg.bloomRadius;
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.35);
@@ -849,22 +901,20 @@ export function initGalaxy(root) {
 
     const fxPass = new ShaderPass(VignetteChromaticShader);
     fxPass.uniforms.uStrength.value = 0.48;
-    fxPass.uniforms.uGrain.value = quality === "mobile" ? 0 : 0.025;
+    fxPass.uniforms.uGrain.value = galaxyCfg.grain;
     composer.addPass(fxPass);
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.115;
     controls.enablePan = false;
-    controls.minDistance = 4.5;
-    controls.maxDistance = 10;
-    controls.minPolarAngle = 0.4;
-    controls.maxPolarAngle = Math.PI - 0.4;
     controls.target.copy(homeTarget);
-    controls.rotateSpeed = 0.26;
-    controls.enableRotate = !reducedMotion && !isMobile();
-    controls.autoRotate = !reducedMotion;
-    controls.autoRotateSpeed = 0.16;
+    applyGalaxyCamera(camera, controls, homeTarget, galaxyCfg);
+    applyGalaxyControls(controls, galaxyCfg, reducedMotion);
+    if (galaxyCfg.mobile) {
+      mount.classList.add("is-mobile");
+      root.classList.add("is-mobile-galaxy");
+      canvas.style.touchAction = "none";
+    }
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -958,14 +1008,14 @@ export function initGalaxy(root) {
       lastDragEnd = performance.now();
       isDragging = true;
       controls.autoRotate = false;
-      controls.dampingFactor = 0.14;
+      controls.dampingFactor = galaxyCfg.controls.dragDamping;
       mount.classList.add("is-dragging");
     }
 
     function onControlEnd() {
       lastDragEnd = performance.now();
       isDragging = false;
-      controls.dampingFactor = 0.1;
+      controls.dampingFactor = galaxyCfg.controls.dampingFactor;
       mount.classList.remove("is-dragging");
     }
 
@@ -1001,14 +1051,31 @@ export function initGalaxy(root) {
 
     function resize() {
       quality = getQualityTier();
+      galaxyCfg = buildGalaxyConfig();
       const w = mount.clientWidth;
       const h = mount.clientHeight;
       if (w < 1 || h < 1) return;
       camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      applyGalaxyCamera(camera, controls, homeTarget, galaxyCfg);
+      applyGalaxyControls(controls, galaxyCfg, reducedMotion);
+      scene.fog.density = galaxyCfg.fogDensity;
+      mainTess.applyRenderProfile({
+        scale: galaxyCfg.tessScale,
+        maxEdgeLen: galaxyCfg.maxEdgeLen,
+        maxRadiusFactor: galaxyCfg.maxRadiusFactor,
+        edgeOpacityMul: galaxyCfg.edgeOpacityMul
+      });
+      bloomPass.strength = bloomStrength * perf.bloomMultiplier();
+      bloomPass.radius = bloomRadius;
+      fxPass.uniforms.uGrain.value = galaxyCfg.grain;
+      const dpr = Math.min(window.devicePixelRatio, galaxyCfg.maxDpr);
+      renderer.setPixelRatio(dpr);
+      composer.setPixelRatio(galaxyCfg.mobile ? dpr * galaxyCfg.composerDpr : dpr);
       renderer.setSize(w, h, false);
       composer.setSize(w, h);
-      controls.enableRotate = !reducedMotion && !isMobile();
+      mount.classList.toggle("is-mobile", galaxyCfg.mobile);
+      root.classList.toggle("is-mobile-galaxy", galaxyCfg.mobile);
+      canvas.style.touchAction = galaxyCfg.mobile ? "none" : "";
     }
 
     function renderFrame(time) {
@@ -1017,46 +1084,58 @@ export function initGalaxy(root) {
       const now = performance.now();
 
       if (!reducedMotion && !transition) {
-        const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
-        const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse);
-        innerCore.scale.setScalar(scale);
-        coreLight.intensity = 1.05 + pulse * 0.25;
+        if (galaxyCfg.corePulse) {
+          const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
+          const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse);
+          innerCore.scale.setScalar(scale);
+          coreLight.intensity = 1.05 + pulse * 0.25;
+        }
         fresnelMat.uniforms.uTime.value = time;
         coreGroup.rotation.y = time * 0.05;
         coreParticles.rotation.y = -time * 0.035;
         coreParticles.rotation.x = time * 0.02;
         stars.rotation.y = -time * 0.0012;
 
-        if (hoveredCell) {
+        if (hoveredCell && !galaxyCfg.mobile) {
           const c = mainTess.tess.getCellCenter(hoveredCell.cellAxis, tessScale);
           focusTarget.set(c.x * 0.1, c.y * 0.1, c.z * 0.06);
           controls.target.lerp(focusTarget, 0.05);
         } else if (!isDragging) {
-          controls.target.lerp(homeTarget, 0.035);
+          if (galaxyCfg.mobile) {
+            mobileIdleRecenter(controls, homeTarget, isDragging, lastDragEnd, now);
+          } else {
+            controls.target.lerp(homeTarget, 0.035);
+          }
         }
 
         mainTess.update(time, camera, {
           w: mount.clientWidth,
           h: mount.clientHeight,
-          maxScreenEdge: isMobile() ? 260 : 360
+          maxScreenEdge: galaxyCfg.maxScreenEdge
         });
         for (const g of ghosts) {
           if (!g.group.visible) continue;
           g.update(time * (g.xwRate / 0.15), camera, {
             w: mount.clientWidth,
             h: mount.clientHeight,
-            maxScreenEdge: isMobile() ? 220 : 300
+            maxScreenEdge: galaxyCfg.ghostMaxScreenEdge
           });
         }
 
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, {
+          portrait: isPortrait(),
+          mobileDebug: flags.mobileDebug
+        });
 
-        if (!isMobile() && !isDragging && performance.now() - lastDragEnd > 3500) {
+        if (!galaxyCfg.mobile && !isDragging && performance.now() - lastDragEnd > 3500) {
           controls.autoRotate = true;
         }
       } else if (reducedMotion) {
-        mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight });
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
+        mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight, maxScreenEdge: galaxyCfg.maxScreenEdge });
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, {
+          portrait: isPortrait(),
+          mobileDebug: flags.mobileDebug
+        });
       }
 
       if (transition) {
@@ -1085,7 +1164,6 @@ export function initGalaxy(root) {
       fxPass.uniforms.uTime.value = time;
 
       if (debugEl) {
-        const info = renderer.info;
         const ts = mainTess.tess.stats;
         const lm = labelLayout.metrics;
         debugEl.textContent =
@@ -1095,6 +1173,17 @@ export function initGalaxy(root) {
           ` · orbit r=${lm.radius.toFixed(0)} θ=${lm.orbitPhase.toFixed(2)} n=${lm.labelCount}` +
           ` · fade ${mainTess.lastClampedEdges}/${mainTess.lastScreenClamped ?? 0}` +
           (perf.contextLost ? " · CONTEXT LOST" : "");
+      }
+
+      if (mobileDebugEl && galaxyCfg.mobile) {
+        mobileDebugEl.textContent =
+          `mobile ${galaxyCfg.tier} · ${isPortrait() ? "portrait" : "landscape"}` +
+          ` · DPR ${renderer.getPixelRatio().toFixed(2)}` +
+          ` · FPS ${perf.fps.toFixed(0)}` +
+          ` · deg ${perf.degradeLevel}` +
+          ` · labels ${labelLayout.metrics.mode}` +
+          ` · edge×${galaxyCfg.edgeOpacityMul}` +
+          ` · maxE ${galaxyCfg.maxScreenEdge}`;
       }
 
       try {
@@ -1150,6 +1239,7 @@ export function initGalaxy(root) {
     );
     observer.observe(root);
     window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("orientationchange", () => window.setTimeout(resize, 120), { passive: true });
     resize();
     if (reducedMotion) renderFrame(0);
 
@@ -1161,6 +1251,7 @@ export function initGalaxy(root) {
       renderer.dispose();
       labelLayer.remove();
       if (debugEl) debugEl.remove();
+      if (mobileDebugEl) mobileDebugEl.remove();
       if (hintTimer) clearTimeout(hintTimer);
     };
   } catch (err) {
