@@ -15,7 +15,8 @@ import {
   getMobileGalaxyConfig,
   isLowEndMobile,
   isPortrait,
-  mobileIdleRecenter
+  mobileIdleRecenter,
+  applyCinematicBreath
 } from "./galaxy-mobile.js";
 import { VignetteChromaticShader } from "./lib/shaders/vignette-chromatic.js";
 import { EdgePulseShader } from "./lib/shaders/edge-pulse.js";
@@ -726,7 +727,7 @@ export function initGalaxy(root) {
     }
 
     scene.add(new THREE.AmbientLight(0x040608, 0.28));
-    const coreLight = new THREE.PointLight(CORE_EMISSIVE, 1.15, 16, 2);
+    const coreLight = new THREE.PointLight(CORE_EMISSIVE, 1.15 * galaxyCfg.coreEnergy, 16, 2);
     scene.add(coreLight);
 
     const coreGroup = new THREE.Group();
@@ -737,12 +738,27 @@ export function initGalaxy(root) {
       new THREE.MeshBasicMaterial({
         color: 0x55aac4,
         transparent: true,
-        opacity: 0.62,
+        opacity: 0.62 * galaxyCfg.coreEnergy,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       })
     );
     coreGroup.add(innerCore);
+
+    let outerCore = null;
+    if (galaxyCfg.coreGlowLayers) {
+      outerCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.42, 16, 16),
+        new THREE.MeshBasicMaterial({
+          color: 0x0088aa,
+          transparent: true,
+          opacity: 0.14 * galaxyCfg.coreEnergy,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        })
+      );
+      coreGroup.add(outerCore);
+    }
 
     const fresnelMat = makeFresnelMaterial();
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 20), fresnelMat);
@@ -764,9 +780,9 @@ export function initGalaxy(root) {
       pGeo,
       new THREE.PointsMaterial({
         color: CORE_EMISSIVE,
-        size: 0.035,
+        size: galaxyCfg.particleSize ?? 0.035,
         transparent: true,
-        opacity: 0.4,
+        opacity: galaxyCfg.particleOpacity ?? 0.4,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       })
@@ -889,11 +905,28 @@ export function initGalaxy(root) {
           })
         );
       }
+    } else if (galaxyCfg.ghostCount >= 1) {
+      ghosts.push(
+        new HolographicTesseract({
+          scale: 1.12,
+          opacity: 0.22,
+          xwRate: 0.09,
+          ywRate: 0.065,
+          withCells: false,
+          quality: "mobile",
+          subtleFaces: false,
+          wireframeOnly: true,
+          isGhost: true,
+          edgeOpacityMul: 0.38,
+          maxEdgeLen: 2.2,
+          maxRadiusFactor: 1.65
+        })
+      );
     }
     for (const g of ghosts) scene.add(g.group);
 
-    const bloomStrength = galaxyCfg.bloomStrength;
-    const bloomRadius = galaxyCfg.bloomRadius;
+    let bloomStrength = galaxyCfg.bloomStrength;
+    let bloomRadius = galaxyCfg.bloomRadius;
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, 0.35);
@@ -927,7 +960,7 @@ export function initGalaxy(root) {
       for (const g of ghosts) g.group.visible = !hideGhosts;
       mainTess.setWireframeMode(hideFaces);
       coreParticles.visible = perf.degradeLevel < 2;
-      godRays.visible = perf.degradeLevel < 1;
+      godRays.visible = perf.degradeLevel < 2 || galaxyCfg.mobile;
       bloomPass.strength = bloomStrength * perf.bloomMultiplier();
       if (perf.degradeLevel >= 2) {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
@@ -1065,8 +1098,16 @@ export function initGalaxy(root) {
         maxRadiusFactor: galaxyCfg.maxRadiusFactor,
         edgeOpacityMul: galaxyCfg.edgeOpacityMul
       });
+      bloomStrength = galaxyCfg.bloomStrength;
+      bloomRadius = galaxyCfg.bloomRadius;
       bloomPass.strength = bloomStrength * perf.bloomMultiplier();
       bloomPass.radius = bloomRadius;
+      godRays.material.uniforms.uIntensity.value = galaxyCfg.godRayIntensity;
+      coreParticles.material.opacity = galaxyCfg.particleOpacity ?? coreParticles.material.opacity;
+      coreParticles.material.size = galaxyCfg.particleSize ?? coreParticles.material.size;
+      innerCore.material.opacity = 0.62 * galaxyCfg.coreEnergy;
+      coreLight.intensity = 1.15 * galaxyCfg.coreEnergy;
+      if (outerCore) outerCore.material.opacity = 0.14 * galaxyCfg.coreEnergy;
       fxPass.uniforms.uGrain.value = galaxyCfg.grain;
       const dpr = Math.min(window.devicePixelRatio, galaxyCfg.maxDpr);
       renderer.setPixelRatio(dpr);
@@ -1084,17 +1125,26 @@ export function initGalaxy(root) {
       const now = performance.now();
 
       if (!reducedMotion && !transition) {
+        const pulseStrength = galaxyCfg.corePulseStrength ?? 1;
+        let pulse = 0;
         if (galaxyCfg.corePulse) {
-          const pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
-          const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse);
+          pulse = 0.5 + 0.5 * Math.sin(time * (Math.PI * 2 / 4));
+          const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse * pulseStrength);
           innerCore.scale.setScalar(scale);
-          coreLight.intensity = 1.05 + pulse * 0.25;
+          if (outerCore) outerCore.scale.setScalar(scale * 1.08);
+          coreLight.intensity = (1.05 + pulse * 0.25 * pulseStrength) * galaxyCfg.coreEnergy;
+          atmosphere.scale.setScalar(1 + pulse * 0.04 * pulseStrength);
         }
         fresnelMat.uniforms.uTime.value = time;
         coreGroup.rotation.y = time * 0.05;
         coreParticles.rotation.y = -time * 0.035;
         coreParticles.rotation.x = time * 0.02;
         stars.rotation.y = -time * 0.0012;
+
+        const bloomMul = (galaxyCfg.coreBloomMul ?? 1) * (1 + pulse * 0.12 * pulseStrength);
+        bloomPass.strength = bloomStrength * perf.bloomMultiplier() * bloomMul;
+
+        applyCinematicBreath(homeTarget, galaxyCfg.camera.targetY, time, galaxyCfg);
 
         if (hoveredCell && !galaxyCfg.mobile) {
           const c = mainTess.tess.getCellCenter(hoveredCell.cellAxis, tessScale);
@@ -1103,10 +1153,13 @@ export function initGalaxy(root) {
         } else if (!isDragging) {
           if (galaxyCfg.mobile) {
             mobileIdleRecenter(controls, homeTarget, isDragging, lastDragEnd, now);
+            controls.autoRotate = true;
           } else {
             controls.target.lerp(homeTarget, 0.035);
           }
         }
+
+        mainTess.edgePulseBoost = 1 + Math.sin(time * 1.6) * (galaxyCfg.mobile ? 0.08 : 0.12);
 
         mainTess.update(time, camera, {
           w: mount.clientWidth,

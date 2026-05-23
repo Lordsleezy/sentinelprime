@@ -24,7 +24,7 @@ export function isLowEndMobile() {
   return (window.devicePixelRatio || 1) > 2.75;
 }
 
-/** Exact desktop tuning — do not alter without checking desktop regression. */
+/** Exact desktop tuning — unchanged baseline. */
 export function getDesktopGalaxyConfig(quality, wireframeFlag = false) {
   const high = quality === "high";
   return {
@@ -61,49 +61,63 @@ export function getDesktopGalaxyConfig(quality, wireframeFlag = false) {
       maxPolarAngle: Math.PI - 0.4
     },
     corePulse: true,
-    godRayIntensity: 0.07
+    corePulseStrength: 1,
+    coreEnergy: 1,
+    coreBloomMul: 1,
+    coreGlowLayers: true,
+    cinematicBreath: true,
+    godRayIntensity: 0.07,
+    particleOpacity: 0.4,
+    particleSize: 0.035
   };
 }
 
-/** Mobile-only rendering + interaction profile. */
+/** Mobile profile — stable but alive (rebalanced). */
 export function getMobileGalaxyConfig(lowEnd = false, portrait = true) {
   return {
     mobile: true,
     tier: lowEnd ? "mobile-low" : "mobile",
     maxDpr: lowEnd ? 1 : 1.25,
-    composerDpr: lowEnd ? 0.65 : 0.82,
+    composerDpr: lowEnd ? 0.68 : 0.85,
     antialias: false,
-    particleCount: lowEnd ? 16 : 28,
-    starCount: lowEnd ? 64 : 110,
-    starSize: 0.042,
-    fogDensity: 0.062,
-    bloomStrength: lowEnd ? 0.28 : 0.36,
-    bloomRadius: 0.18,
+    particleCount: lowEnd ? 24 : 42,
+    starCount: lowEnd ? 88 : 145,
+    starSize: 0.046,
+    fogDensity: 0.055,
+    bloomStrength: lowEnd ? 0.38 : 0.46,
+    bloomRadius: 0.24,
     grain: 0,
     wireframeOnly: true,
-    tessScale: portrait ? 1.65 : 1.78,
-    ghostCount: 0,
-    edgeOpacityMul: lowEnd ? 0.48 : 0.58,
-    maxEdgeLen: 2.55,
-    maxRadiusFactor: 1.82,
-    maxScreenEdge: portrait ? 108 : 142,
-    ghostMaxScreenEdge: 90,
+    tessScale: portrait ? 1.68 : 1.8,
+    ghostCount: lowEnd ? 0 : 1,
+    edgeOpacityMul: lowEnd ? 0.62 : 0.72,
+    maxEdgeLen: 2.75,
+    maxRadiusFactor: 1.88,
+    maxScreenEdge: portrait ? 128 : 158,
+    ghostMaxScreenEdge: 115,
     camera: portrait
-      ? { fov: 56, x: 0, y: 0.28, z: 6.15, targetY: 0.04 }
-      : { fov: 52, x: 0, y: 0.18, z: 5.55, targetY: 0.02 },
+      ? { fov: 54, x: 0, y: 0.28, z: 6.05, targetY: 0.04 }
+      : { fov: 50, x: 0, y: 0.18, z: 5.45, targetY: 0.02 },
     controls: {
-      dampingFactor: 0.24,
-      dragDamping: 0.28,
-      restDamping: 0.2,
-      rotateSpeed: 0.11,
-      autoRotateSpeed: 0.055,
+      dampingFactor: 0.2,
+      dragDamping: 0.24,
+      restDamping: 0.17,
+      rotateSpeed: 0.13,
+      autoRotateSpeed: 0.085,
       minDistance: 3.6,
       maxDistance: 7.2,
-      minPolarAngle: 0.62,
-      maxPolarAngle: Math.PI - 0.62
+      minPolarAngle: 0.58,
+      maxPolarAngle: Math.PI - 0.58
     },
-    corePulse: false,
-    godRayIntensity: 0.035
+    corePulse: true,
+    corePulseStrength: lowEnd ? 0.45 : 0.62,
+    coreEnergy: lowEnd ? 1.05 : 1.22,
+    coreBloomMul: lowEnd ? 1.05 : 1.18,
+    coreGlowLayers: true,
+    cinematicBreath: true,
+    godRayIntensity: lowEnd ? 0.048 : 0.062,
+    particleOpacity: lowEnd ? 0.32 : 0.44,
+    particleSize: lowEnd ? 0.028 : 0.034
   };
 }
 
@@ -130,10 +144,18 @@ export function applyGalaxyControls(controls, cfg, reducedMotion) {
 export function mobileIdleRecenter(controls, homeTarget, isDragging, lastDragEnd, now) {
   if (isDragging) return;
   const idleMs = now - lastDragEnd;
-  if (idleMs > 1200) {
-    controls.target.lerp(homeTarget, 0.04);
+  if (idleMs > 800) {
+    controls.target.lerp(homeTarget, 0.05);
   }
-  if (idleMs > 2200) {
-    controls.autoRotate = true;
+}
+
+export function applyCinematicBreath(homeTarget, baseTargetY, time, cfg) {
+  if (!cfg.cinematicBreath) {
+    homeTarget.y = baseTargetY;
+    return;
   }
+  const amp = cfg.mobile ? 0.022 : 0.035;
+  homeTarget.y = baseTargetY + Math.sin(time * 0.38) * amp;
+  homeTarget.x = Math.sin(time * 0.23) * amp * 0.55;
+  homeTarget.z = Math.cos(time * 0.19) * amp * 0.35;
 }
