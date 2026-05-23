@@ -42,7 +42,25 @@
   z-index: 3;
 }
 
+.tess-cell-wall {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.tess-cell-wall.is-debug {
+  border-color: rgba(255, 160, 60, 0.55);
+  background: rgba(255, 160, 60, 0.05);
+}
+
 .tess-cell-label {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -54,7 +72,7 @@
     0 0 0 1px rgba(0, 0, 0, 0.6) inset,
     0 4px 20px rgba(0, 0, 0, 0.55);
   opacity: 0.55;
-  transform: translate(-50%, -50%);
+  transform-origin: center center;
   transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   pointer-events: auto;
   cursor: pointer;
@@ -227,6 +245,25 @@
   margin: -2px 0 0 -2px;
   border-radius: 50%;
   background: rgba(126, 200, 255, 0.9);
+}
+
+.galaxy-layout-debug__sep {
+  position: absolute;
+  height: 1px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(126, 200, 255, 0.8), rgba(255, 120, 60, 0.5));
+}
+
+.galaxy-layout-debug__hud {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: #00ff88;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(0, 255, 136, 0.25);
 }
 
 /* Product page entry fade (continuous with galaxy transition) */

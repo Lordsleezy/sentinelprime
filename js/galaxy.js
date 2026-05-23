@@ -4,7 +4,6 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 import { Tesseract4D } from "./tesseract4d.js";
 import { PRODUCTS, getTierStyle } from "./products-config.js";
 import { GalaxyLabelLayout } from "./galaxy-labels.js";
@@ -240,6 +239,7 @@ class HolographicTesseract {
    * @param {string} opts.quality
    * @param {boolean} opts.subtleFaces
    * @param {boolean} opts.wireframeOnly
+   * @param {HTMLElement} [opts.labelLayer]
    */
   constructor(opts) {
     this.scale = opts.scale ?? 2.5;
@@ -250,11 +250,13 @@ class HolographicTesseract {
     this.quality = opts.quality ?? "high";
     this.wireframeOnly = opts.wireframeOnly ?? false;
     this.isGhost = opts.isGhost === true;
+    this.labelLayer = opts.labelLayer ?? null;
 
     this.tess = new Tesseract4D();
     this.group = new THREE.Group();
     this.edgePulseBoost = 1;
     this.lastClampedEdges = 0;
+    this.lastScreenClamped = 0;
     this.stabilityScore = 1;
     this.frameStable = true;
     this.verts = Array.from({ length: 16 }, () => new THREE.Vector3());
@@ -348,7 +350,7 @@ class HolographicTesseract {
       this.vertexMeshes.push(m);
     }
 
-    /** @type {Map<string, { product: typeof PRODUCTS[0], points: THREE.Points, hit: THREE.Mesh, label: CSS2DObject, labelEl: HTMLElement, edgeIndices: number[] }>} */
+    /** @type {Map<string, { product: typeof PRODUCTS[0], points: THREE.Points, hit: THREE.Mesh, wallEl: HTMLElement, labelEl: HTMLElement, edgeIndices: number[] }>} */
     this.cells = new Map();
 
     if (this.withCells) {
@@ -378,12 +380,16 @@ class HolographicTesseract {
         hit.userData.product = product;
         this.group.add(hit);
 
+        const wallEl = document.createElement("div");
+        wallEl.className = "tess-cell-wall";
+        wallEl.style.visibility = "hidden";
+
         const labelEl = document.createElement("div");
         labelEl.className = "tess-cell-label";
         labelEl.dataset.tier = product.tier;
         labelEl.innerHTML = `<span class="tess-cell-label__name">${product.name}</span><span class="tess-cell-label__tag">${product.tagline}</span><span class="tess-cell-label__enter">ENTER →</span>`;
-        const label = new CSS2DObject(labelEl);
-        this.group.add(label);
+        wallEl.appendChild(labelEl);
+        if (this.labelLayer) this.labelLayer.appendChild(wallEl);
 
         const edgeIndices = [];
         for (let e = 0; e < this.tess.edges.length; e += 1) {
@@ -395,7 +401,7 @@ class HolographicTesseract {
           product,
           points,
           hit,
-          label,
+          wallEl,
           labelEl,
           edgeIndices,
           ptPositions: pts,
@@ -654,9 +660,9 @@ export function initGalaxy(root) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.92;
 
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.domElement.className = "galaxy-labels-layer";
-    mount.appendChild(labelRenderer.domElement);
+    const labelLayer = document.createElement("div");
+    labelLayer.className = "galaxy-labels-layer";
+    mount.appendChild(labelLayer);
 
     if (reducedMotion) {
       const msg = document.createElement("p");
@@ -781,6 +787,7 @@ export function initGalaxy(root) {
       quality,
       withCells: true,
       wireframeOnly,
+      labelLayer
     });
     scene.add(mainTess.group);
 
@@ -1000,7 +1007,6 @@ export function initGalaxy(root) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
-      labelRenderer.setSize(w, h);
       composer.setSize(w, h);
       controls.enableRotate = !reducedMotion && !isMobile();
     }
@@ -1041,18 +1047,16 @@ export function initGalaxy(root) {
             h: mount.clientHeight,
             maxScreenEdge: isMobile() ? 220 : 300
           });
-          if (g.stabilityScore < 0.35) g.group.visible = false;
         }
 
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, labelLayer);
 
         if (!isMobile() && !isDragging && performance.now() - lastDragEnd > 3500) {
           controls.autoRotate = true;
         }
       } else if (reducedMotion) {
-        mainTess.tess.computeFrame(0, mainTess.xwRate, mainTess.ywRate, mainTess.scale, mainTess.maxRadiusFactor, mainTess.maxEdgeLen);
         mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight });
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, labelLayer);
       }
 
       if (transition) {
@@ -1088,14 +1092,13 @@ export function initGalaxy(root) {
           `FPS ${perf.fps.toFixed(0)} · stable ${(mainTess.stabilityScore * 100).toFixed(0)}%` +
           ` · vClamp ${ts.clampedVertices} · badE ${ts.invalidEdges}` +
           ` · maxR ${ts.maxRadius.toFixed(2)} · edge ${ts.maxEdgeLength.toFixed(2)}` +
-          ` · sep ${lm.overlapsResolved} · wall ${lm.wallClamps}` +
+          ` · sep ${lm.overlapsResolved} · left ${lm.remainingOverlaps} · wall ${lm.wallClamps}` +
           ` · fade ${mainTess.lastClampedEdges}/${mainTess.lastScreenClamped ?? 0}` +
           (perf.contextLost ? " · CONTEXT LOST" : "");
       }
 
       try {
         composer.render();
-        labelRenderer.render(scene, camera);
       } catch (err) {
         console.warn("[galaxy] Render frame failed (non-fatal):", err);
         perf.degradeLevel = Math.min(3, perf.degradeLevel + 1);
@@ -1156,7 +1159,7 @@ export function initGalaxy(root) {
       observer.disconnect();
       controls.dispose();
       renderer.dispose();
-      labelRenderer.domElement.remove();
+      labelLayer.remove();
       if (debugEl) debugEl.remove();
       if (hintTimer) clearTimeout(hintTimer);
     };
