@@ -24,11 +24,12 @@ export function isLowEndMobile() {
   return (window.devicePixelRatio || 1) > 2.75;
 }
 
-/** Exact desktop tuning — unchanged baseline. */
+/** Desktop cinematic profile — richer atmosphere while stability guards stay active. */
 export function getDesktopGalaxyConfig(quality, wireframeFlag = false) {
   const high = quality === "high";
   return {
     mobile: false,
+    cinematicMode: true,
     tier: quality,
     maxDpr: 2,
     composerDpr: 1,
@@ -36,9 +37,9 @@ export function getDesktopGalaxyConfig(quality, wireframeFlag = false) {
     particleCount: high ? 180 : 100,
     starCount: high ? 500 : 320,
     starSize: high ? 0.06 : 0.05,
-    fogDensity: 0.042,
-    bloomStrength: high ? 0.76 : 0.62,
-    bloomRadius: high ? 0.4 : 0.34,
+    fogDensity: 0.038,
+    bloomStrength: high ? 0.85 : 0.7,
+    bloomRadius: high ? 0.44 : 0.38,
     grain: 0.025,
     wireframeOnly: wireframeFlag,
     tessScale: high ? 2.35 : 2.25,
@@ -61,14 +62,20 @@ export function getDesktopGalaxyConfig(quality, wireframeFlag = false) {
       maxPolarAngle: Math.PI - 0.4
     },
     corePulse: true,
-    corePulseStrength: 1,
-    coreEnergy: 1,
-    coreBloomMul: 1,
+    corePulseStrength: 1.15,
+    coreEnergy: high ? 1.28 : 1.16,
+    coreBloomMul: high ? 1.24 : 1.14,
     coreGlowLayers: true,
+    coreHaloLayer: true,
     cinematicBreath: true,
-    godRayIntensity: 0.07,
-    particleOpacity: 0.4,
-    particleSize: 0.035
+    breathAmplitude: 0.048,
+    godRayIntensity: 0.088,
+    particleOpacity: 0.48,
+    particleSize: 0.038,
+    edgePulseAmp: 0.18,
+    outerCoreOpacityMul: 0.22,
+    idleAutoRotateDelay: 800,
+    vignetteStrength: 0.48
   };
 }
 
@@ -154,7 +161,7 @@ export function applyCinematicBreath(homeTarget, baseTargetY, time, cfg) {
     homeTarget.y = baseTargetY;
     return;
   }
-  const amp = cfg.mobile ? 0.022 : 0.035;
+  const amp = cfg.breathAmplitude ?? (cfg.mobile ? 0.022 : 0.035);
   homeTarget.y = baseTargetY + Math.sin(time * 0.38) * amp;
   homeTarget.x = Math.sin(time * 0.23) * amp * 0.55;
   homeTarget.z = Math.cos(time * 0.19) * amp * 0.35;

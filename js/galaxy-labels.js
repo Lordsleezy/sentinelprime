@@ -1,11 +1,17 @@
 import * as THREE from "three";
 
-const BASE_ORBIT_SPEED = { desktop: 0.095, mobile: 0.082 };
-const WALL_GAP = { desktop: 12, mobile: 10 };
-const WALL_PAD = { desktop: 10, mobile: 6 };
+const DESKTOP_ORBIT_SPEED = 0.105;
+const DESKTOP_ORBIT_RADIUS = 0.42;
+const DESKTOP_FLOAT_AMP = 9;
+const DESKTOP_WALL_GAP = 10;
+const DESKTOP_WALL_PAD = 10;
 
-/** Dominant orbital angles — hero anchors the composition. */
-const AXIS_ORBIT_SLOTS = {
+const MOBILE_ORBIT_SPEED = 0.082;
+const MOBILE_WALL_GAP = 10;
+const MOBILE_WALL_PAD = 6;
+
+/** Fixed angle + tier ring for mobile — hero outer, developer inner. */
+const MOBILE_AXIS_ORBIT_SLOTS = {
   "+X": { angle: -0.12, ring: "hero" },
   "-X": { angle: Math.PI + 0.1, ring: "hero" },
   "+Y": { angle: -Math.PI * 0.5 + 0.08, ring: "secondary" },
@@ -14,39 +20,39 @@ const AXIS_ORBIT_SLOTS = {
   "-Z": { angle: -Math.PI * 0.7, ring: "developer" }
 };
 
-const TIER_RINGS = {
+const MOBILE_TIER_RINGS = {
   hero: {
     speedMul: 0.82,
-    desktop: 0.41,
-    mobile: { portrait: 0.37, landscape: 0.39 }
+    portrait: 0.37,
+    landscape: 0.39
   },
   secondary: {
     speedMul: 1,
-    desktop: 0.35,
-    mobile: { portrait: 0.3, landscape: 0.32 }
+    portrait: 0.3,
+    landscape: 0.32
   },
   developer: {
     speedMul: 1.14,
-    desktop: 0.29,
-    mobile: { portrait: 0.24, landscape: 0.26 }
+    portrait: 0.24,
+    landscape: 0.26
   }
 };
 
-const TIER_MIN = {
-  desktop: {
-    hero: { minW: 204, minH: 78 },
-    secondary: { minW: 180, minH: 68 },
-    developer: { minW: 148, minH: 52 }
-  },
-  mobile: {
-    hero: { minW: 132, minH: 54 },
-    secondary: { minW: 118, minH: 48 },
-    developer: { minW: 100, minH: 40 }
-  }
+const DESKTOP_TIER_MIN = {
+  hero: { minW: 204, minH: 78 },
+  secondary: { minW: 180, minH: 68 },
+  developer: { minW: 148, minH: 52 }
+};
+
+const MOBILE_TIER_MIN = {
+  hero: { minW: 132, minH: 54 },
+  secondary: { minW: 118, minH: 48 },
+  developer: { minW: 100, minH: 40 }
 };
 
 /**
- * Tiered orbital lanes — shared desktop/mobile with collision-safe drift.
+ * Desktop: single shared circular orbit with gentle float.
+ * Mobile: tiered orbital lanes + collision-safe separation.
  */
 export class GalaxyLabelLayout {
   constructor(opts = {}) {
@@ -60,7 +66,7 @@ export class GalaxyLabelLayout {
     this._initialized = false;
     this.debugOverlay = null;
     this.debugGroup = null;
-    this.metrics = { orbitPhase: 0, radius: 0, labelCount: 0, mode: "orbital" };
+    this.metrics = { orbitPhase: 0, radius: 0, labelCount: 0, mode: "desktop" };
   }
 
   _ensureSlots(cells) {
@@ -79,8 +85,10 @@ export class GalaxyLabelLayout {
   }
 
   _measureWall(cell, tierName, mobile) {
-    const mins = TIER_MIN[mobile ? "mobile" : "desktop"][tierName] ?? TIER_MIN.desktop.secondary;
-    const pad = WALL_PAD[mobile ? "mobile" : "desktop"];
+    const mins = mobile
+      ? (MOBILE_TIER_MIN[tierName] ?? MOBILE_TIER_MIN.secondary)
+      : (DESKTOP_TIER_MIN[tierName] ?? DESKTOP_TIER_MIN.secondary);
+    const pad = mobile ? MOBILE_WALL_PAD : DESKTOP_WALL_PAD;
     const label = cell.labelEl;
     const w = Math.max(label.offsetWidth, label.scrollWidth, mins.minW) + pad * 2;
     const h = Math.max(label.offsetHeight, label.scrollHeight, mins.minH) + pad * 2;
@@ -142,43 +150,91 @@ export class GalaxyLabelLayout {
     }
   }
 
-  _tickOrbits(mobile, now) {
+  _tickDesktopOrbit(now) {
+    const dt = Math.min(0.05, (now - this._lastTime) * 0.001);
+    this._lastTime = now;
+    if (this.motionEnabled) this._orbitPhase += DESKTOP_ORBIT_SPEED * dt;
+  }
+
+  _tickMobileOrbits(now) {
     const dt = Math.min(0.05, (now - this._lastTime) * 0.001);
     this._lastTime = now;
     if (!this.motionEnabled) return;
 
-    const base = mobile ? BASE_ORBIT_SPEED.mobile : BASE_ORBIT_SPEED.desktop;
-    this._orbitPhase += base * dt;
+    this._orbitPhase += MOBILE_ORBIT_SPEED * dt;
     for (const tier of ["hero", "secondary", "developer"]) {
-      this._tierPhases[tier] += base * (TIER_RINGS[tier]?.speedMul ?? 1) * dt;
+      this._tierPhases[tier] += MOBILE_ORBIT_SPEED * (MOBILE_TIER_RINGS[tier]?.speedMul ?? 1) * dt;
     }
   }
 
-  _updateOrbital(cells, camera, width, height, mobile, portrait, now) {
-    this.metrics.mode = mobile ? "mobile-orbital" : "desktop-orbital";
-    this._tickOrbits(mobile, now);
+  _updateDesktop(cells, camera, width, height, now) {
+    this.metrics.mode = "desktop-unified";
+    this._tickDesktopOrbit(now);
 
     const cx = width * 0.5;
-    const cy = height * 0.5 + (mobile && portrait ? height * 0.015 : 0);
-    const bounds = mobile
-      ? { left: 10, right: width - 10, top: 32, bottom: height - 24 }
-      : { left: 24, right: width - 24, top: 40, bottom: height - 32 };
+    const cy = height * 0.5;
+    const radius = Math.min(width, height) * DESKTOP_ORBIT_RADIUS;
+    const count = this._slots.length;
+    const bounds = { left: 24, right: width - 24, top: 40, bottom: height - 32 };
+    const t = now * 0.001;
+    const nodes = [];
+
+    for (let i = 0; i < count; i += 1) {
+      const { cell } = this._slots[i];
+      const tierName = cell.layout.tierName;
+      const box = this._measureWall(cell, tierName, false);
+      const angle = this._orbitPhase + (i / count) * Math.PI * 2;
+      const floatX = Math.sin(t * 0.85 + cell.layout.phase) * DESKTOP_FLOAT_AMP;
+      const floatY = Math.cos(t * 0.65 + cell.layout.phase * 1.3) * DESKTOP_FLOAT_AMP * 0.85;
+
+      nodes.push({
+        cell,
+        layout: cell.layout,
+        cx: cx + Math.cos(angle) * radius + floatX,
+        cy: cy + Math.sin(angle) * radius + floatY,
+        hw: box.hw,
+        hh: box.hh,
+        w: box.w,
+        h: box.h
+      });
+    }
+
+    this._separateNodes(nodes, DESKTOP_WALL_GAP);
+    this._clampNodes(nodes, bounds);
+    this._separateNodes(nodes, DESKTOP_WALL_GAP);
+
+    for (const n of nodes) this._applyToDom(n, camera);
+
+    this.metrics.orbitPhase = this._orbitPhase;
+    this.metrics.radius = radius;
+    this.metrics.labelCount = count;
+
+    if (this.debug) this._updateDebugOverlay(nodes, cx, cy, radius, width, height, false);
+  }
+
+  _updateMobile(cells, camera, width, height, portrait, now) {
+    this.metrics.mode = "mobile-orbital";
+    this._tickMobileOrbits(now);
+
+    const cx = width * 0.5;
+    const cy = height * 0.5 + (portrait ? height * 0.015 : 0);
+    const bounds = { left: 10, right: width - 10, top: 32, bottom: height - 24 };
     const orient = portrait ? "portrait" : "landscape";
-    const floatAmp = mobile ? 3.5 : 6;
+    const floatAmp = 3.5;
     const nodes = [];
     let heroRadius = 0;
 
     for (const { axis, cell } of this._slots) {
       const tierName = cell.layout.tierName;
-      const slot = AXIS_ORBIT_SLOTS[axis] ?? { angle: 0, ring: "secondary" };
-      const ringCfg = TIER_RINGS[slot.ring] ?? TIER_RINGS.secondary;
-      const radiusMul = mobile ? ringCfg.mobile[orient] : ringCfg.desktop;
+      const slot = MOBILE_AXIS_ORBIT_SLOTS[axis] ?? { angle: 0, ring: "secondary" };
+      const ringCfg = MOBILE_TIER_RINGS[slot.ring] ?? MOBILE_TIER_RINGS.secondary;
+      const radiusMul = ringCfg[orient];
       const baseR = Math.min(width, height) * radiusMul;
       if (slot.ring === "hero") heroRadius = Math.max(heroRadius, baseR);
 
       const tierPhase = this._tierPhases[slot.ring] ?? this._orbitPhase;
       const angle = slot.angle + tierPhase;
-      const box = this._measureWall(cell, tierName, mobile);
+      const box = this._measureWall(cell, tierName, true);
       const t = now * 0.001;
       const floatX = Math.sin(t * 0.85 + cell.layout.phase) * floatAmp;
       const floatY = Math.cos(t * 0.65 + cell.layout.phase * 1.3) * floatAmp * 0.85;
@@ -197,10 +253,9 @@ export class GalaxyLabelLayout {
       });
     }
 
-    const gap = WALL_GAP[mobile ? "mobile" : "desktop"];
-    this._separateNodes(nodes, gap);
+    this._separateNodes(nodes, MOBILE_WALL_GAP);
     this._clampNodes(nodes, bounds);
-    this._separateNodes(nodes, gap);
+    this._separateNodes(nodes, MOBILE_WALL_GAP);
 
     for (const n of nodes) this._applyToDom(n, camera);
 
@@ -209,18 +264,24 @@ export class GalaxyLabelLayout {
     this.metrics.labelCount = nodes.length;
 
     if (this.debug || this.mobileDebug) {
-      this._updateDebugOverlay(nodes, cx, cy, mobile, portrait, bounds);
+      this._updateDebugOverlay(nodes, cx, cy, this.metrics.radius, width, height, true, bounds, portrait);
     }
   }
 
   update(cells, camera, width, height, isMobile, now = performance.now(), opts = {}) {
     if (width < 1 || height < 1) return;
     this._ensureSlots(cells);
+    this._lastTime = now;
     if (opts.mobileDebug !== undefined) this.mobileDebug = opts.mobileDebug;
-    this._updateOrbital(cells, camera, width, height, isMobile, opts.portrait ?? height >= width, now);
+
+    if (isMobile) {
+      this._updateMobile(cells, camera, width, height, opts.portrait ?? height >= width, now);
+    } else {
+      this._updateDesktop(cells, camera, width, height, now);
+    }
   }
 
-  _updateDebugOverlay(nodes, cx, cy, mobile, portrait, bounds) {
+  _updateDebugOverlay(nodes, cx, cy, radius, width, height, mobile, bounds, portrait) {
     if (!this.debugOverlay) {
       this.debugOverlay = document.createElement("div");
       this.debugOverlay.className = "galaxy-layout-debug";
@@ -231,20 +292,23 @@ export class GalaxyLabelLayout {
       if (mount) mount.appendChild(this.debugOverlay);
     }
 
-    const orient = portrait ? "portrait" : "landscape";
     let html = "";
-    if (bounds) {
+    if (mobile && bounds) {
       html += `<div class="galaxy-layout-debug__bounds" style="left:${bounds.left}px;top:${bounds.top}px;width:${bounds.right - bounds.left}px;height:${bounds.bottom - bounds.top}px"></div>`;
-    }
-    for (const ring of ["hero", "secondary", "developer"]) {
-      const cfg = TIER_RINGS[ring];
-      const r = Math.min(window.innerWidth, window.innerHeight) * (mobile ? cfg.mobile[orient] : cfg.desktop);
-      html += `<div class="galaxy-layout-debug__orbit galaxy-layout-debug__orbit--${ring}" style="left:${cx - r}px;top:${cy - r}px;width:${r * 2}px;height:${r * 2}px"></div>`;
+      const orient = portrait ? "portrait" : "landscape";
+      for (const ring of ["hero", "secondary", "developer"]) {
+        const cfg = MOBILE_TIER_RINGS[ring];
+        const r = Math.min(width, height) * cfg[orient];
+        html += `<div class="galaxy-layout-debug__orbit galaxy-layout-debug__orbit--${ring}" style="left:${cx - r}px;top:${cy - r}px;width:${r * 2}px;height:${r * 2}px"></div>`;
+      }
+    } else {
+      const d = radius * 2;
+      html += `<div class="galaxy-layout-debug__orbit" style="left:${cx - radius}px;top:${cy - radius}px;width:${d}px;height:${d}px"></div>`;
     }
     for (const n of nodes) {
       html += `<div class="galaxy-layout-debug__box" style="left:${n.cx - n.hw}px;top:${n.cy - n.hh}px;width:${n.w}px;height:${n.h}px"></div>`;
     }
-    html += `<div class="galaxy-layout-debug__hud">${mobile ? "mobile" : "desktop"} orbital · θ=${this._orbitPhase.toFixed(2)}</div>`;
+    html += `<div class="galaxy-layout-debug__hud">${mobile ? "mobile" : "desktop"} · r=${radius.toFixed(0)} · θ=${this._orbitPhase.toFixed(2)}</div>`;
     this.debugOverlay.innerHTML = html;
   }
 

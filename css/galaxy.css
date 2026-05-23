@@ -414,9 +414,34 @@
 }
 
 @media (min-width: 768px) {
+  .product-galaxy-root {
+    background: radial-gradient(
+      ellipse 95% 82% at 50% 46%,
+      rgba(0, 48, 68, 0.42) 0%,
+      rgba(3, 5, 8, 0.95) 32%,
+      #010102 58%,
+      #000000 100%
+    );
+  }
+
   .product-galaxy {
     height: 70vh;
     min-height: 70vh;
+  }
+
+  .tess-cell-label {
+    opacity: 0.62;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.6) inset,
+      0 4px 24px rgba(0, 0, 0, 0.55),
+      0 0 18px rgba(0, 212, 255, 0.08);
+  }
+
+  .tess-cell-label[data-tier="hero"] {
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.6) inset,
+      0 4px 28px rgba(0, 0, 0, 0.6),
+      0 0 28px rgba(0, 212, 255, 0.14);
   }
 
   .galaxy-hint--mobile {

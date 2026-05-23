@@ -752,12 +752,27 @@ export function initGalaxy(root) {
         new THREE.MeshBasicMaterial({
           color: 0x0088aa,
           transparent: true,
-          opacity: 0.14 * galaxyCfg.coreEnergy,
+          opacity: (galaxyCfg.outerCoreOpacityMul ?? 0.14) * galaxyCfg.coreEnergy,
           blending: THREE.AdditiveBlending,
           depthWrite: false
         })
       );
       coreGroup.add(outerCore);
+    }
+
+    let haloCore = null;
+    if (galaxyCfg.coreHaloLayer) {
+      haloCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.62, 14, 14),
+        new THREE.MeshBasicMaterial({
+          color: 0x006688,
+          transparent: true,
+          opacity: 0.08 * galaxyCfg.coreEnergy,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        })
+      );
+      coreGroup.add(haloCore);
     }
 
     const fresnelMat = makeFresnelMaterial();
@@ -933,7 +948,7 @@ export function initGalaxy(root) {
     composer.addPass(bloomPass);
 
     const fxPass = new ShaderPass(VignetteChromaticShader);
-    fxPass.uniforms.uStrength.value = 0.48;
+    fxPass.uniforms.uStrength.value = galaxyCfg.vignetteStrength ?? 0.48;
     fxPass.uniforms.uGrain.value = galaxyCfg.grain;
     composer.addPass(fxPass);
 
@@ -955,7 +970,8 @@ export function initGalaxy(root) {
     for (const [, cell] of mainTess.cells) hitTargets.push(cell.hit);
 
     function applyPerformanceDegrade() {
-      const hideGhosts = perf.shouldHideGhosts() || perf.contextLost;
+      const ghostThreshold = galaxyCfg.mobile ? 1 : 2;
+      const hideGhosts = perf.degradeLevel >= ghostThreshold || perf.contextLost;
       const hideFaces = perf.shouldHideSubtleFaces() || perf.forceWireframeOnly() || wireframeOnly;
       for (const g of ghosts) g.group.visible = !hideGhosts;
       mainTess.setWireframeMode(hideFaces);
@@ -963,7 +979,7 @@ export function initGalaxy(root) {
       godRays.visible = perf.degradeLevel < 2 || galaxyCfg.mobile;
       bloomPass.strength = bloomStrength * perf.bloomMultiplier();
       if (perf.degradeLevel >= 2) {
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, galaxyCfg.mobile ? 1.25 : 1.5));
       }
     }
 
@@ -1107,7 +1123,11 @@ export function initGalaxy(root) {
       coreParticles.material.size = galaxyCfg.particleSize ?? coreParticles.material.size;
       innerCore.material.opacity = 0.62 * galaxyCfg.coreEnergy;
       coreLight.intensity = 1.15 * galaxyCfg.coreEnergy;
-      if (outerCore) outerCore.material.opacity = 0.14 * galaxyCfg.coreEnergy;
+      if (outerCore) {
+        outerCore.material.opacity = (galaxyCfg.outerCoreOpacityMul ?? 0.14) * galaxyCfg.coreEnergy;
+      }
+      if (haloCore) haloCore.material.opacity = 0.08 * galaxyCfg.coreEnergy;
+      fxPass.uniforms.uStrength.value = galaxyCfg.vignetteStrength ?? fxPass.uniforms.uStrength.value;
       fxPass.uniforms.uGrain.value = galaxyCfg.grain;
       const dpr = Math.min(window.devicePixelRatio, galaxyCfg.maxDpr);
       renderer.setPixelRatio(dpr);
@@ -1132,13 +1152,15 @@ export function initGalaxy(root) {
           const scale = THREE.MathUtils.lerp(1.0, 1.025, pulse * pulseStrength);
           innerCore.scale.setScalar(scale);
           if (outerCore) outerCore.scale.setScalar(scale * 1.08);
+          if (haloCore) haloCore.scale.setScalar(scale * 1.22);
           coreLight.intensity = (1.05 + pulse * 0.25 * pulseStrength) * galaxyCfg.coreEnergy;
           atmosphere.scale.setScalar(1 + pulse * 0.04 * pulseStrength);
         }
         fresnelMat.uniforms.uTime.value = time;
-        coreGroup.rotation.y = time * 0.05;
-        coreParticles.rotation.y = -time * 0.035;
-        coreParticles.rotation.x = time * 0.02;
+        const coreSpin = galaxyCfg.mobile ? 0.05 : 0.065;
+        coreGroup.rotation.y = time * coreSpin;
+        coreParticles.rotation.y = -time * (coreSpin * 0.7);
+        coreParticles.rotation.x = time * (coreSpin * 0.4);
         stars.rotation.y = -time * 0.0012;
 
         const bloomMul = (galaxyCfg.coreBloomMul ?? 1) * (1 + pulse * 0.12 * pulseStrength);
@@ -1150,16 +1172,20 @@ export function initGalaxy(root) {
           const c = mainTess.tess.getCellCenter(hoveredCell.cellAxis, tessScale);
           focusTarget.set(c.x * 0.1, c.y * 0.1, c.z * 0.06);
           controls.target.lerp(focusTarget, 0.05);
+          controls.autoRotate = false;
         } else if (!isDragging) {
           if (galaxyCfg.mobile) {
             mobileIdleRecenter(controls, homeTarget, isDragging, lastDragEnd, now);
             controls.autoRotate = true;
           } else {
             controls.target.lerp(homeTarget, 0.035);
+            const idleDelay = galaxyCfg.idleAutoRotateDelay ?? 800;
+            controls.autoRotate = performance.now() - lastDragEnd > idleDelay;
           }
         }
 
-        mainTess.edgePulseBoost = 1 + Math.sin(time * 1.6) * (galaxyCfg.mobile ? 0.08 : 0.12);
+        const edgePulseAmp = galaxyCfg.edgePulseAmp ?? (galaxyCfg.mobile ? 0.08 : 0.12);
+        mainTess.edgePulseBoost = 1 + Math.sin(time * 1.6) * edgePulseAmp;
 
         mainTess.update(time, camera, {
           w: mount.clientWidth,
@@ -1179,10 +1205,6 @@ export function initGalaxy(root) {
           portrait: isPortrait(),
           mobileDebug: flags.mobileDebug
         });
-
-        if (!galaxyCfg.mobile && !isDragging && performance.now() - lastDragEnd > 3500) {
-          controls.autoRotate = true;
-        }
       } else if (reducedMotion) {
         mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight, maxScreenEdge: galaxyCfg.maxScreenEdge });
         labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, {
