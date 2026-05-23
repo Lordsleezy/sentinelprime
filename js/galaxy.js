@@ -640,7 +640,7 @@ export function initGalaxy(root) {
     camera.position.set(0, 1.15, 7.8);
 
     const labelLayout = new GalaxyLabelLayout({
-      physicsEnabled: flags.ecosystemPhysics,
+      motionEnabled: !reducedMotion,
       debug: flags.ecosystemDebug
     });
     let isDragging = false;
@@ -1049,14 +1049,14 @@ export function initGalaxy(root) {
           });
         }
 
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, labelLayer);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
 
         if (!isMobile() && !isDragging && performance.now() - lastDragEnd > 3500) {
           controls.autoRotate = true;
         }
       } else if (reducedMotion) {
         mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight });
-        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now, labelLayer);
+        labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
       }
 
       if (transition) {
@@ -1092,7 +1092,7 @@ export function initGalaxy(root) {
           `FPS ${perf.fps.toFixed(0)} · stable ${(mainTess.stabilityScore * 100).toFixed(0)}%` +
           ` · vClamp ${ts.clampedVertices} · badE ${ts.invalidEdges}` +
           ` · maxR ${ts.maxRadius.toFixed(2)} · edge ${ts.maxEdgeLength.toFixed(2)}` +
-          ` · sep ${lm.overlapsResolved} · left ${lm.remainingOverlaps} · wall ${lm.wallClamps}` +
+          ` · orbit r=${lm.radius.toFixed(0)} θ=${lm.orbitPhase.toFixed(2)} n=${lm.labelCount}` +
           ` · fade ${mainTess.lastClampedEdges}/${mainTess.lastScreenClamped ?? 0}` +
           (perf.contextLost ? " · CONTEXT LOST" : "");
       }
@@ -1117,7 +1117,7 @@ export function initGalaxy(root) {
       running = true;
       resize();
       if (flags.debug || flags.ecosystemDebug) {
-        console.info("[galaxy] ecosystemDebug — ?ecosystemPhysics=0 disables label physics");
+        console.info("[galaxy] ecosystemDebug — labels orbit on a shared circle");
         console.info("[galaxy] ecosystemClampDebug:", flags.ecosystemClampDebug);
       }
       // Optional ambient audio hook (disabled by default):
