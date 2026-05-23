@@ -3,123 +3,205 @@ import { getTierStyle } from "./products-config.js";
 
 const _world = new THREE.Vector3();
 const _ndc = new THREE.Vector3();
-const _force = { x: 0, y: 0 };
 
-/** World-space anchor bias per cell axis (outward from tesseract center) */
+/** World-space anchor bias per cell axis */
 export const AXIS_LABEL_OFFSETS = {
-  "+X": new THREE.Vector3(1.55, 0.15, 0.25),
-  "-X": new THREE.Vector3(-1.55, 0.1, -0.2),
-  "+Y": new THREE.Vector3(0.05, 1.25, 0.4),
-  "-Y": new THREE.Vector3(-0.05, -1.15, 0.3),
-  "+Z": new THREE.Vector3(0.65, 0.25, 1.45),
-  "-Z": new THREE.Vector3(-0.5, -0.15, -1.35)
+  "+X": new THREE.Vector3(1.65, 0.12, 0.3),
+  "-X": new THREE.Vector3(-1.65, 0.08, -0.25),
+  "+Y": new THREE.Vector3(0.02, 1.35, 0.45),
+  "-Y": new THREE.Vector3(-0.02, -1.25, 0.35),
+  "+Z": new THREE.Vector3(0.75, 0.28, 1.55),
+  "-Z": new THREE.Vector3(-0.55, -0.18, -1.45)
 };
 
-/** Preferred screen-space resting bias (normalized -1..1) by product hierarchy zone */
+/** Hierarchy-aware preferred screen bias (normalized) */
 const AXIS_SCREEN_BIAS = {
-  "+X": { x: 0.24, y: -0.02 },
-  "-X": { x: -0.24, y: -0.02 },
-  "+Y": { x: 0.04, y: 0.22 },
-  "-Y": { x: 0.14, y: -0.2 },
-  "+Z": { x: 0.16, y: 0.06 },
-  "-Z": { x: -0.14, y: -0.14 }
+  "+X": { x: 0.28, y: 0.02 },
+  "-X": { x: -0.28, y: 0.02 },
+  "+Y": { x: 0.02, y: 0.26 },
+  "-Y": { x: 0.16, y: -0.22 },
+  "+Z": { x: 0.18, y: 0.08 },
+  "-Z": { x: -0.16, y: -0.12 }
 };
 
-const SPRING = 42;
-const DAMPING = 11;
-const REPULSION = 8800;
-const CENTER_REPULSION = 420;
-const WALL_STIFFNESS = 38;
-const MAX_VEL = 420;
-const MAX_OFFSET = 280;
+const TIER_LAYOUT = {
+  hero: { biasMul: 1.15, sepBonus: 14, anchorPull: 0.38, moveSmooth: 0.14 },
+  secondary: { biasMul: 0.92, sepBonus: 8, anchorPull: 0.26, moveSmooth: 0.12 },
+  developer: { biasMul: 0.72, sepBonus: 4, anchorPull: 0.18, moveSmooth: 0.1 }
+};
+
+const SOLVER_ITERATIONS = 14;
+const FINAL_SEP_PASS = 6;
 
 /**
- * Spring-damper label physics with screen-space containment and collision repulsion.
+ * Constraint-based screen-space layout solver — guarantees non-overlapping label boxes.
  */
 export class GalaxyLabelLayout {
-  /**
-   * @param {object} [opts]
-   * @param {boolean} [opts.physicsEnabled]
-   * @param {boolean} [opts.debug]
-   */
   constructor(opts = {}) {
     this.physicsEnabled = opts.physicsEnabled !== false;
     this.debug = opts.debug === true;
-    this.lastTime = performance.now();
     this.metrics = {
-      overlaps: 0,
-      wallHits: 0,
-      maxVelocity: 0,
-      avgOffset: 0
+      overlapsResolved: 0,
+      solverIterations: SOLVER_ITERATIONS,
+      maxSeparation: 0,
+      avgOffset: 0,
+      wallClamps: 0
     };
-    /** @type {object[]} pooled simulation bodies */
-    this.bodies = [];
+    this._slots = [];
     this._initialized = false;
+    this.debugOverlay = null;
     this.debugGroup = null;
   }
 
-  /**
-   * @param {Map<string, object>} cells
-   */
-  _ensureBodies(cells) {
+  _ensureSlots(cells) {
     if (this._initialized) return;
-    this.bodies.length = 0;
+    this._slots.length = 0;
     for (const [axis, cell] of cells) {
-      const tier = getTierStyle(cell.product.tier);
+      const tierName = cell.product.tier || "secondary";
+      const tier = getTierStyle(tierName);
+      const layout = TIER_LAYOUT[tierName] ?? TIER_LAYOUT.secondary;
       const bias = AXIS_SCREEN_BIAS[axis] ?? { x: 0, y: 0 };
-      cell.physics = {
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        restBiasX: bias.x,
-        restBiasY: bias.y,
-        priority: tier.priority,
-        mass: 0.85 + tier.priority * 0.12
+      cell.layout = {
+        displayX: 0,
+        displayY: 0,
+        solveX: 0,
+        solveY: 0,
+        biasX: bias.x * layout.biasMul,
+        biasY: bias.y * layout.biasMul,
+        weight: tier.priority,
+        sepBonus: layout.sepBonus,
+        anchorPull: layout.anchorPull,
+        moveSmooth: layout.moveSmooth,
+        tierName
       };
-      this.bodies.push({ axis, cell });
+      this._slots.push({ axis, cell });
     }
-    this.bodies.sort((a, b) => b.cell.physics.priority - a.cell.physics.priority);
+    this._slots.sort((a, b) => b.cell.layout.weight - a.cell.layout.weight);
     this._initialized = true;
   }
 
   /**
-   * @param {Map<string, object>} cells
-   * @param {THREE.Camera} camera
-   * @param {number} width
-   * @param {number} height
-   * @param {boolean} isMobile
-   * @param {number} [now]
+   * Iterative AABB separation with hierarchy-weighted displacement.
+   * @param {object[]} nodes
    */
+  _relaxConstraints(nodes, minSep, cx, cy, minCenter, bounds) {
+    let overlaps = 0;
+    let maxSep = 0;
+
+    for (let iter = 0; iter < SOLVER_ITERATIONS; iter += 1) {
+      for (let i = 0; i < nodes.length; i += 1) {
+        const a = nodes[i];
+        const pull = a.layout.anchorPull;
+        a.x += (a.prefX - a.x) * pull * 0.35;
+        a.y += (a.prefY - a.y) * pull * 0.35;
+
+        const acx = a.x - cx;
+        const acy = a.y - cy;
+        const cd = Math.hypot(acx, acy);
+        if (cd < minCenter && cd > 0.001) {
+          const push = (minCenter - cd) * 0.55;
+          a.x += (acx / cd) * push;
+          a.y += (acy / cd) * push;
+        }
+
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const overlapX = (a.hw + b.hw + minSep + a.layout.sepBonus * 0.5 + b.layout.sepBonus * 0.5) - Math.abs(dx);
+          const overlapY = (a.hh + b.hh + minSep) - Math.abs(dy);
+          if (overlapX > 0 && overlapY > 0) {
+            overlaps += 1;
+            if (overlapX < overlapY) {
+              const sign = dx >= 0 ? 1 : -1;
+              const totalW = a.weight + b.weight;
+              const move = overlapX * 0.5;
+              a.x += sign * move * (b.weight / totalW);
+              b.x -= sign * move * (a.weight / totalW);
+              if (move > maxSep) maxSep = move;
+            } else {
+              const sign = dy >= 0 ? 1 : -1;
+              const totalW = a.weight + b.weight;
+              const move = overlapY * 0.5;
+              a.y += sign * move * (b.weight / totalW);
+              b.y -= sign * move * (a.weight / totalW);
+              if (move > maxSep) maxSep = move;
+            }
+          }
+        }
+      }
+    }
+
+    for (let pass = 0; pass < FINAL_SEP_PASS; pass += 1) {
+      for (let i = 0; i < nodes.length; i += 1) {
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const a = nodes[i];
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const overlapX = (a.hw + b.hw + minSep) - Math.abs(dx);
+          const overlapY = (a.hh + b.hh + minSep) - Math.abs(dy);
+          if (overlapX > 0 && overlapY > 0) {
+            if (overlapX < overlapY) {
+              const sign = dx >= 0 ? 1 : -1;
+              const move = overlapX * 0.5 + 0.5;
+              a.x += sign * move;
+              b.x -= sign * move;
+            } else {
+              const sign = dy >= 0 ? 1 : -1;
+              const move = overlapY * 0.5 + 0.5;
+              a.y += sign * move;
+              b.y -= sign * move;
+            }
+          }
+        }
+      }
+    }
+
+    let wallClamps = 0;
+    for (const n of nodes) {
+      const left = bounds.left + n.hw;
+      const right = bounds.right - n.hw;
+      const top = bounds.top + n.hh;
+      const bottom = bounds.bottom - n.hh;
+      if (n.x < left) { n.x = left; wallClamps += 1; }
+      if (n.x > right) { n.x = right; wallClamps += 1; }
+      if (n.y < top) { n.y = top; wallClamps += 1; }
+      if (n.y > bottom) { n.y = bottom; wallClamps += 1; }
+    }
+
+    this.metrics.overlapsResolved = overlaps;
+    this.metrics.maxSeparation = maxSep;
+    this.metrics.wallClamps = wallClamps;
+  }
+
   update(cells, camera, width, height, isMobile, now = performance.now()) {
+    void now;
     if (width < 1 || height < 1) return;
 
-    this._ensureBodies(cells);
+    this._ensureSlots(cells);
 
-    let dt = (now - this.lastTime) / 1000;
-    this.lastTime = now;
-    dt = Math.min(Math.max(dt, 0.001), 0.033);
-
-    const marginX = isMobile ? 28 : 36;
-    const marginY = isMobile ? 48 : 56;
-    const minCenter = isMobile ? 105 : 135;
-    const minSep = isMobile ? 16 : 22;
+    const marginX = isMobile ? 32 : 40;
+    const marginY = isMobile ? 52 : 60;
+    const minSep = isMobile ? 12 : 16;
+    const minCenter = isMobile ? 118 : 148;
     const cx = width * 0.5;
     const cy = height * 0.5;
+    const bounds = {
+      left: marginX,
+      right: width - marginX,
+      top: marginY,
+      bottom: height - marginY
+    };
 
-    this.metrics.overlaps = 0;
-    this.metrics.wallHits = 0;
-    this.metrics.maxVelocity = 0;
+    /** @type {object[]} */
+    const nodes = [];
     let offsetSum = 0;
 
-    /** @type {{ cell: object, px: number, py: number, w: number, h: number, z: number }[]} */
-    const anchors = [];
-
-    for (const { axis, cell } of this.bodies) {
+    for (const { axis, cell } of this._slots) {
       _world.copy(cell.hit.position);
       const offset = AXIS_LABEL_OFFSETS[axis];
       if (offset) _world.add(offset);
-      else _world.y += 0.9;
 
       _ndc.copy(_world).project(camera);
       if (_ndc.z > 1 || _ndc.z < -1) {
@@ -129,116 +211,63 @@ export class GalaxyLabelLayout {
       cell.labelEl.style.visibility = "visible";
       cell.label.position.copy(_world);
 
+      const layout = cell.layout;
       const tier = cell.tier ?? getTierStyle(cell.product.tier);
-      const depthScale = THREE.MathUtils.clamp(1.12 - camera.position.distanceTo(cell.hit.position) * 0.032, 0.7, 1.1) * tier.labelScale;
+      const depthScale = THREE.MathUtils.clamp(1.1 - camera.position.distanceTo(cell.hit.position) * 0.03, 0.72, 1.08) * tier.labelScale;
       const w = (cell.labelEl.offsetWidth || 190) * depthScale;
       const h = (cell.labelEl.offsetHeight || 64) * depthScale;
-      const px = (_ndc.x * 0.5 + 0.5) * width;
-      const py = (-_ndc.y * 0.5 + 0.5) * height;
+      const anchorPx = (_ndc.x * 0.5 + 0.5) * width;
+      const anchorPy = (-_ndc.y * 0.5 + 0.5) * height;
+      const prefX = anchorPx + layout.biasX * width * 0.26;
+      const prefY = anchorPy + layout.biasY * height * 0.22;
 
-      anchors.push({ cell, px, py, w, h, z: _ndc.z, depthScale, axis });
+      const startX = this.physicsEnabled ? anchorPx + cell.layout.displayX : prefX;
+      const startY = this.physicsEnabled ? anchorPy + cell.layout.displayY : prefY;
+
+      nodes.push({
+        cell,
+        axis,
+        layout,
+        depthScale,
+        anchorPx,
+        anchorPy,
+        prefX,
+        prefY,
+        x: startX,
+        y: startY,
+        hw: w * 0.5,
+        hh: h * 0.5,
+        weight: layout.weight
+      });
     }
 
     if (!this.physicsEnabled) {
-      for (const a of anchors) {
-        a.cell.labelPx.x = 0;
-        a.cell.labelPx.y = 0;
-        this._applyTransform(a.cell, a.depthScale);
+      for (const n of nodes) {
+        n.cell.labelPx.x = 0;
+        n.cell.labelPx.y = 0;
+        this._applyTransform(n.cell, n.depthScale);
       }
       return;
     }
 
-    for (let i = 0; i < anchors.length; i += 1) {
-      const a = anchors[i];
-      const p = a.cell.physics;
-      const targetX = p.restBiasX * width * 0.28;
-      const targetY = p.restBiasY * height * 0.22;
+    this._relaxConstraints(nodes, minSep, cx, cy, minCenter, bounds);
 
-      _force.x = (targetX - p.x) * SPRING - p.vx * DAMPING;
-      _force.y = (targetY - p.y) * SPRING - p.vy * DAMPING;
-
-      const fcx = a.px + p.x - cx;
-      const fcy = a.py + p.y - cy;
-      const cd = Math.hypot(fcx, fcy);
-      if (cd < minCenter && cd > 0.001) {
-        const push = ((minCenter - cd) / minCenter) * CENTER_REPULSION;
-        _force.x += (fcx / cd) * push;
-        _force.y += (fcy / cd) * push;
-      }
-
-      for (let j = 0; j < anchors.length; j += 1) {
-        if (i === j) continue;
-        const b = anchors[j];
-        const bp = b.cell.physics;
-        const dx = a.px + p.x - (b.px + bp.x);
-        const dy = a.py + p.y - (b.py + bp.y);
-        const dist = Math.hypot(dx, dy);
-        const minDist = (a.w + b.w) * 0.5 + minSep;
-        if (dist < minDist && dist > 0.001) {
-          this.metrics.overlaps += 1;
-          const overlap = minDist - dist;
-          const strength = (REPULSION * overlap) / (p.mass * dist * dist + 120);
-          _force.x += (dx / dist) * strength;
-          _force.y += (dy / dist) * strength;
-        }
-      }
-
-      const left = marginX + a.w * 0.5;
-      const right = width - marginX - a.w * 0.5;
-      const top = marginY + a.h * 0.5;
-      const bottom = height - marginY - a.h * 0.5;
-      const sx = a.px + p.x;
-      const sy = a.py + p.y;
-
-      if (sx < left) {
-        _force.x += (left - sx) * WALL_STIFFNESS;
-        this.metrics.wallHits += 1;
-      } else if (sx > right) {
-        _force.x -= (sx - right) * WALL_STIFFNESS;
-        this.metrics.wallHits += 1;
-      }
-      if (sy < top) {
-        _force.y += (top - sy) * WALL_STIFFNESS;
-        this.metrics.wallHits += 1;
-      } else if (sy > bottom) {
-        _force.y -= (sy - bottom) * WALL_STIFFNESS;
-        this.metrics.wallHits += 1;
-      }
-
-      p.vx += (_force.x / p.mass) * dt;
-      p.vy += (_force.y / p.mass) * dt;
-
-      const vm = Math.hypot(p.vx, p.vy);
-      if (vm > MAX_VEL) {
-        p.vx = (p.vx / vm) * MAX_VEL;
-        p.vy = (p.vy / vm) * MAX_VEL;
-      }
-
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-
-      const om = Math.hypot(p.x, p.y);
-      if (om > MAX_OFFSET) {
-        p.x = (p.x / om) * MAX_OFFSET;
-        p.y = (p.y / om) * MAX_OFFSET;
-        p.vx *= 0.5;
-        p.vy *= 0.5;
-      }
-
-      p.vx *= 1 - Math.min(0.4, DAMPING * dt * 0.08);
-      p.vy *= 1 - Math.min(0.4, DAMPING * dt * 0.08);
-
-      a.cell.labelPx.x = p.x;
-      a.cell.labelPx.y = p.y;
-
-      if (vm > this.metrics.maxVelocity) this.metrics.maxVelocity = vm;
-      offsetSum += om;
-
-      a.cell.labelEl.dataset.tier = a.cell.product.tier || "secondary";
-      this._applyTransform(a.cell, a.depthScale);
+    for (const n of nodes) {
+      const targetOffX = n.x - n.anchorPx;
+      const targetOffY = n.y - n.anchorPy;
+      const smooth = n.layout.moveSmooth;
+      n.layout.displayX += (targetOffX - n.layout.displayX) * smooth;
+      n.layout.displayY += (targetOffY - n.layout.displayY) * smooth;
+      n.cell.labelPx.x = n.layout.displayX;
+      n.cell.labelPx.y = n.layout.displayY;
+      offsetSum += Math.hypot(n.layout.displayX, n.layout.displayY);
+      n.cell.labelEl.dataset.tier = n.layout.tierName;
+      this._applyTransform(n.cell, n.depthScale);
     }
 
-    this.metrics.avgOffset = anchors.length ? offsetSum / anchors.length : 0;
+    this.metrics.avgOffset = nodes.length ? offsetSum / nodes.length : 0;
+
+    if (this.debug) this._updateDebugOverlay(nodes, width, height);
   }
 
   _applyTransform(cell, depthScale) {
@@ -246,25 +275,39 @@ export class GalaxyLabelLayout {
       `translate(calc(-50% + ${cell.labelPx.x.toFixed(2)}px), calc(-50% + ${cell.labelPx.y.toFixed(2)}px)) scale(${depthScale.toFixed(3)})`;
   }
 
-  /**
-   * @param {THREE.Scene} scene
-   * @param {number} radius
-   */
+  _updateDebugOverlay(nodes, width, height) {
+    if (!this.debugOverlay) {
+      this.debugOverlay = document.createElement("div");
+      this.debugOverlay.className = "galaxy-layout-debug";
+      this.debugOverlay.setAttribute("aria-hidden", "true");
+    }
+    if (!this.debugOverlay.parentElement) {
+      const mount = document.querySelector(".product-galaxy");
+      if (mount) mount.appendChild(this.debugOverlay);
+    }
+
+    let html = "";
+    for (const n of nodes) {
+      const left = n.x - n.hw;
+      const top = n.y - n.hh;
+      html += `<div class="galaxy-layout-debug__box" style="left:${left}px;top:${top}px;width:${n.hw * 2}px;height:${n.hh * 2}px"></div>`;
+      html += `<div class="galaxy-layout-debug__anchor" style="left:${n.anchorPx}px;top:${n.anchorPy}px"></div>`;
+      html += `<div class="galaxy-layout-debug__pref" style="left:${n.prefX}px;top:${n.prefY}px"></div>`;
+    }
+    html += `<div class="galaxy-layout-debug__bounds" style="left:0;top:0;width:${width}px;height:${height}px"></div>`;
+    this.debugOverlay.innerHTML = html;
+  }
+
   attachDebugVolume(scene, radius = 3.2) {
     if (this.debugGroup) return this.debugGroup;
     const geo = new THREE.BoxGeometry(radius * 2, radius * 2, radius * 2);
     const edges = new THREE.EdgesGeometry(geo);
     const line = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.25 })
-    );
-    const sphere = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 16, 12),
-      new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true, transparent: true, opacity: 0.08 })
+      new THREE.LineBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.22 })
     );
     this.debugGroup = new THREE.Group();
     this.debugGroup.add(line);
-    this.debugGroup.add(sphere);
     scene.add(this.debugGroup);
     return this.debugGroup;
   }

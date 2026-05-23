@@ -1,13 +1,13 @@
 /**
- * Real 4D hypercube topology with XW/YW rotation and stabilized perspective projection.
+ * Real 4D hypercube — canonical frame recompute every update (no accumulated transforms).
  */
 
-const PROJECTION_MIN_DIVISOR = 0.12;
-const DEFAULT_MAX_RADIUS_FACTOR = 2.65;
+const PROJECTION_MIN_DIVISOR = 0.15;
+const DEFAULT_MAX_RADIUS_FACTOR = 2.45;
 
 export class Tesseract4D {
   constructor() {
-    /** @type {[number, number, number, number][]} */
+    /** Immutable canonical 4D vertices */
     this.baseVertices = [];
     for (let i = 0; i < 16; i += 1) {
       this.baseVertices.push([
@@ -18,24 +18,24 @@ export class Tesseract4D {
       ]);
     }
 
-    /** @type {[number, number][]} */
     this.edges = this._buildEdges();
-    /** @type {number[][]} */
     this.faces = this._buildFaces();
-    /** @type {Record<string, number[]>} */
     this.cells = this._buildCells();
 
-    /** Recomputed from baseVertices every rotate() — no cumulative 4D drift. */
-    /** @type {[number, number, number, number][]} */
-    this.state = this.baseVertices.map((v) => [...v]);
-
-    /** @type {Float32Array} 16 * 3 stabilized projected coordinates */
+    /** Transient — rewritten every computeFrame() */
+    this.rotated4D = new Float32Array(64);
     this.projectedBuffer = new Float32Array(48);
+    this.edgeValid = new Uint8Array(32);
+    this.vertexValid = new Uint8Array(16);
 
     this.stats = {
       clampedVertices: 0,
       maxRadius: 0,
-      singularities: 0
+      maxEdgeLength: 0,
+      invalidEdges: 0,
+      singularities: 0,
+      stabilityScore: 1,
+      frameId: 0
     };
   }
 
@@ -63,7 +63,6 @@ export class Tesseract4D {
 
   _buildCells() {
     const axes = ["X", "Y", "Z", "W"];
-    /** @type {Record<string, number[]>} */
     const cells = {};
     for (let dim = 0; dim < 4; dim += 1) {
       for (const sign of [1, -1]) {
@@ -105,18 +104,16 @@ export class Tesseract4D {
   }
 
   /**
-   * Deterministic rotation from base vertices — resets state each call (no drift).
-   * @param {number} time
-   * @param {number} [xwRate]
-   * @param {number} [ywRate]
+   * Fresh 4D rotation from canonical base — no forward accumulation.
    */
-  rotate(time, xwRate = 0.15, ywRate = 0.1) {
+  _rotateIntoBuffer(time, xwRate, ywRate) {
     const theta = time * xwRate;
     const phi = time * ywRate;
     const ct = Math.cos(theta);
     const st = Math.sin(theta);
     const cp = Math.cos(phi);
     const sp = Math.sin(phi);
+    const buf = this.rotated4D;
 
     for (let i = 0; i < 16; i += 1) {
       const [bx, by, bz, bw] = this.baseVertices[i];
@@ -124,121 +121,166 @@ export class Tesseract4D {
       let w = bx * st + bw * ct;
       let y = by * cp - w * sp;
       w = by * sp + w * cp;
-      const z = bz;
-      this.state[i][0] = x;
-      this.state[i][1] = y;
-      this.state[i][2] = z;
-      this.state[i][3] = w;
+      const o = i * 4;
+      buf[o] = x;
+      buf[o + 1] = y;
+      buf[o + 2] = bz;
+      buf[o + 3] = w;
     }
   }
 
-  /**
-   * Stabilized perspective projection with safe divisor and radial clamp.
-   * @param {[number, number, number, number]} v4
-   * @param {number} scale
-   * @param {number} maxRadius
-   * @param {number} outOffset index into projectedBuffer (vertex index * 3)
-   * @returns {boolean} true if vertex was clamped
-   */
-  projectVertexInto(v4, scale, maxRadius, outOffset) {
-    const [x, y, z, w] = v4;
-    const d = 2 - w;
-    let clamped = false;
-
-    if (Math.abs(d) < PROJECTION_MIN_DIVISOR) {
-      this.stats.singularities += 1;
-      clamped = true;
-    }
-
-    const safeD = Math.abs(d) < PROJECTION_MIN_DIVISOR ? (d >= 0 ? PROJECTION_MIN_DIVISOR : -PROJECTION_MIN_DIVISOR) : d;
-    const f = 1 / safeD;
-    let px = x * f * scale;
-    let py = y * f * scale;
-    let pz = z * f * scale;
-
-    if (!Number.isFinite(px) || !Number.isFinite(py) || !Number.isFinite(pz)) {
-      px = 0;
-      py = 0;
-      pz = 0;
-      clamped = true;
-    }
-
-    const ax = Math.abs(px);
-    const ay = Math.abs(py);
-    const az = Math.abs(pz);
-    const maxCoord = maxRadius * 1.05;
-    if (ax > maxCoord || ay > maxCoord || az > maxCoord) {
-      px = Math.max(-maxCoord, Math.min(maxCoord, px));
-      py = Math.max(-maxCoord, Math.min(maxCoord, py));
-      pz = Math.max(-maxCoord, Math.min(maxCoord, pz));
-      clamped = true;
-    }
-
-    const r = Math.hypot(px, py, pz);
-    if (r > maxRadius) {
-      const s = maxRadius / r;
-      px *= s;
-      py *= s;
-      pz *= s;
-      clamped = true;
-    }
-
-    if (r > this.stats.maxRadius) this.stats.maxRadius = r;
-
-    const buf = this.projectedBuffer;
-    buf[outOffset] = px;
-    buf[outOffset + 1] = py;
-    buf[outOffset + 2] = pz;
-    return clamped;
-  }
-
-  /**
-   * Fill projectedBuffer and return it. Resets stats each call.
-   * @param {number} scale
-   * @param {number} [maxRadiusFactor]
-   */
-  fillProjectedVertices(scale, maxRadiusFactor = DEFAULT_MAX_RADIUS_FACTOR) {
-    const maxRadius = scale * maxRadiusFactor;
-    this.stats.clampedVertices = 0;
-    this.stats.maxRadius = 0;
-    this.stats.singularities = 0;
+  _projectIntoBuffer(scale, maxRadius) {
+    const r4 = this.rotated4D;
+    const out = this.projectedBuffer;
+    let clamped = 0;
+    let singularities = 0;
+    let maxR = 0;
 
     for (let i = 0; i < 16; i += 1) {
-      if (this.projectVertexInto(this.state[i], scale, maxRadius, i * 3)) {
-        this.stats.clampedVertices += 1;
+      const o4 = i * 4;
+      const x = r4[o4];
+      const y = r4[o4 + 1];
+      const z = r4[o4 + 2];
+      const w = r4[o4 + 3];
+      const d = 2 - w;
+      let valid = true;
+
+      if (Math.abs(d) < PROJECTION_MIN_DIVISOR) singularities += 1;
+      const safeD = Math.abs(d) < PROJECTION_MIN_DIVISOR ? (d >= 0 ? PROJECTION_MIN_DIVISOR : -PROJECTION_MIN_DIVISOR) : d;
+      const f = 1 / safeD;
+      let px = x * f * scale;
+      let py = y * f * scale;
+      let pz = z * f * scale;
+
+      if (!Number.isFinite(px) || !Number.isFinite(py) || !Number.isFinite(pz)) {
+        px = 0;
+        py = 0;
+        pz = 0;
+        valid = false;
+        clamped += 1;
+      }
+
+      const maxCoord = maxRadius;
+      if (Math.abs(px) > maxCoord || Math.abs(py) > maxCoord || Math.abs(pz) > maxCoord) {
+        px = Math.max(-maxCoord, Math.min(maxCoord, px));
+        py = Math.max(-maxCoord, Math.min(maxCoord, py));
+        pz = Math.max(-maxCoord, Math.min(maxCoord, pz));
+        clamped += 1;
+      }
+
+      let r = Math.hypot(px, py, pz);
+      if (r > maxRadius) {
+        const s = maxRadius / r;
+        px *= s;
+        py *= s;
+        pz *= s;
+        r = maxRadius;
+        clamped += 1;
+      }
+      if (r > maxR) maxR = r;
+
+      const o3 = i * 3;
+      out[o3] = px;
+      out[o3 + 1] = py;
+      out[o3 + 2] = pz;
+      this.vertexValid[i] = valid && r > 0.0001 ? 1 : 0;
+    }
+
+    return { clamped, singularities, maxR };
+  }
+
+  _validateEdges(maxEdgeLen) {
+    const buf = this.projectedBuffer;
+    let invalid = 0;
+    let maxEdge = 0;
+
+    for (let e = 0; e < this.edges.length; e += 1) {
+      const [a, b] = this.edges[e];
+      if (!this.vertexValid[a] || !this.vertexValid[b]) {
+        this.edgeValid[e] = 0;
+        invalid += 1;
+        continue;
+      }
+      const oa = a * 3;
+      const ob = b * 3;
+      const dx = buf[oa] - buf[ob];
+      const dy = buf[oa + 1] - buf[ob + 1];
+      const dz = buf[oa + 2] - buf[ob + 2];
+      const len = Math.hypot(dx, dy, dz);
+      if (len > maxEdge) maxEdge = len;
+      if (!Number.isFinite(len) || len < 0.0001 || len > maxEdgeLen) {
+        this.edgeValid[e] = 0;
+        invalid += 1;
+      } else {
+        this.edgeValid[e] = 1;
       }
     }
+    return { invalid, maxEdge };
+  }
+
+  /**
+   * Single canonical pipeline entry — call once per frame per tesseract instance.
+   */
+  computeFrame(time, xwRate, ywRate, scale, maxRadiusFactor = DEFAULT_MAX_RADIUS_FACTOR, maxEdgeLen = 4.5) {
+    this.stats.frameId += 1;
+    const maxRadius = scale * maxRadiusFactor;
+
+    this._rotateIntoBuffer(time, xwRate, ywRate);
+    const proj = this._projectIntoBuffer(scale, maxRadius);
+    const edge = this._validateEdges(maxEdgeLen);
+
+    const clampRatio = proj.clamped / 16;
+    const singRatio = proj.singularities / 16;
+    const edgeRatio = edge.invalid / this.edges.length;
+    const stabilityScore = Math.max(0, 1 - clampRatio * 0.55 - singRatio * 0.35 - edgeRatio * 0.4);
+
+    this.stats.clampedVertices = proj.clamped;
+    this.stats.singularities = proj.singularities;
+    this.stats.maxRadius = proj.maxR;
+    this.stats.maxEdgeLength = edge.maxEdge;
+    this.stats.invalidEdges = edge.invalid;
+    this.stats.stabilityScore = stabilityScore;
+
+    return {
+      buffer: this.projectedBuffer,
+      stats: this.stats,
+      stable: stabilityScore > 0.55
+    };
+  }
+
+  /** Legacy API — delegates to computeFrame */
+  rotate(time, xwRate = 0.15, ywRate = 0.1) {
+    this._rotateIntoBuffer(time, xwRate, ywRate);
+  }
+
+  fillProjectedVertices(scale, maxRadiusFactor = DEFAULT_MAX_RADIUS_FACTOR) {
+    const maxRadius = scale * maxRadiusFactor;
+    this._projectIntoBuffer(scale, maxRadius);
     return this.projectedBuffer;
   }
 
-  /** @param {number} scale @returns {{ x: number, y: number, z: number }[]} */
-  getProjectedVertices(scale) {
-    const buf = this.fillProjectedVertices(scale);
-    const out = [];
-    for (let i = 0; i < 16; i += 1) {
-      const o = i * 3;
-      out.push({ x: buf[o], y: buf[o + 1], z: buf[o + 2] });
-    }
-    return out;
-  }
-
-  /** @param {string} cellKey @param {number} scale @returns {{ x: number, y: number, z: number }} */
-  getCellCenter(cellKey, scale) {
+  getCellCenterFromBuffer(cellKey) {
     const indices = this.cells[cellKey];
     if (!indices?.length) return { x: 0, y: 0, z: 0 };
-    this.fillProjectedVertices(scale);
-
+    const buf = this.projectedBuffer;
     let x = 0;
     let y = 0;
     let z = 0;
-    const buf = this.projectedBuffer;
+    let n = 0;
     for (const i of indices) {
+      if (!this.vertexValid[i]) continue;
       const o = i * 3;
       x += buf[o];
       y += buf[o + 1];
       z += buf[o + 2];
+      n += 1;
     }
-    const n = indices.length;
+    if (!n) return { x: 0, y: 0, z: 0 };
     return { x: x / n, y: y / n, z: z / n };
+  }
+
+  getCellCenter(cellKey, scale) {
+    this.fillProjectedVertices(scale);
+    return this.getCellCenterFromBuffer(cellKey);
   }
 }

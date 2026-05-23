@@ -23,6 +23,8 @@ const _vB = new THREE.Vector3();
 const _vMid = new THREE.Vector3();
 const _vDir = new THREE.Vector3();
 const _vUp = new THREE.Vector3(0, 1, 0);
+const _vScrA = new THREE.Vector3();
+const _vScrB = new THREE.Vector3();
 
 /** Shared edge tube — one GPU buffer for all tesseract instances. */
 const SHARED_EDGE_GEO = (() => {
@@ -128,18 +130,34 @@ function createSubtleFaceGeometry(faceCount) {
   return { geo, positions };
 }
 
-function alignCylinder(mesh, a, b, camera, maxLen, quality) {
+function alignCylinder(mesh, a, b, opts) {
+  const {
+    camera,
+    maxLen,
+    quality,
+    edgeValid = true,
+    viewportW = 0,
+    viewportH = 0,
+    maxScreenLen = 420,
+    stabilityMul = 1
+  } = opts;
+
+  if (!edgeValid) {
+    mesh.visible = false;
+    return { ok: false, len: 0, clamped: true, screenClamped: false };
+  }
+
   _vA.copy(a);
   _vB.copy(b);
   _vMid.addVectors(_vA, _vB).multiplyScalar(0.5);
   _vDir.subVectors(_vB, _vA);
   const len = _vDir.length();
-  const fadeStart = maxLen * 0.52;
+  const fadeStart = maxLen * 0.48;
   const hardMax = maxLen;
 
-  if (len < 0.0001 || len > hardMax) {
+  if (len < 0.0001 || len > hardMax || !Number.isFinite(len)) {
     mesh.visible = false;
-    return { ok: false, len, clamped: len > hardMax };
+    return { ok: false, len, clamped: len > hardMax, screenClamped: false };
   }
 
   let opacityMul = 1;
@@ -148,22 +166,38 @@ function alignCylinder(mesh, a, b, camera, maxLen, quality) {
     opacityMul = (1 - t) * (1 - t);
   }
 
-  mesh.visible = opacityMul > 0.04;
-  if (!mesh.visible) return { ok: false, len, clamped: false };
+  if (camera && viewportW > 0 && viewportH > 0) {
+    _vScrA.copy(a).project(camera);
+    _vScrB.copy(b).project(camera);
+    const sx = (_vScrA.x - _vScrB.x) * viewportW * 0.5;
+    const sy = (_vScrA.y - _vScrB.y) * viewportH * 0.5;
+    const screenLen = Math.hypot(sx, sy);
+    if (screenLen > maxScreenLen) {
+      mesh.visible = false;
+      return { ok: false, len, clamped: true, screenClamped: true };
+    }
+    if (screenLen > maxScreenLen * 0.55) {
+      const t = (screenLen - maxScreenLen * 0.55) / (maxScreenLen * 0.45);
+      opacityMul *= Math.max(0, 1 - t);
+    }
+  }
+
+  mesh.visible = opacityMul * stabilityMul > 0.03;
+  if (!mesh.visible) return { ok: false, len, clamped: opacityMul < 0.99, screenClamped: false };
 
   mesh.position.copy(_vMid);
   const midDist = camera ? camera.position.distanceTo(_vMid) : 6;
-  const thickness = THREE.MathUtils.clamp(1.28 - midDist * 0.042, 0.68, 1.35);
+  const thickness = THREE.MathUtils.clamp(1.26 - midDist * 0.04, 0.66, 1.32);
   const qualityMul = quality === "mobile" ? 0.85 : 1;
   mesh.scale.set(thickness * qualityMul, len, thickness * qualityMul);
   mesh.quaternion.setFromUnitVectors(_vUp, _vDir.normalize());
 
   const u = mesh.material.uniforms;
   if (u?.uOpacity) {
-    u.uOpacity.value = mesh.userData.baseOpacity * opacityMul;
+    u.uOpacity.value = mesh.userData.baseOpacity * opacityMul * stabilityMul;
   }
 
-  return { ok: true, len, clamped: opacityMul < 0.99 };
+  return { ok: true, len, clamped: opacityMul < 0.99, screenClamped: false };
 }
 
 function makeFresnelMaterial() {
@@ -215,11 +249,14 @@ class HolographicTesseract {
     this.withCells = opts.withCells ?? true;
     this.quality = opts.quality ?? "high";
     this.wireframeOnly = opts.wireframeOnly ?? false;
+    this.isGhost = opts.isGhost === true;
 
     this.tess = new Tesseract4D();
     this.group = new THREE.Group();
     this.edgePulseBoost = 1;
     this.lastClampedEdges = 0;
+    this.stabilityScore = 1;
+    this.frameStable = true;
     this.verts = Array.from({ length: 16 }, () => new THREE.Vector3());
 
     const showSubtleFaces =
@@ -249,8 +286,8 @@ class HolographicTesseract {
     this.edgeMeshes = [];
     this.baseCyan = new THREE.Color(CORE_EMISSIVE);
     this.brightCyan = new THREE.Color(EDGE_BRIGHT);
-    this.maxRadiusFactor = this.quality === "mobile" ? 2.35 : this.quality === "medium" ? 2.5 : 2.62;
-    this.maxEdgeLen = (MAX_EDGE_LEN[this.quality] ?? MAX_EDGE_LEN.medium) * 0.92;
+    this.maxRadiusFactor = this.quality === "mobile" ? 2.18 : this.quality === "medium" ? 2.32 : 2.4;
+    this.maxEdgeLen = (MAX_EDGE_LEN[this.quality] ?? MAX_EDGE_LEN.medium) * 0.85;
 
     /** @type {Map<number, string>} edge index → dominant cell axis for tint */
     this.edgeAxisTint = new Map();
@@ -369,24 +406,30 @@ class HolographicTesseract {
       }
     }
 
-    this.update(0);
+    this.update(0, null, null);
   }
 
-  writePositions(time, projectedOverride) {
-    if (!projectedOverride) {
-      this.tess.rotate(time, this.xwRate, this.ywRate);
-    }
+  /** Canonical frame — pristine 4D → project → validate. Resets group transform. */
+  writePositions(time) {
+    this.group.position.set(0, 0, 0);
+    this.group.rotation.set(0, 0, 0);
+    this.group.scale.set(1, 1, 1);
 
-    if (projectedOverride) {
-      for (let i = 0; i < 16; i += 1) {
-        this.verts[i].set(projectedOverride[i].x, projectedOverride[i].y, projectedOverride[i].z);
-      }
-    } else {
-      const buf = this.tess.fillProjectedVertices(this.scale, this.maxRadiusFactor);
-      for (let i = 0; i < 16; i += 1) {
-        const o = i * 3;
-        this.verts[i].set(buf[o], buf[o + 1], buf[o + 2]);
-      }
+    const frame = this.tess.computeFrame(
+      time,
+      this.xwRate,
+      this.ywRate,
+      this.scale,
+      this.maxRadiusFactor,
+      this.maxEdgeLen
+    );
+    this.stabilityScore = frame.stats.stabilityScore;
+    this.frameStable = frame.stable;
+
+    const buf = frame.buffer;
+    for (let i = 0; i < 16; i += 1) {
+      const o = i * 3;
+      this.verts[i].set(buf[o], buf[o + 1], buf[o + 2]);
     }
 
     if (this.faceMesh && this.facePositions) {
@@ -406,28 +449,55 @@ class HolographicTesseract {
     return this.verts;
   }
 
-  update(time, projectedOverride, camera) {
+  applyStabilityAttenuation() {
+    const mul = THREE.MathUtils.clamp(this.stabilityScore, 0.12, 1);
+    if (this.isGhost) {
+      for (const m of this.edgeMeshes) {
+        if (m.visible && m.material.uniforms?.uOpacity) {
+          m.material.uniforms.uOpacity.value = Math.min(
+            m.material.uniforms.uOpacity.value,
+            m.userData.baseOpacity * this.opacity * mul
+          );
+        }
+      }
+      for (const m of this.vertexMeshes) {
+        m.material.opacity = 0.92 * this.opacity * mul;
+      }
+    }
+    return mul;
+  }
+
+  update(time, camera, viewport) {
     try {
-      const verts = this.writePositions(time, projectedOverride);
+      const verts = this.writePositions(time);
       let clampedEdges = 0;
+      let screenClamped = 0;
+      const vw = viewport?.w ?? 0;
+      const vh = viewport?.h ?? 0;
+      const maxScreenLen = viewport?.maxScreenEdge ?? (vw < MOBILE_BREAK ? 280 : 380);
+      const stabMul = THREE.MathUtils.clamp(this.stabilityScore, 0.2, 1);
 
       for (let e = 0; e < this.tess.edges.length; e += 1) {
         const [a, b] = this.tess.edges[e];
-        const result = alignCylinder(
-          this.edgeMeshes[e],
-          verts[a],
-          verts[b],
+        const result = alignCylinder(this.edgeMeshes[e], verts[a], verts[b], {
           camera,
-          this.maxEdgeLen,
-          this.quality
-        );
+          maxLen: this.maxEdgeLen,
+          quality: this.quality,
+          edgeValid: this.tess.edgeValid[e] === 1,
+          viewportW: vw,
+          viewportH: vh,
+          maxScreenLen,
+          stabilityMul: stabMul
+        });
         if (result.clamped) clampedEdges += 1;
+        if (result.screenClamped) screenClamped += 1;
         const u = this.edgeMeshes[e].material.uniforms;
         u.uTime.value = time;
         u.uPulseBoost.value = this.edgePulseBoost;
       }
 
       this.lastClampedEdges = clampedEdges;
+      this.lastScreenClamped = screenClamped;
 
       const flare = new Array(16).fill(0);
       for (let e = 0; e < this.tess.edges.length; e += 1) {
@@ -457,10 +527,11 @@ class HolographicTesseract {
         }
         cell.points.geometry.attributes.position.needsUpdate = true;
 
-        const center = this.tess.getCellCenter(axis, this.scale);
+        const center = this.tess.getCellCenterFromBuffer(axis);
         cell.hit.position.set(center.x, center.y, center.z);
       }
 
+      this.applyStabilityAttenuation();
       return verts;
     } catch (err) {
       console.warn("[galaxy] Tesseract update skipped a frame (non-fatal):", err);
@@ -728,7 +799,8 @@ export function initGalaxy(root) {
           withCells: false,
           quality,
           subtleFaces: false,
-          wireframeOnly: true
+          wireframeOnly: true,
+          isGhost: true
         })
       );
       ghosts.push(
@@ -740,7 +812,8 @@ export function initGalaxy(root) {
           withCells: false,
           quality,
           subtleFaces: false,
-          wireframeOnly: true
+          wireframeOnly: true,
+          isGhost: true
         })
       );
     } else if (quality === "medium") {
@@ -753,7 +826,8 @@ export function initGalaxy(root) {
           withCells: false,
           quality,
           subtleFaces: false,
-          wireframeOnly: true
+          wireframeOnly: true,
+          isGhost: true
         })
       );
     }
@@ -773,14 +847,14 @@ export function initGalaxy(root) {
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
+    controls.dampingFactor = 0.115;
     controls.enablePan = false;
     controls.minDistance = 4.5;
-    controls.maxDistance = 10.5;
-    controls.minPolarAngle = 0.38;
-    controls.maxPolarAngle = Math.PI - 0.38;
+    controls.maxDistance = 10;
+    controls.minPolarAngle = 0.4;
+    controls.maxPolarAngle = Math.PI - 0.4;
     controls.target.copy(homeTarget);
-    controls.rotateSpeed = 0.32;
+    controls.rotateSpeed = 0.26;
     controls.enableRotate = !reducedMotion && !isMobile();
     controls.autoRotate = !reducedMotion;
     controls.autoRotateSpeed = 0.16;
@@ -877,7 +951,7 @@ export function initGalaxy(root) {
       lastDragEnd = performance.now();
       isDragging = true;
       controls.autoRotate = false;
-      controls.dampingFactor = 0.12;
+      controls.dampingFactor = 0.14;
       mount.classList.add("is-dragging");
     }
 
@@ -955,9 +1029,19 @@ export function initGalaxy(root) {
           controls.target.lerp(homeTarget, 0.035);
         }
 
-        mainTess.update(time, undefined, camera);
+        mainTess.update(time, camera, {
+          w: mount.clientWidth,
+          h: mount.clientHeight,
+          maxScreenEdge: isMobile() ? 260 : 360
+        });
         for (const g of ghosts) {
-          if (g.group.visible) g.update(time * (g.xwRate / 0.15), undefined, camera);
+          if (!g.group.visible) continue;
+          g.update(time * (g.xwRate / 0.15), camera, {
+            w: mount.clientWidth,
+            h: mount.clientHeight,
+            maxScreenEdge: isMobile() ? 220 : 300
+          });
+          if (g.stabilityScore < 0.35) g.group.visible = false;
         }
 
         labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
@@ -966,8 +1050,8 @@ export function initGalaxy(root) {
           controls.autoRotate = true;
         }
       } else if (reducedMotion) {
-        mainTess.tess.rotate(0, 0, 0);
-        mainTess.update(0, undefined, camera);
+        mainTess.tess.computeFrame(0, mainTess.xwRate, mainTess.ywRate, mainTess.scale, mainTess.maxRadiusFactor, mainTess.maxEdgeLen);
+        mainTess.update(0, camera, { w: mount.clientWidth, h: mount.clientHeight });
         labelLayout.update(mainTess.cells, camera, mount.clientWidth, mount.clientHeight, isMobile(), now);
       }
 
@@ -1001,11 +1085,11 @@ export function initGalaxy(root) {
         const ts = mainTess.tess.stats;
         const lm = labelLayout.metrics;
         debugEl.textContent =
-          `FPS ${perf.fps.toFixed(0)} · degrade ${perf.degradeLevel}` +
-          ` · bloom ${bloomPass.strength.toFixed(2)}` +
-          ` · overlaps ${lm.overlaps} · labelV ${lm.maxVelocity.toFixed(0)}` +
-          ` · vClamp ${ts.clampedVertices} · maxR ${ts.maxRadius.toFixed(2)}` +
-          ` · edgeFade ${mainTess.lastClampedEdges ?? 0}` +
+          `FPS ${perf.fps.toFixed(0)} · stable ${(mainTess.stabilityScore * 100).toFixed(0)}%` +
+          ` · vClamp ${ts.clampedVertices} · badE ${ts.invalidEdges}` +
+          ` · maxR ${ts.maxRadius.toFixed(2)} · edge ${ts.maxEdgeLength.toFixed(2)}` +
+          ` · sep ${lm.overlapsResolved} · wall ${lm.wallClamps}` +
+          ` · fade ${mainTess.lastClampedEdges}/${mainTess.lastScreenClamped ?? 0}` +
           (perf.contextLost ? " · CONTEXT LOST" : "");
       }
 
