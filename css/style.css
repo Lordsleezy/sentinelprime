@@ -1,11 +1,13 @@
+@import url("./theme.css");
+
 :root {
-  --bg: #000000;
-  --bg-elev: #0a0a0a;
-  --bg-soft: #0a0a0a;
-  --text: #ffffff;
-  --muted: #a8b0ba;
-  --accent-cyan: #00d4ff;
-  --accent-crimson: #cc0000;
+  --bg: var(--theme-background, #000000);
+  --bg-elev: var(--theme-background-soft, #0a0a0a);
+  --bg-soft: var(--theme-background-soft, #0a0a0a);
+  --text: var(--theme-text-color, #ffffff);
+  --muted: var(--theme-muted-text, #a8b0ba);
+  --accent-cyan: var(--theme-primary-accent, #00d4ff);
+  --accent-crimson: var(--theme-secondary-accent, #cc0000);
   --primary: var(--accent-cyan);
   --primary-strong: #00a8cc;
   --primary-glow: rgba(0, 212, 255, 0.45);

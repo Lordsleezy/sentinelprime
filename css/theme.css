@@ -1,0 +1,67 @@
+:root {
+  --theme-background: #000000;
+  --theme-background-soft: #05080a;
+  --theme-primary-accent: #00d4ff;
+  --theme-secondary-accent: #cc0000;
+  --theme-card-color: rgba(255, 255, 255, 0.045);
+  --theme-card-strong: rgba(8, 14, 18, 0.88);
+  --theme-border-color: rgba(255, 255, 255, 0.10);
+  --theme-glow-color: rgba(0, 212, 255, 0.36);
+  --theme-text-color: #ffffff;
+  --theme-muted-text: #9aa3ad;
+  --theme-ok-color: #5ee6a8;
+  --theme-warning-color: #ffd17c;
+  --theme-danger-color: #ff6b6b;
+  --theme-radius: 18px;
+  --theme-shadow: 0 22px 54px rgba(0, 0, 0, 0.54);
+  --theme-button-bg: linear-gradient(120deg, var(--theme-primary-accent), #7ae9ff);
+  --theme-button-text: #001018;
+
+  --il-cyan: var(--theme-primary-accent);
+  --il-red: var(--theme-secondary-accent);
+  --il-black: var(--theme-background);
+  --il-muted: var(--theme-muted-text);
+  --bg: var(--theme-background);
+  --bg-elev: var(--theme-background-soft);
+  --bg-soft: var(--theme-background-soft);
+  --text: var(--theme-text-color);
+  --muted: var(--theme-muted-text);
+  --accent-cyan: var(--theme-primary-accent);
+  --accent-crimson: var(--theme-secondary-accent);
+  --primary: var(--theme-primary-accent);
+  --primary-strong: #00a8cc;
+  --primary-glow: var(--theme-glow-color);
+  --crimson-glow: rgba(204, 0, 0, 0.35);
+  --border: var(--theme-border-color);
+  --ok: var(--theme-ok-color);
+  --shadow: var(--theme-shadow);
+  --radius: var(--theme-radius);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.sp-core-card {
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--theme-radius);
+  background:
+    radial-gradient(circle at top right, rgba(0, 212, 255, 0.10), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  box-shadow: var(--theme-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+}
+
+.sp-core-button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 1.15rem;
+  color: var(--theme-button-text);
+  background: var(--theme-button-bg);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 28px var(--theme-glow-color);
+}
