@@ -18,42 +18,23 @@ export const PRODUCT_TIERS = {
 
 export const PRODUCTS = [
   {
-    slug: "sentinelos",
-    name: "SentinelOS",
-    tagline: "GrapheneOS security. BlissLauncher3 UI. Sentinel AI built in.",
+    slug: "open-claw",
+    name: "Open Claw",
+    tagline: "Open-source control for the Sentinel ecosystem.",
     status: "building",
     statusLabel: "Building",
     tier: "hero",
     color: CSS_COLORS.cyan,
     cellAxis: "+X",
-    pageUrl: "sentinelos.html",
+    pageUrl: "products.html#open-claw",
     features: [
-      "GrapheneOS foundation with hardened defaults",
-      "BlissLauncher3 for a clean, modern home screen",
-      "Sentinel AI integrated at the OS level",
-      "First supported device: Google Pixel 10a",
-      "No tracking hooks, no silent telemetry"
+      "Open-source control layer for Sentinel tools",
+      "Designed for transparent automation",
+      "Built for creators, developers, and power users",
+      "Connects local workflows across the ecosystem",
+      "Privacy-first by design"
     ],
-    cta: { href: "index.html#waitlist", label: "Join Waitlist", variant: "fill" }
-  },
-  {
-    slug: "sentinel-x",
-    name: "Sentinel X",
-    tagline: "The phone Big Tech won't make.",
-    status: "soon",
-    statusLabel: "Coming Soon",
-    tier: "hero",
-    color: CSS_COLORS.cyanBright,
-    cellAxis: "-X",
-    pageUrl: "sentinel-x.html",
-    features: [
-      "Pre-loaded with SentinelOS — ready out of the box",
-      "Pixel 10a base hardware, tuned for privacy",
-      "Sentinel AI built in from day one",
-      "Estimated pricing: $799–$1,199+ depending on configuration",
-      "No carrier bloat, no data harvesting"
-    ],
-    cta: { href: "index.html#waitlist", label: "Join Waitlist", variant: "fill" }
+    cta: { href: "products.html#open-claw", label: "Explore Open Claw", variant: "fill" }
   },
   {
     slug: "personal-ai",
