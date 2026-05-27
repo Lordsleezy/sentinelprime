@@ -56,15 +56,33 @@
     io.observe(statsBar);
   }
 
+  let scrollTimer = 0;
+  let scrollFrame = 0;
+  function markScrolling() {
+    if (!scrollFrame) {
+      scrollFrame = window.requestAnimationFrame(() => {
+        document.body.classList.add("is-scrolling");
+        scrollFrame = 0;
+      });
+    }
+    window.clearTimeout(scrollTimer);
+    scrollTimer = window.setTimeout(() => {
+      document.body.classList.remove("is-scrolling");
+    }, 180);
+  }
+  window.addEventListener("scroll", markScrolling, { passive: true });
+
   const revealEls = document.querySelectorAll(".il-reveal");
   if (revealEls.length) {
     const ro = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
-          if (en.isIntersecting) en.target.classList.add("il-reveal--in");
+          if (!en.isIntersecting) return;
+          en.target.classList.add("il-reveal--in");
+          ro.unobserve(en.target);
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -24px 0px" }
     );
     revealEls.forEach((el) => ro.observe(el));
   }

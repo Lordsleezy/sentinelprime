@@ -22,7 +22,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y proximity;
 }
 
 body.il-body {
@@ -79,7 +79,9 @@ body.il-body::before {
   align-items: center;
   justify-content: center;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 100svh;
   padding-left: max(2rem, calc(30px + 2.25rem));
   padding-right: max(2rem, calc(30px + 2.25rem));
 }
@@ -101,8 +103,8 @@ body.il-body::before {
   gap: 1rem;
   padding: 0.75rem clamp(1rem, 4vw, 2rem);
   background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border-bottom: 1px solid transparent;
   transition:
     background 0.4s ease,
@@ -112,8 +114,8 @@ body.il-body::before {
 
 .landing-nav--scrolled {
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -462,6 +464,10 @@ body.il-body::before {
     color 0.28s ease,
     text-shadow 0.28s ease,
     transform 0.28s ease;
+}
+
+body.is-scrolling .il-ai-story p {
+  transition: none;
 }
 
 .il-ai-story p::first-letter {
@@ -1316,6 +1322,7 @@ body.il-body::before {
 .il-reveal--in {
   opacity: 1;
   transform: translateX(0);
+  will-change: auto;
 }
 
 /* Footer */

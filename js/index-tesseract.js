@@ -99,7 +99,7 @@ function init() {
   camera.position.set(0, 0, 6.2);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
@@ -170,7 +170,7 @@ function init() {
     const h = window.innerHeight;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    renderer.setSize(w, h, false);
     composer.setSize(w, h);
     bloomPass.resolution.set(w, h);
   }
@@ -211,21 +211,38 @@ function init() {
     pGeo.attributes.position.needsUpdate = true;
   }
 
-  function tick() {
+  let lastRender = 0;
+  let particleFrame = 0;
+  let resizeTimer = 0;
+
+  function tick(now = 0) {
+    const isScrolling = document.body.classList.contains("is-scrolling");
+    const minFrameMs = isScrolling ? 33 : 16;
+    if (now - lastRender < minFrameMs) {
+      requestAnimationFrame(tick);
+      return;
+    }
+    lastRender = now;
     time += 0.0085;
     const pulse = 0.95 + Math.sin(time * 1.15) * 0.22;
     bloomPass.strength = 0.85 * pulse;
     mat.opacity = 0.75 + Math.sin(time * 0.9) * 0.12;
 
     updateTesseractGeometry();
-    animateParticles();
+    particleFrame += 1;
+    if (!isScrolling || particleFrame % 2 === 0) {
+      animateParticles();
+    }
     composer.render();
     requestAnimationFrame(tick);
   }
 
-  window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("resize", () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(resize, 80);
+  }, { passive: true });
   resize();
-  tick();
+  requestAnimationFrame(tick);
 }
 
 init();

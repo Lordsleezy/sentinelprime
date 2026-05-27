@@ -32,7 +32,7 @@
         }
       }
     },
-    { rootMargin: "120px", threshold: 0.01 }
+    { rootMargin: "40px", threshold: 0.1 }
   );
 
   for (const root of roots) io.observe(root);

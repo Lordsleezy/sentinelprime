@@ -1269,10 +1269,18 @@ export function initGalaxy(root) {
       }
     }
 
-    function tick() {
+    let lastRenderAt = 0;
+
+    function tick(now = 0) {
       if (!running || disposed || perf.contextLost) return;
-      elapsed += 0.016;
-      renderFrame(elapsed);
+      const isScrolling = document.body.classList.contains("is-scrolling");
+      const minFrameMs = isScrolling ? 33 : 16;
+      if (now - lastRenderAt >= minFrameMs) {
+        const dt = Math.min(0.033, Math.max(0.001, (now - lastRenderAt) / 1000 || 0.016));
+        lastRenderAt = now;
+        elapsed += dt;
+        renderFrame(elapsed);
+      }
       rafId = requestAnimationFrame(tick);
     }
 
@@ -1310,7 +1318,7 @@ export function initGalaxy(root) {
           else if (!reducedMotion) stop();
         }
       },
-      { rootMargin: "80px", threshold: 0.05 }
+      { rootMargin: "0px", threshold: 0.2 }
     );
     observer.observe(root);
     window.addEventListener("resize", resize, { passive: true });
