@@ -9,6 +9,7 @@
 
 #ecosystem,
 #sentinel-os,
+#sentinel-ai-story,
 #about,
 #product-personal,
 #product-guardian,
@@ -21,6 +22,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
 }
 
 body.il-body {
@@ -30,6 +32,16 @@ body.il-body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
+}
+
+body.il-body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  border-left: 30px solid rgba(255, 255, 255, 0.9);
+  border-right: 30px solid rgba(255, 255, 255, 0.9);
 }
 
 .shell-main {
@@ -57,6 +69,23 @@ body.il-body {
 .il-wrap {
   position: relative;
   z-index: 1;
+}
+
+.il-panel {
+  min-height: 100vh;
+  min-height: 100svh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding-left: max(2rem, calc(30px + 2.25rem));
+  padding-right: max(2rem, calc(30px + 2.25rem));
+}
+
+.il-panel > .il-container {
+  width: 100%;
 }
 
 /* Nav */
@@ -256,13 +285,9 @@ body.il-body {
 
 /* Hero */
 .il-hero {
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
-  padding: 6.5rem 1.25rem 4rem;
+  padding-top: 6.5rem;
+  padding-bottom: 4rem;
   text-align: center;
 }
 
@@ -390,13 +415,72 @@ body.il-body {
 
 /* Section shell */
 .il-section {
-  padding: clamp(4rem, 10vw, 6.5rem) 1.25rem;
+  padding-top: clamp(4rem, 10vw, 6.5rem);
+  padding-bottom: clamp(4rem, 10vw, 6.5rem);
   position: relative;
+}
+
+.il-graph-panel {
+  padding-top: clamp(4.5rem, 8vh, 5.75rem);
+  padding-bottom: clamp(2rem, 4vh, 3rem);
+}
+
+.il-story-panel,
+.il-waitlist,
+.il-about {
+  padding-top: clamp(4.5rem, 8vh, 6rem);
+  padding-bottom: clamp(3rem, 6vh, 5rem);
 }
 
 .il-container {
   max-width: 1160px;
   margin: 0 auto;
+}
+
+.il-ai-story {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0;
+  column-count: 2;
+  column-gap: clamp(2rem, 5vw, 4rem);
+}
+
+.il-ai-story p {
+  margin: 0;
+  break-inside: avoid;
+  color: #e7edf5;
+  font-family: "Inter", "Cascadia Code", "Consolas", sans-serif;
+  font-size: clamp(0.88rem, 1.15vw, 1.02rem);
+  font-weight: 520;
+  line-height: 1.64;
+  letter-spacing: 0.01em;
+  text-indent: clamp(1.35rem, 3vw, 2.25rem);
+  text-shadow:
+    0 0 18px rgba(0, 212, 255, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.8);
+  transition:
+    color 0.28s ease,
+    text-shadow 0.28s ease,
+    transform 0.28s ease;
+}
+
+.il-ai-story p::first-letter {
+  color: var(--il-cyan);
+  font-size: 1.45em;
+  font-weight: 900;
+  text-shadow: 0 0 18px rgba(0, 212, 255, 0.45);
+}
+
+.il-ai-story p:hover {
+  color: #ffffff;
+  transform: translateX(8px);
+  text-shadow:
+    0 0 24px rgba(0, 212, 255, 0.25),
+    0 0 52px rgba(255, 255, 255, 0.08);
+}
+
+.il-ai-story p + p {
+  margin-top: 1rem;
 }
 
 /* Ecosystem title */
@@ -405,7 +489,7 @@ body.il-body {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2.75rem;
+  margin-bottom: clamp(1.25rem, 3vh, 2.25rem);
   text-align: center;
 }
 
@@ -1222,15 +1306,16 @@ body.il-body {
 
 .il-reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateX(-56px);
   transition:
-    opacity 0.8s ease,
-    transform 0.8s ease;
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
 
 .il-reveal--in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 /* Footer */
@@ -1422,9 +1507,43 @@ body.il-body {
 }
 
 .il-waitlist {
-  padding: 4rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 860px) {
+  .il-panel {
+    padding-left: max(1rem, calc(30px + 1rem));
+    padding-right: max(1rem, calc(30px + 1rem));
+  }
+
+  .il-ai-story {
+    column-count: 1;
+    max-width: 640px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 861px) {
+  .il-ai-story p {
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .il-ai-story p + p {
+    margin-top: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
+
+  .il-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .forge-pricing-grid {
