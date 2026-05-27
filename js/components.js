@@ -1,6 +1,7 @@
 const navItems = [
   { label: "Home", href: "/index.html", key: "home" },
   { label: "Products", href: "/products.html", key: "products" },
+  { label: "SentinelWeb", href: "/sentinelweb.html", key: "sentinelweb" },
   { label: "Story", href: "/story.html", key: "story" },
   { label: "SentinelOS", href: "/products.html#sentinelos", key: "sentinelos" },
   { label: "Pricing", href: "/pricing.html", key: "pricing" },
@@ -13,6 +14,7 @@ function navLinkClass(item, activePage) {
   if (item.tryCta) parts.push("landing-nav__link--try");
   if (item.key === "home" && activePage === "home") parts.push("active");
   if (item.key === "products" && activePage === "products") parts.push("active");
+  if (item.key === "sentinelweb" && activePage === "sentinelweb") parts.push("active");
   if (item.key === "story" && activePage === "story") parts.push("active");
   if (item.key === "about" && activePage === "about") parts.push("active");
   if (item.key === "pricing" && activePage === "pricing") parts.push("active");

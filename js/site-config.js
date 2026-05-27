@@ -2,6 +2,8 @@ window.DEMO_LINKS = {
   ordering: "https://oodemo.sentinelprime.org"
 };
 
+window.SENTINELWEB_API_BASE = "https://sentinelweb-production-1d18.up.railway.app";
+
 window.DEMOS = [
   {
     title: "Online Ordering System",
