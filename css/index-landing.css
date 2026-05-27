@@ -40,8 +40,8 @@ body.il-body::before {
   inset: 0;
   z-index: 1000;
   pointer-events: none;
-  border-left: 30px solid rgba(255, 255, 255, 0.9);
-  border-right: 30px solid rgba(255, 255, 255, 0.9);
+  border-left: 20px solid rgba(255, 255, 255, 0.9);
+  border-right: 20px solid rgba(255, 255, 255, 0.9);
 }
 
 .shell-main {
@@ -82,8 +82,8 @@ body.il-body::before {
   contain: layout paint style;
   content-visibility: auto;
   contain-intrinsic-size: 100svh;
-  padding-left: max(2rem, calc(30px + 2.25rem));
-  padding-right: max(2rem, calc(30px + 2.25rem));
+  padding-left: max(2rem, calc(20px + 2.25rem));
+  padding-right: max(2rem, calc(20px + 2.25rem));
 }
 
 .il-panel > .il-container {
@@ -1520,8 +1520,8 @@ body.is-scrolling .il-ai-story p {
 
 @media (max-width: 860px) {
   .il-panel {
-    padding-left: max(1rem, calc(30px + 1rem));
-    padding-right: max(1rem, calc(30px + 1rem));
+    padding-left: max(1rem, calc(20px + 1rem));
+    padding-right: max(1rem, calc(20px + 1rem));
   }
 
   .il-ai-story {
