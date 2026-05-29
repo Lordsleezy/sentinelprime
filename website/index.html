@@ -21,7 +21,7 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); scroll-behavior: smooth; }
+html { background: var(--bg); scroll-behavior: auto; }
 body {
   margin: 0;
   overflow-x: hidden;
@@ -470,6 +470,7 @@ footer {
 
   var mouse = { x: 0, y: 0 };
   var target = { x: 0, y: 0 };
+  var introComplete = false;
 
   function makeGlowTexture(inner, outer) {
     var c = document.createElement("canvas");
@@ -574,6 +575,9 @@ footer {
     var tl = gsap.timeline({
       defaults: { ease: "power3.out" },
       onComplete: function () {
+        introComplete = true;
+        galaxy.scale.setScalar(0.24);
+        camera.position.z = 980;
         document.body.classList.add("site-ready");
         gsap.set("#intro", { display: "none" });
         ScrollTrigger.refresh();
@@ -584,7 +588,7 @@ footer {
     tl.to("#introBurst", { opacity: 1, scale: 1.2, rotate: 38, duration: 0.7, ease: "expo.out" }, "-=0.22");
     tl.to(stars.material, { opacity: 0.82, duration: 0.8 }, "-=0.55");
     tl.to(mat, { opacity: 1, duration: 0.85 }, "-=0.52");
-    tl.to(galaxy.scale, { x: 0.98, y: 0.98, z: 0.98, duration: 1.25, ease: "expo.out" }, "-=0.65");
+    tl.to(galaxy.scale, { x: 0.24, y: 0.24, z: 0.24, duration: 1.25, ease: "expo.out" }, "-=0.65");
     tl.to("#introGalaxy", { opacity: 1, scale: 1, rotate: 120, duration: 1.1, ease: "expo.out" }, "-=1.05");
     tl.to("#introBurst", { opacity: 0, scale: 1.55, duration: 0.8 }, "-=0.32");
     tl.to("#introTitle", { opacity: 1, y: -8, duration: 0.75 }, "-=0.45");
@@ -603,22 +607,17 @@ footer {
       });
     });
 
-    gsap.to(galaxy.scale, {
-      x: 1.28,
-      y: 1.28,
-      z: 1.28,
-      ease: "none",
-      scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: true }
-    });
-    gsap.to(camera.position, {
-      z: 760,
-      ease: "none",
-      scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: true }
-    });
   }
 
   function render() {
     galaxy.rotation.z += 0.00145;
+    if (introComplete) {
+      var maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      var p = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+      var scrollScale = 0.24 + p * 1.06;
+      galaxy.scale.setScalar(scrollScale);
+      camera.position.z = 980 - p * 220;
+    }
     target.x += (mouse.x - target.x) * 0.045;
     target.y += (mouse.y - target.y) * 0.045;
     if (!isMobile) {
