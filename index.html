@@ -3,111 +3,1428 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Sentinel — Privacy is YOUR choice. Private on-device AI, Sentinel Guardian, and SentinelOS.">
-  <meta property="og:title" content="Sentinel | Privacy is YOUR choice">
+  <meta name="description" content="Sentinel Prime — The AI Operating System. Privacy. Power. Control.">
+  <meta property="og:title" content="Sentinel Prime | The AI Operating System">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://sentinelprime.org/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <title>Sentinel | Privacy is YOUR choice</title>
+  <title>Sentinel Prime | The AI Operating System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index-landing.css">
-  <link rel="stylesheet" href="css/galaxy.css">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "./js/lib/three.module.js",
-      "three/addons/": "./js/lib/three-addons/"
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       RESET & VARIABLES
+    ═══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --sentinel-blue:   #00d4ff;
+      --sentinel-purple: #7b2ff7;
+      --sentinel-orange: #ff6b35;
+      --sentinel-green:  #00ff88;
+      --sentinel-amber:  #ffb627;
+      --bg:   #000000;
+      --text: #ffffff;
+      --muted: rgba(255,255,255,.45);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: auto; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CANVAS — fixed, full-screen, behind everything
+    ═══════════════════════════════════════════════════════════ */
+    #sp-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════════════════════ */
+    #sp-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.7) 0%, transparent 100%);
+      backdrop-filter: blur(0px);
+      transition: backdrop-filter .3s;
+    }
+    #sp-nav.scrolled { backdrop-filter: blur(12px); background: rgba(0,0,0,.6); }
+    .sp-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .sp-logo span { color: var(--sentinel-blue); }
+    .sp-nav-links { display: flex; gap: 28px; }
+    .sp-nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .5px;
+      transition: color .2s;
+    }
+    .sp-nav-links a:hover { color: var(--text); }
+
+    /* ═══════════════════════════════════════════════════════════
+       SECTION SCAFFOLDING
+    ═══════════════════════════════════════════════════════════ */
+    section { position: relative; z-index: 1; }
+
+    /* ═══════════════════════════════════════════════════════════
+       S1 — HERO
+    ═══════════════════════════════════════════════════════════ */
+    #hero {
+      height: 500vh; /* tall for scroll room */
+      position: relative;
+    }
+    #hero-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #hero-text {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    #hero-text h1 {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 10vw, 120px);
+      font-weight: 800;
+      letter-spacing: 6px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 0%, var(--sentinel-blue) 60%, var(--sentinel-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    #hero-text .hero-sub {
+      font-family: var(--font-display);
+      font-size: clamp(14px, 2vw, 20px);
+      font-weight: 600;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--sentinel-blue);
+      margin-top: 12px;
+      opacity: 0;
+    }
+    #hero-cta {
+      display: flex;
+      gap: 16px;
+      margin-top: 40px;
+      opacity: 0;
+      pointer-events: all;
+    }
+    #hero-scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: fadeUpDown 2s ease-in-out infinite;
+    }
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--sentinel-blue));
+    }
+    @keyframes fadeUpDown {
+      0%, 100% { opacity: .4; transform: translateX(-50%) translateY(0); }
+      50%       { opacity: 1;  transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════════════════ */
+    .sp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform .2s, box-shadow .2s, opacity .2s;
+    }
+    .sp-btn:hover { transform: translateY(-2px); opacity: .9; }
+    .sp-btn-primary {
+      background: var(--sentinel-blue);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0,212,255,.4);
+    }
+    .sp-btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.25);
+    }
+    .sp-btn-ghost:hover { border-color: var(--sentinel-blue); color: var(--sentinel-blue); }
+
+    /* ═══════════════════════════════════════════════════════════
+       S2 — PRODUCT SCROLL (PINNED)
+    ═══════════════════════════════════════════════════════════ */
+    #products {
+      height: 500vh;
+      position: relative;
+    }
+    #products-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      overflow: hidden;
+    }
+    #products-left {
+      padding: 0 0 0 10vw;
+      position: relative;
+      z-index: 10;
+    }
+    .product-step {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      padding: 0 0 0 10vw;
+      transform: translateY(-50%);
+      opacity: 0;
+      pointer-events: none;
+      width: 100%;
+    }
+    .product-step.active { pointer-events: all; }
+    .product-step__tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .product-step__title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .product-step__sub {
+      font-size: clamp(14px, 1.2vw, 17px);
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 420px;
+    }
+    .product-step__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 28px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: .5px;
+      transition: gap .2s;
+    }
+    .product-step__link:hover { gap: 14px; }
+
+    /* step colors */
+    .step-brain .product-step__tag  { color: var(--sentinel-blue); }
+    .step-brain .product-step__link { color: var(--sentinel-blue); }
+    .step-nodes .product-step__tag  { color: var(--sentinel-purple); }
+    .step-nodes .product-step__link { color: var(--sentinel-purple); }
+    .step-shield .product-step__tag { color: var(--sentinel-green); }
+    .step-shield .product-step__link{ color: var(--sentinel-green); }
+    .step-code .product-step__tag   { color: var(--sentinel-amber); }
+    .step-code .product-step__link  { color: var(--sentinel-amber); }
+
+    /* progress dots */
+    #product-dots {
+      position: fixed;
+      right: 36px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity .4s;
+    }
+    #product-dots.visible { opacity: 1; }
+    .pdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.2);
+      transition: background .3s, transform .3s;
+      cursor: pointer;
+    }
+    .pdot.active {
+      background: var(--sentinel-blue);
+      transform: scale(1.6);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       S3 — STATS
+    ═══════════════════════════════════════════════════════════ */
+    #stats {
+      padding: 160px 0;
+      text-align: center;
+    }
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .stats-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 80px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .6s, transform .6s;
+    }
+    .stat-item.revealed { opacity: 1; transform: none; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 6vw, 80px);
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-num.blue   { color: var(--sentinel-blue);   text-shadow: 0 0 30px rgba(0,212,255,.6); }
+    .stat-num.purple { color: var(--sentinel-purple);  text-shadow: 0 0 30px rgba(123,47,247,.6); }
+    .stat-num.green  { color: var(--sentinel-green);   text-shadow: 0 0 30px rgba(0,255,136,.6); }
+    .stat-num.orange { color: var(--sentinel-orange);  text-shadow: 0 0 30px rgba(255,107,53,.6); }
+    .stat-desc {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .5px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       S4 — SENTINEL DRIVE
+    ═══════════════════════════════════════════════════════════ */
+    #drive {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 100px 0;
+    }
+    #drive-canvas-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 500px;
+      position: relative;
+    }
+    #drive-canvas {
+      width: 300px;
+      height: 420px;
+    }
+    .drive-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,.15), transparent 70%);
+      pointer-events: none;
+    }
+    #drive-text {
+      padding: 0 80px 0 0;
+    }
+    .drive-line {
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .drive-line > span {
+      display: block;
+      transform: translateY(100%);
+      transition: transform .7s cubic-bezier(.22,1,.36,1);
+    }
+    .drive-line.revealed > span { transform: none; }
+    .drive-line:first-child > span {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--sentinel-blue), var(--sentinel-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .drive-line:not(:first-child) > span {
+      font-size: clamp(14px, 1.3vw, 17px);
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .drive-line:nth-child(3) > span,
+    .drive-line:nth-child(4) > span {
+      font-weight: 500;
+      color: rgba(255,255,255,.7);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       S5 — CTA
+    ═══════════════════════════════════════════════════════════ */
+    #cta {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 80px 40px;
+    }
+    #cta-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    #cta-headline {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 8vw, 100px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 2;
+    }
+    #cta-headline .letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px) scale(.9);
+      transition: opacity .4s, transform .4s;
+    }
+    #cta-headline .letter.space { display: inline-block; width: .3em; }
+    .cta-sub {
+      font-size: clamp(14px, 1.5vw, 18px);
+      color: var(--muted);
+      margin-top: 20px;
+      margin-bottom: 44px;
+      position: relative;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity .6s .6s;
+    }
+    .cta-sub.revealed { opacity: 1; }
+    #cta-btns {
+      display: flex;
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .5s .8s, transform .5s .8s;
+    }
+    #cta-btns.revealed { opacity: 1; transform: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════ */
+    footer {
+      padding: 60px 48px 40px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      position: relative;
+      z-index: 2;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .footer-brand p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      max-width: 240px;
+      line-height: 1.6;
+    }
+    .footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
+    .footer-col h4 {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .footer-col a {
+      display: block;
+      color: rgba(255,255,255,.5);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 2;
+      transition: color .2s;
+    }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom {
+      font-size: 12px;
+      color: rgba(255,255,255,.25);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE
+    ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      #sp-nav { padding: 16px 20px; }
+      .sp-nav-links { display: none; }
+      #hero-text h1 { font-size: 48px; letter-spacing: 3px; }
+      #products-sticky { grid-template-columns: 1fr; }
+      #products-sticky > *:last-child { display: none; } /* hide 3D side on mobile */
+      .product-step { padding: 0 32px; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); gap: 24px; }
+      #drive { grid-template-columns: 1fr; }
+      #drive-canvas-wrap { height: 280px; }
+      #drive-text { padding: 40px 32px; }
+      .footer-top { flex-direction: column; }
+      .footer-links { flex-direction: column; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="sp-nav">
+  <a class="sp-logo" href="#">SENTINEL<span>PRIME</span></a>
+  <div class="sp-nav-links">
+    <a href="#products">Products</a>
+    <a href="#drive">Sentinel Drive</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="guardian.html">Guardian</a>
+    <a href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<!-- PRODUCT PROGRESS DOTS -->
+<div id="product-dots">
+  <div class="pdot active" data-step="0"></div>
+  <div class="pdot" data-step="1"></div>
+  <div class="pdot" data-step="2"></div>
+  <div class="pdot" data-step="3"></div>
+</div>
+
+<!-- MAIN 3D CANVAS -->
+<canvas id="sp-canvas"></canvas>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- S1 — HERO -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div id="hero-sticky">
+    <div id="hero-text">
+      <h1 id="hero-h1">SENTINEL PRIME</h1>
+      <p class="hero-sub" id="hero-sub">The AI Operating System</p>
+      <div id="hero-cta">
+        <a class="sp-btn sp-btn-primary" href="#products">Get Started</a>
+        <a class="sp-btn sp-btn-ghost" href="#stats">Learn More</a>
+      </div>
+    </div>
+    <div id="hero-scroll-hint">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- S2 — PRODUCT SCROLL -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="products">
+  <div id="products-sticky">
+    <!-- text side -->
+    <div id="products-left">
+      <div class="product-step step-brain" id="step-0">
+        <div class="product-step__tag">SentinelAI</div>
+        <div class="product-step__title">Your Autonomous<br>Operations Brain</div>
+        <div class="product-step__sub">Orchestrates every task. Routes every request. Learns what you need — before you ask.</div>
+        <a class="product-step__link" href="sentinelai.html">Explore SentinelAI →</a>
+      </div>
+      <div class="product-step step-nodes" id="step-1">
+        <div class="product-step__tag">OpenClaw</div>
+        <div class="product-step__title">Your AI<br>Interface</div>
+        <div class="product-step__sub">Talk to Sentinel. Approve actions. Stay in complete control. Your AI listens — but never acts without you.</div>
+        <a class="product-step__link" href="personal-ai.html">Explore OpenClaw →</a>
+      </div>
+      <div class="product-step step-shield" id="step-2">
+        <div class="product-step__tag">Guardian</div>
+        <div class="product-step__title">Always<br>Watching</div>
+        <div class="product-step__sub">Real-time threat detection. Zero compromise. Sentinel Guardian is invite-only for a reason.</div>
+        <a class="product-step__link" href="guardian.html">Request Access →</a>
+      </div>
+      <div class="product-step step-code" id="step-3">
+        <div class="product-step__tag">Forge</div>
+        <div class="product-step__title">Builds What<br>Doesn't Exist</div>
+        <div class="product-step__sub">No tool for the job? Forge creates one. On-device. Local AI. Builds apps, ROMs, and security tools autonomously.</div>
+        <a class="product-step__link" href="forge.html">See Forge →</a>
+      </div>
+    </div>
+    <!-- right side is the 3D canvas -->
+    <div></div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- S3 — STATS -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="stats">
+  <div class="stats-inner">
+    <p class="stats-label">By the numbers</p>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num blue" data-target="5" data-suffix=" AI Workers">0</div>
+        <div class="stat-desc">Autonomous workers, one brain</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num purple" data-target="1" data-prefix="" data-suffix=" Unified Brain">0</div>
+        <div class="stat-desc">SentinelAI orchestrates everything</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num green" data-special="∞">0</div>
+        <div class="stat-desc">Possible tasks — no limits</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num orange" data-target="0" data-suffix=" Cloud Deps">—</div>
+        <div class="stat-desc">Runs entirely on your device</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- S4 — SENTINEL DRIVE -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="drive">
+  <div id="drive-canvas-wrap">
+    <div class="drive-glow"></div>
+    <canvas id="drive-canvas"></canvas>
+  </div>
+  <div id="drive-text">
+    <div class="drive-line"><span>Sentinel Drive</span></div>
+    <div class="drive-line"><span>Your digital identity.<br>In your pocket.</span></div>
+    <div class="drive-line"><span>Biometric vault. Private browser.<br>Encrypted storage.</span></div>
+    <div class="drive-line"><span>One device. Everything secure.</span></div>
+    <div class="drive-line" style="margin-top:32px">
+      <span><a class="sp-btn sp-btn-primary" href="products.html">Learn More</a></span>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- S5 — CTA -->
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="cta">
+  <canvas id="cta-particles"></canvas>
+  <h2 id="cta-headline"></h2>
+  <p class="cta-sub" id="cta-sub">No subscriptions. No cloud. No compromise.</p>
+  <div id="cta-btns">
+    <a class="sp-btn sp-btn-primary" href="products.html">Download</a>
+    <a class="sp-btn sp-btn-ghost" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<!-- FOOTER -->
+<!-- ────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="sp-logo" href="#" style="font-size:16px">SENTINEL<span>PRIME</span></a>
+      <p>Privacy is YOUR choice. The AI Operating System built for people, not corporations.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Products</h4>
+        <a href="sentinel-x.html">Sentinel X</a>
+        <a href="sentinelos.html">SentinelOS</a>
+        <a href="personal-ai.html">Personal AI</a>
+        <a href="forge.html">Forge</a>
+      </div>
+      <div class="footer-col">
+        <h4>Security</h4>
+        <a href="guardian.html">Guardian</a>
+        <a href="sentinelweb.html">SentinelWeb</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="about.html">About</a>
+        <a href="story.html">Story</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Sentinel Prime. All rights reserved.</span>
+    <span>Privacy is YOUR choice.</span>
+  </div>
+</footer>
+
+<!-- ════════════════════════════════════════════════════════════════
+     THREE.JS — CDN
+════════════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   SENTINEL PRIME — CINEMATIC SCROLL ENGINE
+════════════════════════════════════════════════════════════════ */
+'use strict';
+
+// ── utils ────────────────────────────────────────────────────────
+const isMobile = () => window.innerWidth < 768;
+const PARTICLE_COUNT = isMobile() ? 1500 : 4000;
+
+// ── GSAP plugin registration ─────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+/* ────────────────────────────────────────────────────────────────
+   THREE.JS MAIN SCENE
+──────────────────────────────────────────────────────────────── */
+const canvas = document.getElementById('sp-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 0, 5);
+
+// ── clock & state ─────────────────────────────────────────────────
+const clock = new THREE.Clock();
+let isVisible = true;
+document.addEventListener('visibilitychange', () => { isVisible = !document.hidden; });
+
+/* ────────────────────────────────────────────────────────────────
+   GEOMETRY GENERATORS  (return Float32Array of xyz positions)
+──────────────────────────────────────────────────────────────── */
+function genSphere(n, r = 2) {
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const jitter = r + (Math.random() - .5) * .25;
+    pos[i*3]   = jitter * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = jitter * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = jitter * Math.cos(phi);
+  }
+  return pos;
+}
+
+function genHelix(n, r = 1.5, h = 4, turns = 3) {
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const t     = i / n;
+    const angle = t * Math.PI * 2 * turns;
+    const jitter = (Math.random() - .5) * .12;
+    pos[i*3]   = (r + jitter) * Math.cos(angle);
+    pos[i*3+1] = (t - .5) * h + jitter;
+    pos[i*3+2] = (r + jitter) * Math.sin(angle);
+  }
+  return pos;
+}
+
+function genCube(n, size = 2) {
+  const pos = new Float32Array(n * 3);
+  const half = size / 2;
+  for (let i = 0; i < n; i++) {
+    const face = Math.floor(Math.random() * 6);
+    const u = (Math.random() - .5) * size;
+    const v = (Math.random() - .5) * size;
+    const jitter = (Math.random() - .5) * .08;
+    switch(face) {
+      case 0: pos[i*3]=u;    pos[i*3+1]=v;    pos[i*3+2]=half+jitter;  break;
+      case 1: pos[i*3]=u;    pos[i*3+1]=v;    pos[i*3+2]=-half+jitter; break;
+      case 2: pos[i*3]=half+jitter; pos[i*3+1]=u; pos[i*3+2]=v;         break;
+      case 3: pos[i*3]=-half+jitter;pos[i*3+1]=u; pos[i*3+2]=v;         break;
+      case 4: pos[i*3]=u;    pos[i*3+1]=half+jitter;  pos[i*3+2]=v;     break;
+      case 5: pos[i*3]=u;    pos[i*3+1]=-half+jitter; pos[i*3+2]=v;     break;
     }
   }
-  </script>
-</head>
-<body class="il-body" data-page="home">
-  <div id="webgl-root" aria-hidden="true"></div>
+  return pos;
+}
 
-  <div class="il-wrap">
-    <div id="site-header"></div>
+function genNeuralNet(n) {
+  const pos = new Float32Array(n * 3);
+  const layers = [6, 10, 10, 8, 6];
+  const spacing = 0.8;
+  const ySpread = 2.2;
+  let idx = 0;
+  for (let l = 0; l < layers.length; l++) {
+    const x = (l - (layers.length-1)/2) * spacing;
+    const count = Math.floor(n * layers[l] / layers.reduce((a,b)=>a+b,0));
+    for (let k = 0; k < count && idx < n; k++, idx++) {
+      const y = (k / (layers[l]-1) - .5) * ySpread + (Math.random()-.5)*.12;
+      const z = (Math.random() - .5) * 0.4;
+      pos[idx*3]   = x + (Math.random()-.5)*.1;
+      pos[idx*3+1] = y;
+      pos[idx*3+2] = z;
+    }
+  }
+  // fill remaining with sphere fallback
+  for (let i = idx; i < n; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    pos[i*3]   = 2 * Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1] = 2 * Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2] = 2 * Math.cos(phi);
+  }
+  return pos;
+}
 
-    <main>
-      <section class="il-hero il-panel">
-        <div class="il-hero__vignette" aria-hidden="true"></div>
-        <div class="il-hero__content">
-          <h1 class="il-hero__title">SENTINEL</h1>
-          <p class="il-hero__tagline">Privacy is YOUR choice</p>
-          <div class="il-hero__cycle-wrap">
-            <p id="hero-cycle" class="hero-cycle">Private.</p>
-          </div>
-          <div class="il-hero__actions">
-            <a class="il-btn il-btn--cyan" href="#waitlist">Download Sentinel</a>
-            <a class="il-btn il-btn--red" href="#sentinel-ai-story">Explore Sentinel AI</a>
-          </div>
-        </div>
-      </section>
+function genShield(n, r = 1.8) {
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const t     = i / n;
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.random() * Math.PI * .7;
+    const rr    = r * (1 - .2 * Math.pow(phi / (Math.PI*.7), 2));
+    pos[i*3]   = rr * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = rr * Math.cos(phi) * 1.2 - 0.3;
+    pos[i*3+2] = rr * Math.sin(phi) * Math.sin(theta);
+  }
+  return pos;
+}
 
-      <section id="ecosystem" class="il-section il-panel il-graph-panel">
-        <div class="il-container">
-          <div class="il-eco-title il-reveal">
-            <span class="il-eco-title__line" aria-hidden="true"></span>
-            <span class="il-eco-title__text">The Ecosystem</span>
-            <span class="il-eco-title__line" aria-hidden="true"></span>
-          </div>
-          <div class="product-galaxy-root il-reveal" data-galaxy-root>
-            <div class="product-galaxy">
-              <canvas aria-hidden="true"></canvas>
-              <p class="galaxy-hint galaxy-hint--desktop">Drag to orbit · Click a cell to enter</p>
-              <p class="galaxy-hint galaxy-hint--mobile">Tap a cell to enter</p>
-            </div>
-          </div>
-        </div>
-      </section>
+function genCodeStream(n) {
+  const pos = new Float32Array(n * 3);
+  const streams = 12;
+  for (let i = 0; i < n; i++) {
+    const s  = i % streams;
+    const t  = (i / n);
+    const x  = (s / (streams-1) - .5) * 4;
+    const y  = ((t * streams % 1) - .5) * 4;
+    const z  = (Math.random()-.5) * .4;
+    pos[i*3]   = x + (Math.random()-.5)*.08;
+    pos[i*3+1] = y;
+    pos[i*3+2] = z;
+  }
+  return pos;
+}
 
-      <section id="sentinel-ai-story" class="il-section il-panel il-story-panel">
-        <div class="il-container">
-          <div class="il-ai-story il-reveal">
-            <p>Sentinel AI is being built to make advanced artificial intelligence feel less like a complicated tool and more like a helpful digital partner woven naturally into everyday life. Instead of forcing people to learn complex software, manage endless apps, or constantly search for information, Sentinel AI is designed to simplify the way people interact with technology. Whether it's helping organize a busy schedule, answering questions, managing smart devices, assisting with work, or automating repetitive tasks, Sentinel AI is meant to feel intuitive, responsive, and always available when you need it.</p>
-            <p>At home, Sentinel AI is envisioned as a central hub that helps families stay connected and organized. It could monitor home systems, provide reminders, manage entertainment, assist with shopping lists, control smart devices, and even help monitor important information like weather alerts, appointments, or household tasks. The goal is not to replace people, but to remove stress from daily routines so users can spend more time focusing on what matters most. Sentinel AI is being designed to work quietly in the background while remaining instantly accessible through phones, computers, and future smart devices.</p>
-            <p>For businesses and creators, Sentinel AI aims to become a powerful assistant capable of helping manage websites, customer communication, scheduling, marketing, lead generation, automation, and digital operations from one connected ecosystem. Instead of juggling multiple platforms and services, businesses will be able to interact with a unified AI system that can help streamline workflows, provide insights, and automate time-consuming tasks. Sentinel AI is being built with the belief that advanced AI should not only be available to large corporations, but also accessible to small businesses, creators, and independent entrepreneurs.</p>
-            <p>Entirely at its core, Sentinel AI represents a vision for a future where technology works alongside people in a more personal, useful, and human way. It is being developed as an evolving ecosystem that combines intelligence, automation, creativity, and connectivity into a single experience designed around real-world needs. As the platform grows, Sentinel AI will continue expanding into new tools, devices, and services with the goal of making powerful technology more approachable, more capable, and more beneficial for everyday life.</p>
-          </div>
-        </div>
-      </section>
+function genExplosion(n, r = 8) {
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const dist  = r * (.4 + Math.random() * .6);
+    pos[i*3]   = dist * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = dist * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = dist * Math.cos(phi);
+  }
+  return pos;
+}
 
-      <section id="waitlist" class="il-section il-panel il-waitlist il-reveal">
-        <div class="il-container" style="text-align:center; max-width:600px; margin:0 auto;">
-          <h2 style="font-size:2rem; font-weight:800; margin-bottom:0.5rem;">Be first. Be private.</h2>
-          <p style="color:#6B6B70; margin-bottom:2rem;">Join the waitlist for Sentinel</p>
-          <form action="https://formspree.io/f/xwpkvpqd" method="POST" style="display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap;">
-            <input type="email" name="email" placeholder="your@email.com" required
-              style="background:#111113; border:1px solid #1E1E20; color:#E8E8EA; padding:0.75rem 1.25rem; border-radius:6px; font-size:1rem; min-width:280px; outline:none;">
-            <button type="submit"
-              style="background:#00D4FF; color:#000; font-weight:700; padding:0.75rem 1.75rem; border-radius:6px; border:none; cursor:pointer; font-size:1rem;">
-              Join Waitlist
-            </button>
-          </form>
-          <p style="color:#6B6B70; font-size:0.8rem; margin-top:1rem;">No spam. No selling your email. Ever.</p>
-        </div>
-      </section>
+/* ────────────────────────────────────────────────────────────────
+   PARTICLE SYSTEM
+──────────────────────────────────────────────────────────────── */
+// Base geometry shapes
+const geo = new THREE.BufferGeometry();
+const N   = PARTICLE_COUNT;
 
-      <section id="home-about" class="il-section il-panel il-about il-reveal">
-        <div class="il-container">
-          <h2>Built by one person. Designed for everyone.</h2>
-          <p>
-            Sentinel exists to prove that privacy-first AI can be powerful without surveillance. No venture path that demands your data, no harvesting model — only tools and products you can inspect and that keep intelligence under your control.
-          </p>
-          <p style="margin-top:1rem"><a class="il-mini-btn il-mini-btn--fill" href="story.html">Read our founding story</a> <a class="il-mini-btn" href="about.html">About</a></p>
-        </div>
-      </section>
-    </main>
+// Pre-generate all target position arrays
+const shapes = {
+  sphere:  genSphere(N),
+  helix:   genHelix(N),
+  cube:    genCube(N),
+  neural:  genNeuralNet(N),
+  shield:  genShield(N),
+  code:    genCodeStream(N),
+  explode: genExplosion(N),
+};
 
-    <div id="site-footer"></div>
-  </div>
+// Working arrays
+const posA = new Float32Array(shapes.sphere);  // current positions
+const posB = new Float32Array(shapes.sphere);  // target  positions
+const vel  = new Float32Array(N * 3);           // per-particle velocity (for shattering)
+const posAttr = new THREE.BufferAttribute(posA, 3);
+geo.setAttribute('position', posAttr);
 
-  <script type="module" src="js/index-tesseract.js"></script>
-  <script src="js/site-config.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/shell.js" defer></script>
-  <script src="js/index-landing.js" defer></script>
-  <script type="module" src="js/galaxy-loader.js"></script>
+// Colors per particle
+const colorsArr = new Float32Array(N * 3);
+const colorAttr = new THREE.BufferAttribute(colorsArr, 3);
+geo.setAttribute('color', colorAttr);
+
+// Custom shader material for glowing particles.
+// NOTE: Three.js r128 with vertexColors:true auto-injects "attribute vec3 color;"
+// so we must NOT re-declare it — just use it directly.
+const vertShader = `
+  varying vec3 vColor;
+  varying float vDepth;
+  void main() {
+    vColor = color;
+    vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+    vDepth = -mvPos.z;
+    gl_PointSize = clamp(1.8 * (200.0 / vDepth), 0.5, 4.0);
+    gl_Position = projectionMatrix * mvPos;
+  }
+`;
+
+const fragShader = `
+  varying vec3 vColor;
+  varying float vDepth;
+  void main() {
+    vec2 uv = gl_PointCoord - vec2(0.5);
+    float d = length(uv);
+    if (d > 0.5) discard;
+    // soft falloff — keep particles crisp but not overblown on additive blend
+    float alpha = smoothstep(0.5, 0.18, d) * 0.55;
+    gl_FragColor = vec4(vColor * 0.9, alpha);
+  }
+`;
+
+const mat = new THREE.ShaderMaterial({
+  vertexShader:   vertShader,
+  fragmentShader: fragShader,
+  vertexColors:   true,
+  transparent:    true,
+  depthWrite:     false,
+  blending:       THREE.AdditiveBlending,
+});
+
+const points = new THREE.Points(geo, mat);
+scene.add(points);
+
+// ── color helpers ─────────────────────────────────────────────────
+function hexToRgb(hex) {
+  const r = ((hex >> 16) & 0xff) / 255;
+  const g = ((hex >>  8) & 0xff) / 255;
+  const b = ((hex >>  0) & 0xff) / 255;
+  return {r, g, b};
+}
+const COLOR_BLUE   = hexToRgb(0x00d4ff);
+const COLOR_PURPLE = hexToRgb(0x7b2ff7);
+const COLOR_GREEN  = hexToRgb(0x00ff88);
+const COLOR_AMBER  = hexToRgb(0xffb627);
+const COLOR_ORANGE = hexToRgb(0xff6b35);
+const COLOR_WHITE  = hexToRgb(0xffffff);
+
+function setColors(c1, c2, spread = .4) {
+  for (let i = 0; i < N; i++) {
+    const t = Math.random();
+    colorsArr[i*3]   = c1.r * (1-t) + c2.r * t + (Math.random()-.5)*spread;
+    colorsArr[i*3+1] = c1.g * (1-t) + c2.g * t + (Math.random()-.5)*spread;
+    colorsArr[i*3+2] = c1.b * (1-t) + c2.b * t + (Math.random()-.5)*spread;
+  }
+  colorAttr.needsUpdate = true;
+}
+
+// Initial colors
+setColors(COLOR_BLUE, COLOR_PURPLE);
+
+// ── lerp to target shape ──────────────────────────────────────────
+let morphProgress = 0; // 0→1
+let morphing = false;
+
+function startMorph(targetShape, newC1, newC2) {
+  posB.set(shapes[targetShape]);
+  if (newC1 && newC2) setColors(newC1, newC2, .3);
+  morphing = true;
+  morphProgress = 0;
+}
+
+function updateMorph(dt) {
+  if (!morphing) return;
+  morphProgress = Math.min(morphProgress + dt * 1.8, 1);
+  const t = 1 - Math.pow(1 - morphProgress, 3); // ease out cubic
+  for (let i = 0; i < N * 3; i++) {
+    posA[i] = posA[i] + (posB[i] - posA[i]) * t;
+  }
+  posAttr.needsUpdate = true;
+  if (morphProgress >= 1) morphing = false;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   SCENE STATE — driven by scroll progress
+   scrollZone: 0 = hero, 1..4 = product steps, 5 = cta
+──────────────────────────────────────────────────────────────── */
+let currentZone = -1;
+let heroProgress = 0; // 0→1 within hero scroll
+let productStep  = 0; // 0..3
+let productProg  = 0; // 0→1 within each step
+let positionTarget = { x: 0, y: 0, z: 5 };
+let positionCurrent = { x: 0, y: 0, z: 5 };
+let rotationOffset = { x: 0, y: 0 };
+
+function setZone(zone) {
+  if (zone === currentZone) return;
+  currentZone = zone;
+  if (zone === 0) {
+    // hero sphere
+    startMorph('sphere', COLOR_BLUE, COLOR_PURPLE);
+    positionTarget = { x: 0, y: 0, z: 5 };
+  } else if (zone === 1) {
+    // products hero enter
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   SCROLL BINDING (direct scrollY — no GSAP for critical path)
+──────────────────────────────────────────────────────────────── */
+const heroSection    = document.getElementById('hero');
+const productsSection= document.getElementById('products');
+const statsSection   = document.getElementById('stats');
+const driveSection   = document.getElementById('drive');
+const ctaSection     = document.getElementById('cta');
+
+let ticking = false;
+let lastHeroZone = -1;
+let lastProdStep = -1;
+
+function onScroll() {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    ticking = false;
+    computeScrollState();
+  });
+}
+
+function computeScrollState() {
+  const sy = window.scrollY;
+  const wh = window.innerHeight;
+
+  // nav scroll class
+  document.getElementById('sp-nav').classList.toggle('scrolled', sy > 60);
+
+  /* ── hero zone ── */
+  const heroH = heroSection.offsetHeight;
+  if (sy < heroH) {
+    const p = sy / heroH; // 0 → 1
+    heroProgress = p;
+
+    const zone = p < .2 ? 0 :   // sphere stable
+                 p < .4 ? 1 :   // explode
+                 p < .65? 2 :   // reform to helix
+                 p < .85? 3 :   // collapse / color shift
+                          4;    // shatter + text
+
+    if (zone !== lastHeroZone) {
+      lastHeroZone = zone;
+      if (zone === 0) { startMorph('sphere', COLOR_BLUE, COLOR_PURPLE); }
+      if (zone === 1) { startMorph('explode', COLOR_BLUE, COLOR_WHITE); }
+      if (zone === 2) { startMorph('helix', COLOR_PURPLE, COLOR_BLUE); }
+      if (zone === 3) { startMorph('cube', COLOR_ORANGE, COLOR_PURPLE); }
+      if (zone === 4) {
+        startMorph('explode', COLOR_ORANGE, COLOR_WHITE);
+        // push particles toward camera
+        for (let i = 0; i < N * 3; i += 3) {
+          vel[i]   = (Math.random()-.5) * .2;
+          vel[i+1] = (Math.random()-.5) * .2;
+          vel[i+2] = Math.random() * .5 + .1;
+        }
+      }
+    }
+
+    // camera z: pull in slightly as hero scrolls
+    positionTarget.z = 5 - p * 2;
+    document.getElementById('product-dots').classList.remove('visible');
+    return;
+  }
+
+  /* ── products zone ── */
+  const prodStart = heroSection.offsetTop + heroSection.offsetHeight;
+  const prodEnd   = productsSection.offsetTop + productsSection.offsetHeight;
+  if (sy >= heroSection.offsetHeight && sy < productsSection.offsetTop + productsSection.offsetHeight) {
+    const relY = sy - heroSection.offsetHeight;
+    const prodH = productsSection.offsetHeight - window.innerHeight;
+    const p = Math.max(0, Math.min(1, relY / prodH));
+    const step = Math.min(3, Math.floor(p * 4));
+    const stepProg = (p * 4) % 1;
+
+    document.getElementById('product-dots').classList.add('visible');
+
+    if (step !== lastProdStep) {
+      lastProdStep = step;
+      updateProductStep(step);
+    }
+
+    // position object to right side of screen
+    positionTarget.x = isMobile() ? 0 : 2.2;
+    positionTarget.y = 0;
+    positionTarget.z = 4;
+    return;
+  }
+
+  // past products
+  document.getElementById('product-dots').classList.remove('visible');
+  positionTarget.x = 0;
+  positionTarget.y = 0;
+  positionTarget.z = 5;
+  lastProdStep = -1;
+}
+
+const stepMorphMap = [
+  ['neural',  COLOR_BLUE,   COLOR_PURPLE, 'blue'],
+  ['helix',   COLOR_PURPLE, COLOR_BLUE,   'purple'],
+  ['shield',  COLOR_GREEN,  COLOR_BLUE,   'green'],
+  ['code',    COLOR_AMBER,  COLOR_ORANGE, 'amber'],
+];
+
+function updateProductStep(step) {
+  const [shape, c1, c2] = stepMorphMap[step];
+  startMorph(shape, c1, c2);
+
+  // text steps
+  document.querySelectorAll('.product-step').forEach((el, i) => {
+    gsap.to(el, {
+      opacity: i === step ? 1 : 0,
+      y:       i === step ? 0 : i < step ? -30 : 30,
+      duration: .6,
+      ease: 'power2.out',
+    });
+  });
+
+  // dots
+  document.querySelectorAll('.pdot').forEach((d, i) => {
+    d.classList.toggle('active', i === step);
+  });
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+
+/* ────────────────────────────────────────────────────────────────
+   STATS COUNTER
+──────────────────────────────────────────────────────────────── */
+function animateCounter(el) {
+  const special = el.dataset.special;
+  if (special) { el.textContent = special; return; }
+  const target = parseInt(el.dataset.target) || 0;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  if (target === 0) {
+    el.textContent = prefix + '0' + suffix;
+    return;
+  }
+  let current = 0;
+  const step = target / 40;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = prefix + Math.ceil(current) + suffix;
+    if (current >= target) clearInterval(timer);
+  }, 30);
+}
+
+const statsObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const item = e.target;
+    item.classList.add('revealed');
+    const num = item.querySelector('.stat-num');
+    if (num) animateCounter(num);
+    statsObs.unobserve(item);
+  });
+}, { threshold: .3 });
+
+document.querySelectorAll('.stat-item').forEach(el => statsObs.observe(el));
+
+/* ────────────────────────────────────────────────────────────────
+   DRIVE SECTION — line-by-line reveal
+──────────────────────────────────────────────────────────────── */
+const driveObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const lines = document.querySelectorAll('.drive-line');
+    lines.forEach((line, i) => {
+      setTimeout(() => line.classList.add('revealed'), i * 180);
+    });
+    driveObs.unobserve(e.target);
+  });
+}, { threshold: .2 });
+driveObs.observe(document.getElementById('drive-text'));
+
+/* ────────────────────────────────────────────────────────────────
+   DRIVE CANVAS — mini rotating USB geometry
+──────────────────────────────────────────────────────────────── */
+(function initDriveCanvas() {
+  const dc = document.getElementById('drive-canvas');
+  const dw = isMobile() ? 150 : 240;
+  const dh = isMobile() ? 210 : 340;
+  dc.width  = dw;
+  dc.height = dh;
+
+  const dr = new THREE.WebGLRenderer({ canvas: dc, alpha: true, antialias: true });
+  dr.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  dr.setSize(dw, dh);
+  dr.setClearColor(0x000000, 0);
+
+  const ds = new THREE.Scene();
+  const dc2 = new THREE.PerspectiveCamera(50, dw/dh, .1, 100);
+  dc2.position.set(0, 0, 3.5);
+
+  // Ambient + directional
+  ds.add(new THREE.AmbientLight(0x222244, 2));
+  const dl = new THREE.DirectionalLight(0x00d4ff, 3);
+  dl.position.set(1, 2, 2);
+  ds.add(dl);
+  const dl2 = new THREE.DirectionalLight(0x7b2ff7, 2);
+  dl2.position.set(-2, -1, 1);
+  ds.add(dl2);
+
+  // USB body — rounded box
+  const bodyGeo  = new THREE.BoxGeometry(.55, 1.4, .12, 4, 4, 2);
+  const bodyMat  = new THREE.MeshStandardMaterial({
+    color: 0x111122, metalness: .9, roughness: .15,
+    emissive: 0x00d4ff, emissiveIntensity: .06
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  ds.add(body);
+
+  // USB connector
+  const connGeo = new THREE.BoxGeometry(.32, .32, .15);
+  const connMat = new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness: 1, roughness: .1 });
+  const conn = new THREE.Mesh(connGeo, connMat);
+  conn.position.y = .87;
+  ds.add(conn);
+
+  // Edge glow lines
+  const edgeGeo = new THREE.EdgesGeometry(bodyGeo);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: .3 });
+  const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+  body.add(edges);
+
+  // Sentinel logo text — just a glowing plane
+  const logoGeo = new THREE.PlaneGeometry(.35, .08);
+  const logoMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: .7 });
+  const logo = new THREE.Mesh(logoGeo, logoMat);
+  logo.position.y = -.1;
+  logo.position.z = .07;
+  body.add(logo);
+
+  // Pulse ring
+  const ringGeo = new THREE.RingGeometry(.5, .52, 64);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: .4, side: THREE.DoubleSide });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ds.add(ring);
+
+  let driveVisible = false;
+  const driveIObs = new IntersectionObserver((entries) => {
+    driveVisible = entries[0].isIntersecting;
+  });
+  driveIObs.observe(dc);
+
+  let driveT = 0;
+  function animateDrive() {
+    requestAnimationFrame(animateDrive);
+    if (!driveVisible) return;
+    driveT += 0.016;
+    body.rotation.y = Math.sin(driveT * .6) * .35;
+    body.rotation.x = Math.sin(driveT * .4) * .1;
+    ring.rotation.z = driveT * .5;
+    ring.scale.setScalar(1 + .05 * Math.sin(driveT * 2));
+    ringMat.opacity = .3 + .15 * Math.sin(driveT * 2);
+    dr.render(ds, dc2);
+  }
+  animateDrive();
+})();
+
+/* ────────────────────────────────────────────────────────────────
+   CTA — letter assembly + ambient particles
+──────────────────────────────────────────────────────────────── */
+(function initCTA() {
+  const headline = 'The Future Runs Locally';
+  const el = document.getElementById('cta-headline');
+  headline.split('').forEach(char => {
+    const span = document.createElement('span');
+    span.className = 'letter' + (char === ' ' ? ' space' : '');
+    span.textContent = char;
+    el.appendChild(span);
+  });
+
+  const ctaObs = new IntersectionObserver((entries) => {
+    if (!entries[0].isIntersecting) return;
+    const letters = el.querySelectorAll('.letter');
+    letters.forEach((l, i) => {
+      setTimeout(() => {
+        l.style.opacity = '1';
+        l.style.transform = 'none';
+      }, i * 45);
+    });
+    setTimeout(() => {
+      document.getElementById('cta-sub').classList.add('revealed');
+      document.getElementById('cta-btns').classList.add('revealed');
+    }, letters.length * 45 + 200);
+    ctaObs.disconnect();
+  }, { threshold: .3 });
+  ctaObs.observe(el);
+
+  // Ambient particle canvas
+  const pc = document.getElementById('cta-particles');
+  const ctx = pc.getContext('2d');
+  let pw, ph;
+  function resizeCTA() {
+    pw = pc.width  = ctaSection.offsetWidth;
+    ph = pc.height = ctaSection.offsetHeight;
+  }
+  resizeCTA();
+  window.addEventListener('resize', resizeCTA);
+
+  const dots = Array.from({ length: 120 }, () => ({
+    x: Math.random() * pw,
+    y: Math.random() * ph,
+    vx: (Math.random() - .5) * .3,
+    vy: (Math.random() - .5) * .3,
+    r:  Math.random() * 1.5 + .5,
+    alpha: Math.random() * .4 + .1,
+  }));
+
+  let ctaVisible = false;
+  new IntersectionObserver((e) => { ctaVisible = e[0].isIntersecting; }).observe(pc);
+
+  function animateCTA() {
+    requestAnimationFrame(animateCTA);
+    if (!ctaVisible) return;
+    ctx.clearRect(0, 0, pw, ph);
+    dots.forEach(d => {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0) d.x = pw;
+      if (d.x > pw) d.x = 0;
+      if (d.y < 0) d.y = ph;
+      if (d.y > ph) d.y = 0;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,212,255,${d.alpha})`;
+      ctx.fill();
+    });
+  }
+  animateCTA();
+})();
+
+/* ────────────────────────────────────────────────────────────────
+   HERO TEXT — entrance animation
+──────────────────────────────────────────────────────────────── */
+gsap.timeline({ delay: .3 })
+  .to('#hero-h1',  { opacity: 1, y: 0,  duration: 1.2, ease: 'power3.out' })
+  .to('#hero-sub', { opacity: 1,        duration: .8,  ease: 'power2.out' }, '-=.6')
+  .to('#hero-cta', { opacity: 1,        duration: .6,  ease: 'power2.out' }, '-=.4');
+
+/* ────────────────────────────────────────────────────────────────
+   MAIN RENDER LOOP
+──────────────────────────────────────────────────────────────── */
+let autoRotX = 0;
+let autoRotY = 0;
+// subtle mouse parallax
+let mouseX = 0, mouseY = 0;
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth  - .5) * 2;
+  mouseY = (e.clientY / window.innerHeight - .5) * 2;
+});
+
+function render() {
+  requestAnimationFrame(render);
+  if (!isVisible) return;
+
+  const dt = Math.min(clock.getDelta(), .05);
+
+  // morphing
+  updateMorph(dt);
+
+  // auto-rotate the whole particle group
+  autoRotY += dt * .25;
+  autoRotX += dt * .08;
+  points.rotation.y = autoRotY + mouseX * .15;
+  points.rotation.x = autoRotX + mouseY * .08;
+
+  // smooth camera tracking
+  positionCurrent.x += (positionTarget.x - positionCurrent.x) * .05;
+  positionCurrent.y += (positionTarget.y - positionCurrent.y) * .05;
+  positionCurrent.z += (positionTarget.z - positionCurrent.z) * .05;
+  camera.position.set(positionCurrent.x, positionCurrent.y, positionCurrent.z);
+  camera.lookAt(0, 0, 0);
+
+  renderer.render(scene, camera);
+}
+render();
+
+/* ────────────────────────────────────────────────────────────────
+   RESIZE
+──────────────────────────────────────────────────────────────── */
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ────────────────────────────────────────────────────────────────
+   DOT NAVIGATION
+──────────────────────────────────────────────────────────────── */
+document.querySelectorAll('.pdot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    const step = parseInt(dot.dataset.step);
+    const heroH   = heroSection.offsetHeight;
+    const prodH   = productsSection.offsetHeight - window.innerHeight;
+    const target  = heroH + (step / 4) * prodH;
+    window.scrollTo({ top: target, behavior: 'smooth' });
+  });
+});
+
+// init first step visible
+document.querySelector('#step-0').style.opacity = '1';
+
+</script>
 </body>
 </html>
