@@ -169,6 +169,33 @@ body.site-ready .nav { pointer-events: auto; }
   color: #fff;
 }
 
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 212, 255, 0.38);
+  border-radius: 4px;
+  background: rgba(0, 4, 8, 0.82);
+  color: #fff;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-toggle span,
+.nav-toggle::before,
+.nav-toggle::after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
 main {
   position: relative;
   z-index: 3;
@@ -460,9 +487,31 @@ footer {
 .footer-links a:hover { color: #fff; }
 
 @media (max-width: 800px) {
-  .nav { padding: 18px; }
-  .nav-links { gap: 12px; }
-  .nav-links a { font-size: 0.62rem; }
+  .nav {
+    padding: 18px;
+    flex-wrap: wrap;
+  }
+  .nav-toggle { display: inline-flex; }
+  .nav-links {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 4px;
+    background: rgba(0, 4, 8, 0.92);
+  }
+  .nav.nav-open .nav-links { display: flex; }
+  .nav.nav-open .nav-toggle::before { transform: translateY(7px) rotate(45deg); }
+  .nav.nav-open .nav-toggle span { opacity: 0; }
+  .nav.nav-open .nav-toggle::after { transform: translateY(-7px) rotate(-45deg); }
+  .nav-links a {
+    width: 100%;
+    padding: 12px 10px;
+    font-size: 0.62rem;
+  }
   .content-grid { grid-template-columns: 1fr; }
   .feature-grid,
   .stats-strip,
@@ -488,6 +537,7 @@ footer {
 
 <nav class="nav" id="nav">
   <a class="logo" href="index.html">SENTINELPRIME</a>
+  <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
   <div class="nav-links">
     <a href="products.html">Products</a>
     <a href="sentinel-drive.html">Sentinel Drive</a>
@@ -791,5 +841,6 @@ footer {
   runIntro();
 })();
 </script>
+<script src="nav.js"></script>
 </body>
 </html>
