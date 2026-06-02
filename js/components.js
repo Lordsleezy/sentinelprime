@@ -6,6 +6,7 @@ const fallbackNavItems = [
   { label: "Download", href: "/download", key: "download" },
   { label: "About", href: "/about", key: "about" },
   { label: "Contact", href: "/contact", key: "contact" },
+  { label: "Login", href: "/login", key: "account" },
   { label: "Start Free Trial", href: "/download", key: "trial", tryCta: true }
 ];
 
@@ -21,6 +22,7 @@ function navLinkClass(item, activePage) {
 
 function navItemHTML(item, activePage) {
   const cls = navLinkClass(item, activePage);
+  const accountAttr = item.key === "account" ? ' data-account-link="true"' : "";
   if (Array.isArray(item.children) && item.children.length > 0) {
     const childLinks = item.children
       .map((child) => `<a class="${navLinkClass(child, activePage)}" href="${child.href}">${child.label}</a>`)
@@ -32,7 +34,7 @@ function navItemHTML(item, activePage) {
       </div>
     `;
   }
-  return `<a class="${cls}" href="${item.href}">${item.label}</a>`;
+  return `<a class="${cls}" href="${item.href}"${accountAttr}>${item.label}</a>`;
 }
 
 function desktopNavHTML(activePage) {
@@ -91,3 +93,13 @@ function renderHeaderFooter() {
 }
 
 renderHeaderFooter();
+
+fetch("/api/account", { credentials: "same-origin" })
+  .then((response) => {
+    if (!response.ok) return;
+    document.querySelectorAll("[data-account-link]").forEach((link) => {
+      link.href = "/account";
+      link.textContent = "My Account";
+    });
+  })
+  .catch(() => {});

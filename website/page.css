@@ -318,6 +318,15 @@ textarea { min-height: 150px; resize: vertical; }
 .form-status { min-height: 24px; color: var(--hud-blue); font: 400 0.86rem "Share Tech Mono", monospace; }
 .error { color: #ff6b35; }
 .success { color: #00ff88; }
+.hidden { display: none !important; }
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 22px; }
+.auth-tabs .button { min-width: 0; }
+.code-value { color: var(--hud-blue); font: 700 clamp(1rem, 3vw, 1.5rem) "Share Tech Mono", monospace; letter-spacing: 0.12em; overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; color: rgba(255,255,255,0.72); font: 400 0.82rem "Share Tech Mono", monospace; }
+th, td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+th { color: var(--hud-blue); text-transform: uppercase; letter-spacing: 0.12em; }
+.mini-button { padding: 8px 10px; min-width: 0; font-size: 0.68rem; }
 
 footer {
   padding: 44px 20px;

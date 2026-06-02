@@ -15,6 +15,7 @@ window.NAV_ITEMS = [
   { label: "Download", href: "/download", key: "download" },
   { label: "About", href: "/about", key: "about" },
   { label: "Contact", href: "/contact", key: "contact" },
+  { label: "Login", href: "/login", key: "account" },
   { label: "Start Free Trial", href: "/download", key: "trial", tryCta: true }
 ];
 
