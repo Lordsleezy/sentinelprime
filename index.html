@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>html, body { margin: 0; background: #000008; }</style>
 <title>SENTINEL PRIME - The AI Operating System</title>
 <meta name="description" content="SentinelAI is a local-first personal AI operating system with voice, smart home, code repair, memory, finance, markets, and automation running on your hardware.">
 <link rel="canonical" href="https://sentinelprime.org/">
@@ -13,16 +14,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
 <style>
 :root {
   --bg: #000005;
   --beam: #ffffff;
   --beam-glow: #a0d4ff;
   --star: #cce8ff;
-  --galaxy-core: #ff9944;
   --hud-blue: #00d4ff;
 }
 
@@ -38,24 +44,14 @@ body {
 }
 body.site-ready { overflow-y: auto; }
 
-#galaxy-canvas {
+#webgl-root {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  display: block;
-  background: var(--bg);
-}
-
-.space-vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 45%, transparent 0 30%, rgba(0,0,5,0.18) 58%, rgba(0,0,5,0.76) 100%),
-    linear-gradient(180deg, rgba(0,0,5,0.04), rgba(0,0,5,0.42));
+  background: #000008;
 }
 
 .intro {
@@ -93,23 +89,6 @@ body.site-ready { overflow-y: auto; }
   background:
     repeating-conic-gradient(from 0deg, rgba(255,255,255,0.96) 0deg 0.42deg, rgba(160,212,255,0.2) 0.7deg 1.3deg, transparent 1.55deg 4.2deg),
     radial-gradient(circle, #fff 0 1.8%, rgba(160,212,255,0.7) 4%, rgba(0,60,255,0.16) 18%, transparent 58%);
-}
-
-.intro-galaxy {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(150vmax, 1900px);
-  height: min(150vmax, 1900px);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0.02) rotate(0deg);
-  opacity: 0;
-  mix-blend-mode: screen;
-  background:
-    radial-gradient(circle at center, rgba(255,255,255,1) 0 1.4%, rgba(255,153,68,0.95) 2.8%, rgba(255,153,68,0.26) 7%, transparent 16%),
-    repeating-conic-gradient(from 24deg, transparent 0deg 18deg, rgba(204,232,255,0.08) 19deg, rgba(204,232,255,0.36) 28deg, rgba(160,212,255,0.1) 38deg, transparent 54deg, transparent 88deg, rgba(255,153,68,0.08) 94deg, rgba(204,232,255,0.3) 103deg, transparent 124deg),
-    radial-gradient(ellipse at center, rgba(0,212,255,0.12) 0 28%, rgba(20,68,120,0.12) 45%, transparent 72%);
-  filter: drop-shadow(0 0 35px rgba(160,212,255,0.24));
 }
 
 .intro-title {
@@ -522,13 +501,11 @@ footer {
 </style>
 </head>
 <body>
-<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
-<div class="space-vignette"></div>
+<div id="webgl-root" aria-hidden="true"></div>
 
 <div class="intro" id="intro">
   <div class="intro-point" id="introPoint"></div>
   <div class="intro-burst" id="introBurst"></div>
-  <div class="intro-galaxy" id="introGalaxy"></div>
   <div class="intro-title" id="introTitle">
     <h1>SENTINEL PRIME</h1>
     <p>The AI Operating System</p>
@@ -643,7 +620,8 @@ footer {
 <script>
 (function () {
   "use strict";
-  if (!window.THREE || !window.gsap || !window.ScrollTrigger) {
+  if (!window.gsap || !window.ScrollTrigger) {
+    document.getElementById("webgl-root").style.background = "#000008";
     document.body.classList.add("site-ready");
     document.getElementById("intro").style.display = "none";
     document.getElementById("site").style.opacity = "1";
@@ -654,126 +632,11 @@ footer {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  var isMobile = window.matchMedia("(max-width: 800px)").matches;
-  var canvas = document.getElementById("galaxy-canvas");
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 6000);
-  camera.position.z = 980;
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000005, 1);
-
-  var mouse = { x: 0, y: 0 };
-  var target = { x: 0, y: 0 };
-  var introComplete = false;
-
-  function makeGlowTexture(inner, outer) {
-    var c = document.createElement("canvas");
-    c.width = 256;
-    c.height = 256;
-    var ctx = c.getContext("2d");
-    var g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-    g.addColorStop(0, inner);
-    g.addColorStop(0.18, inner);
-    g.addColorStop(0.48, outer);
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 256, 256);
-    return new THREE.CanvasTexture(c);
-  }
-
-  var galaxy = new THREE.Group();
-  scene.add(galaxy);
-
-  var count = isMobile ? 6500 : 18000;
-  var geo = new THREE.BufferGeometry();
-  var pos = new Float32Array(count * 3);
-  var col = new Float32Array(count * 3);
-  var core = new THREE.Color(0xff9944);
-  var white = new THREE.Color(0xffffff);
-  var blue = new THREE.Color(0xcce8ff);
-  var deep = new THREE.Color(0x214a86);
-
-  for (var i = 0; i < count; i++) {
-    var arm = i % 4;
-    var radius = Math.pow(Math.random(), 0.54) * 960;
-    var coreParticle = Math.random() < 0.18;
-    if (coreParticle) radius = Math.pow(Math.random(), 2.7) * 150;
-    var angle = arm * Math.PI * 0.5 + radius * 0.014 + (Math.random() - 0.5) * (coreParticle ? 1.2 : 0.32);
-    var height = (Math.random() - 0.5) * (coreParticle ? 40 : 86) * (1 - Math.min(radius / 1100, 0.85));
-    pos[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 24;
-    pos[i * 3 + 1] = height;
-    pos[i * 3 + 2] = Math.sin(angle) * radius + (Math.random() - 0.5) * 24;
-    var c = coreParticle || radius < 120
-      ? white.clone().lerp(core, Math.random() * 0.78)
-      : (radius < 560 ? blue.clone().lerp(white, Math.random() * 0.25) : deep.clone().lerp(blue, Math.random() * 0.45));
-    col[i * 3] = c.r;
-    col[i * 3 + 1] = c.g;
-    col[i * 3 + 2] = c.b;
-  }
-
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  var mat = new THREE.PointsMaterial({
-    size: isMobile ? 1.55 : 1.9,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  var points = new THREE.Points(geo, mat);
-  galaxy.add(points);
-
-  function addGlow(texture, size, opacity) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: texture,
-      transparent: true,
-      opacity: opacity,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    }));
-    sprite.scale.set(size, size, 1);
-    galaxy.add(sprite);
-  }
-  addGlow(makeGlowTexture("rgba(255,235,170,1)", "rgba(255,153,68,0.14)"), 440, 0.95);
-  addGlow(makeGlowTexture("rgba(160,212,255,0.75)", "rgba(0,80,255,0.1)"), 1350, 0.22);
-
-  var starCount = isMobile ? 1100 : 2600;
-  var starGeo = new THREE.BufferGeometry();
-  var starPos = new Float32Array(starCount * 3);
-  var starCol = new Float32Array(starCount * 3);
-  for (var s = 0; s < starCount; s++) {
-    starPos[s * 3] = (Math.random() - 0.5) * 4200;
-    starPos[s * 3 + 1] = (Math.random() - 0.5) * 2600;
-    starPos[s * 3 + 2] = -1400 - Math.random() * 2200;
-    starCol[s * 3] = 0.8 + Math.random() * 0.2;
-    starCol[s * 3 + 1] = 0.9 + Math.random() * 0.1;
-    starCol[s * 3 + 2] = 1;
-  }
-  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-  starGeo.setAttribute("color", new THREE.BufferAttribute(starCol, 3));
-  var stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    size: 1.4,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  }));
-  scene.add(stars);
-
-  galaxy.scale.setScalar(0.03);
-  galaxy.rotation.x = 1.04;
-
   function runIntro() {
     var tl = gsap.timeline({
       defaults: { ease: "power3.out" },
       onComplete: function () {
-        introComplete = true;
-        galaxy.scale.setScalar(0.24);
-        camera.position.z = 980;
+        document.getElementById("webgl-root").style.background = "#000008";
         document.body.classList.add("site-ready");
         gsap.set("#intro", { display: "none" });
         ScrollTrigger.refresh();
@@ -782,10 +645,6 @@ footer {
     tl.to("#introPoint", { scale: 18, duration: 0.75, ease: "expo.in" });
     tl.to("#introPoint", { scale: 500, opacity: 0, duration: 0.38, ease: "power4.in" }, "-=0.08");
     tl.to("#introBurst", { opacity: 1, scale: 1.2, rotate: 38, duration: 0.7, ease: "expo.out" }, "-=0.22");
-    tl.to(stars.material, { opacity: 0.82, duration: 0.8 }, "-=0.55");
-    tl.to(mat, { opacity: 1, duration: 0.85 }, "-=0.52");
-    tl.to(galaxy.scale, { x: 0.24, y: 0.24, z: 0.24, duration: 1.25, ease: "expo.out" }, "-=0.65");
-    tl.to("#introGalaxy", { opacity: 1, scale: 1, rotate: 120, duration: 1.1, ease: "expo.out" }, "-=1.05");
     tl.to("#introBurst", { opacity: 0, scale: 1.55, duration: 0.8 }, "-=0.32");
     tl.to("#introTitle", { opacity: 1, y: -8, duration: 0.75 }, "-=0.45");
     tl.to(["#site", "#nav", "#footer"], { opacity: 1, duration: 0.95, stagger: 0.08 }, "+=0.25");
@@ -805,42 +664,15 @@ footer {
 
   }
 
-  function render() {
-    galaxy.rotation.z += 0.00145;
-    if (introComplete) {
-      var maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      var p = Math.max(0, Math.min(1, window.scrollY / maxScroll));
-      var scrollScale = 0.24 + p * 1.06;
-      galaxy.scale.setScalar(scrollScale);
-      camera.position.z = 980 - p * 220;
-    }
-    target.x += (mouse.x - target.x) * 0.045;
-    target.y += (mouse.y - target.y) * 0.045;
-    if (!isMobile) {
-      galaxy.rotation.y = target.x * 0.18;
-      galaxy.rotation.x = 1.04 + target.y * 0.14;
-    }
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
-  }
-
-  window.addEventListener("mousemove", function (event) {
-    mouse.x = (event.clientX / window.innerWidth - 0.5) * 2;
-    mouse.y = (event.clientY / window.innerHeight - 0.5) * -2;
-  }, { passive: true });
-
   window.addEventListener("resize", function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
     ScrollTrigger.refresh();
   });
 
   scrollMotion();
-  render();
   runIntro();
 })();
 </script>
+<script type="module" src="js/index-tesseract.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>
