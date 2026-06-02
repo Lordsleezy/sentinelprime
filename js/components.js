@@ -1,21 +1,12 @@
 const fallbackNavItems = [
   { label: "Home", href: "/index.html", key: "home" },
-  {
-    label: "Products",
-    href: "/products.html",
-    key: "products",
-    children: [
-      { label: "Forge", href: "/forge.html", key: "forge" },
-      { label: "Forge Lite", href: "/forge-lite.html", key: "forge-lite" },
-      { label: "Guardian", href: "/guardian.html", key: "guardian" },
-      { label: "Personal AI", href: "/personal-ai.html", key: "personal-ai" }
-    ]
-  },
-  { label: "SentinelAI", href: "/sentinelai.html", key: "sentinelai" },
-  { label: "SentinelWeb", href: "/sentinelweb.html", key: "sentinelweb" },
-  { label: "Story", href: "/story.html", key: "story" },
+  { label: "Sentinel AI", href: "/sentinel-ai", key: "sentinelai" },
+  { label: "Sentinel Drive", href: "/sentinel-drive", key: "sentinel-drive" },
   { label: "Pricing", href: "/pricing.html", key: "pricing" },
-  { label: "Contact", href: "/contact.html", key: "contact" }
+  { label: "Download", href: "/download", key: "download" },
+  { label: "About", href: "/about", key: "about" },
+  { label: "Contact", href: "/contact", key: "contact" },
+  { label: "Start Free Trial", href: "/download", key: "trial", tryCta: true }
 ];
 
 const navItems = Array.isArray(window.NAV_ITEMS) ? window.NAV_ITEMS : fallbackNavItems;
@@ -25,9 +16,6 @@ function navLinkClass(item, activePage) {
   if (item.tryCta) parts.push("landing-nav__link--try");
   if (item.key === activePage) parts.push("active");
   if (Array.isArray(item.children) && item.children.some((child) => child.key === activePage)) parts.push("active");
-  if (activePage === "products" && ["sentinelos", "sentinel-x", "forge", "forge-lite", "guardian", "personal-ai"].includes(item.key)) {
-    parts.push("active");
-  }
   return parts.join(" ").trim();
 }
 

@@ -12,12 +12,13 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH || path.join(__dirname, 
 const publicBaseUrl = process.env.PUBLIC_BASE_URL || "https://sentinelprime.org";
 const seoPages = [
   { route: "/", file: "index.html", loc: `${publicBaseUrl}/` },
-  { route: "/products", file: "products.html", loc: `${publicBaseUrl}/products.html` },
-  { route: "/sentinel-drive", file: "sentinel-drive.html", loc: `${publicBaseUrl}/sentinel-drive.html` },
-  { route: "/pricing", file: "pricing.html", loc: `${publicBaseUrl}/pricing.html` },
-  { route: "/download", file: "download.html", loc: `${publicBaseUrl}/download.html` },
-  { route: "/about", file: "about.html", loc: `${publicBaseUrl}/about.html` },
-  { route: "/contact", file: "contact.html", loc: `${publicBaseUrl}/contact.html` }
+  { route: "/sentinel-ai", file: "sentinel-ai.html", loc: `${publicBaseUrl}/sentinel-ai` },
+  { route: "/sentinel-drive", file: "sentinel-drive.html", loc: `${publicBaseUrl}/sentinel-drive` },
+  { route: "/pricing", file: "pricing.html", loc: `${publicBaseUrl}/pricing` },
+  { route: "/download", file: "download.html", loc: `${publicBaseUrl}/download` },
+  { route: "/about", file: "about.html", loc: `${publicBaseUrl}/about` },
+  { route: "/contact", file: "contact.html", loc: `${publicBaseUrl}/contact` },
+  { route: "/checkout", file: "checkout.html", loc: `${publicBaseUrl}/checkout` }
 ];
 
 db.serialize(() => {
@@ -52,7 +53,7 @@ function sendMail({ to, subject, html, text }) {
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined
   });
   return transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER || "paul@sentinelprime.org",
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || "customerservice@sentinelprime.org",
     to,
     subject,
     html,
@@ -74,9 +75,9 @@ function createActivationCode(email) {
 async function sendActivationEmail(email, code) {
   return sendMail({
     to: email,
-    subject: "Your SentinelAI Pro Activation Code",
-    text: `Your SentinelAI Pro activation code is ${code}. Download SentinelAI, open setup, and enter this code to unlock Pro.`,
-    html: `<div style="font-family:Arial,sans-serif;background:#000005;color:#fff;padding:28px"><h1>Your SentinelAI Pro Activation Code</h1><p style="font-size:22px;letter-spacing:2px"><strong>${code}</strong></p><p>Download SentinelAI, open setup, and enter this code to unlock Pro.</p><p>No subscriptions. No cloud. No compromise.</p></div>`
+    subject: "Your Sentinel AI Lifetime Activation Code",
+    text: `Your Sentinel AI lifetime activation code is ${code}. Download Sentinel AI, open setup, and enter this code to activate your license.`,
+    html: `<div style="font-family:Arial,sans-serif;background:#000005;color:#fff;padding:28px"><h1>Your Sentinel AI Lifetime Activation Code</h1><p style="font-size:22px;letter-spacing:2px"><strong>${code}</strong></p><p>Download Sentinel AI, open setup, and enter this code to activate your license.</p><p>Your AI. Your machine. Your rules.</p></div>`
   });
 }
 
@@ -101,6 +102,11 @@ seoPages.forEach(page => {
     app.get(page.route, (req, res) => res.sendFile(path.join(__dirname, page.file)));
   }
 });
+
+app.get("/products", (req, res) => res.redirect(301, "/sentinel-ai"));
+app.get("/sentinelai", (req, res) => res.redirect(301, "/sentinel-ai"));
+app.get("/guardian", (req, res) => res.redirect(301, "/sentinel-ai#guardian"));
+app.get("/story", (req, res) => res.redirect(301, "/about"));
 
 app.get("/sitemap.xml", (req, res) => {
   res.type("application/xml");
@@ -130,11 +136,11 @@ app.post("/api/create-payment-intent", async (req, res) => {
   try {
     const { email } = req.body || {};
     const intent = await stripe.paymentIntents.create({
-      amount: 19900,
+      amount: 49900,
       currency: "usd",
       receipt_email: email || undefined,
       automatic_payment_methods: { enabled: true },
-      metadata: { product: "sentinelai-pro", email: email || "" }
+      metadata: { product: "sentinelai-lifetime", email: email || "" }
     });
     res.json({ clientSecret: intent.client_secret });
   } catch (error) {
@@ -190,7 +196,7 @@ app.post("/api/contact", async (req, res) => {
     [name, email, subject, message, new Date().toISOString()]
   );
   await sendMail({
-    to: process.env.CONTACT_TO || "paul@sentinelprime.org",
+    to: process.env.CONTACT_TO || "customerservice@sentinelprime.org",
     subject: `SentinelPrime Contact: ${subject}`,
     text: `${name} <${email}>\n\n${message}`,
     html: `<p><strong>${name}</strong> &lt;${email}&gt;</p><p>${String(message).replace(/\n/g, "<br>")}</p>`
@@ -206,7 +212,7 @@ app.post("/api/drive-notify", async (req, res) => {
     [email, new Date().toISOString()]
   );
   await sendMail({
-    to: process.env.CONTACT_TO || "paul@sentinelprime.org",
+    to: process.env.CONTACT_TO || "customerservice@sentinelprime.org",
     subject: "Sentinel Drive launch notification signup",
     text: `${email} wants to be notified about Sentinel Drive.`,
     html: `<p>${email} wants to be notified about Sentinel Drive.</p>`

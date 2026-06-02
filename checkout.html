@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout - Sentinel Prime</title>
-<meta name="description" content="Checkout for SentinelAI Pro, a $199 one-time purchase that unlocks the full local AI operating system.">
+<meta name="description" content="Checkout for Sentinel AI lifetime ownership. Pay once and own your AI forever.">
 <link rel="canonical" href="https://sentinelprime.org/checkout.html">
 <meta name="robots" content="noindex,follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
   <a class="logo" href="index.html">SENTINELPRIME</a>
   <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
   <div class="nav-links">
-    <a href="products.html">Products</a><a href="sentinel-drive.html">Sentinel Drive</a><a href="pricing.html">Pricing</a><a href="download.html">Download</a><a href="about.html">About</a><a href="contact.html">Contact</a><a class="nav-cta" href="checkout.html">Buy Pro &rarr;</a>
+    <a href="/sentinel-ai">Sentinel AI</a><a href="/sentinel-drive">Sentinel Drive</a><a href="/pricing">Pricing</a><a href="/download">Download</a><a href="/about">About</a><a href="/contact">Contact</a><a class="nav-cta" href="/download">Start Free Trial &rarr;</a>
   </div>
 </nav>
 
@@ -26,8 +26,8 @@
   <section class="page-hero">
     <div class="wrap narrow">
       <p class="eyebrow">Checkout</p>
-      <h1>SentinelAI Pro</h1>
-      <p class="lead">$199 one-time. Activation code delivered by email after purchase.</p>
+      <h1>Sentinel AI Lifetime</h1>
+      <p class="lead">$499 one-time. Own it forever. Activation code delivered by email.</p>
     </div>
   </section>
 
@@ -35,9 +35,9 @@
     <div class="wrap grid-2">
       <div class="panel">
         <p class="eyebrow">Order Summary</p>
-        <h2>SentinelAI Pro</h2>
-        <div class="price">$199</div>
-        <p class="copy">Includes all Pro integrations, proactive agents, smart home, market dashboard, messaging bridges, wake word voice activation, and all future Pro features.</p>
+        <h2>Lifetime Ownership</h2>
+        <div class="price">$499</div>
+        <p class="copy">Pay once. Never pay again. Includes all workers, integrations, and future updates.</p>
       </div>
       <div class="form-panel">
         <form id="checkoutForm">
@@ -53,9 +53,9 @@
 
 <footer>
   <div class="footer-links">
-    <a href="index.html">Home</a><a href="products.html">Products</a><a href="sentinel-drive.html">Sentinel Drive</a><a href="download.html">Download</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
+    <a href="/">Home</a><a href="/sentinel-ai">Sentinel AI</a><a href="/sentinel-drive">Sentinel Drive</a><a href="/download">Download</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/contact">Contact</a>
   </div>
-  <div>&copy; 2026 Sentinel Prime Inc. - paul@sentinelprime.org</div>
+  <div>&copy; 2026 Sentinel Prime Inc. - AI built for YOU</div>
 </footer>
 
 <script>
@@ -76,7 +76,7 @@ async function initCheckout() {
     const intent = await fetch("/api/create-payment-intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product: "sentinelai-pro", amount: 19900 })
+      body: JSON.stringify({ product: "sentinelai-lifetime", amount: 49900 })
     }).then(r => r.json());
     elements = stripe.elements({ clientSecret: intent.clientSecret });
     elements.create("payment").mount("#paymentElement");
