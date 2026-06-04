@@ -20,29 +20,9 @@
     });
   }
 
-  async function setupAccountNav() {
-    var navLinks = document.querySelector(".nav-links");
-    if (!navLinks || navLinks.querySelector("[data-account-link]")) return;
-    var account = document.createElement("a");
-    account.setAttribute("data-account-link", "true");
-    account.href = "/login";
-    account.textContent = "Login";
-    try {
-      var response = await fetch("/api/account", { credentials: "same-origin" });
-      if (response.ok) {
-        account.href = "/account";
-        account.textContent = "My Account";
-      }
-    } catch (_) {}
-    var cta = navLinks.querySelector(".nav-cta");
-    navLinks.insertBefore(account, cta || null);
-  }
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", setupMobileNav);
-    document.addEventListener("DOMContentLoaded", setupAccountNav);
   } else {
     setupMobileNav();
-    setupAccountNav();
   }
 })();

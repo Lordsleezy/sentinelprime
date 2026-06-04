@@ -1,7 +1,50 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Login - Sentinel Prime</title><meta name="robots" content="noindex,follow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="page.css"></head>
-<body><nav class="nav"><a class="logo" href="/">SENTINELPRIME</a><button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button><div class="nav-links"><a href="/pricing">Pricing</a><a href="/download">Download</a><a href="/contact">Contact</a><a class="nav-cta" href="/download">Start Free Trial &rarr;</a></div></nav>
-<main><section class="page-hero"><div class="wrap narrow"><p class="eyebrow">Account</p><h1>Your Sentinel account.</h1><p class="lead">Save your activation codes and subscription information. An account is optional.</p></div></section>
-<section class="section"><div class="wrap grid-2"><div class="form-panel"><div class="auth-tabs"><button class="button" data-tab="login">Login</button><button class="button secondary" data-tab="signup">Create Account</button></div><form id="loginForm"><input required type="email" name="email" placeholder="Email"><input required type="password" name="password" placeholder="Password"><button class="button" type="submit">Login</button><button class="button secondary" type="button" id="forgot">Forgot Password?</button></form><form id="signupForm" class="hidden"><input required name="full_name" placeholder="Name"><input required type="email" name="email" placeholder="Email"><input required minlength="8" type="password" name="password" placeholder="Password"><input required minlength="8" type="password" name="confirm" placeholder="Confirm password"><button class="button" type="submit">Create Account</button></form><div class="form-status" id="status"></div></div><div class="panel"><p class="eyebrow">Optional</p><h2>Use Sentinel without an account.</h2><p class="copy">Creating an account saves your activation code and subscription info. It is not required to use Sentinel AI.</p><div class="buttons"><a class="button secondary" href="/pricing">Continue Without Account &rarr;</a><a class="button secondary" href="/resend-code">Recover A Code</a></div></div></div></section></main>
-<footer><div class="footer-links"><a href="/">Home</a><a href="/pricing">Pricing</a><a href="/contact">Contact</a></div><div>&copy; 2026 Sentinel Prime Inc. - AI built for YOU</div></footer><script src="nav.js"></script><script>
-const statusEl=document.getElementById("status");const request=async(payload)=>{statusEl.textContent="Working...";const response=await fetch("/api/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(data.error||"Account request failed");return data};document.querySelectorAll("[data-tab]").forEach(button=>button.onclick=()=>{document.getElementById("loginForm").classList.toggle("hidden",button.dataset.tab!=="login");document.getElementById("signupForm").classList.toggle("hidden",button.dataset.tab!=="signup");statusEl.textContent=""});document.getElementById("loginForm").onsubmit=async event=>{event.preventDefault();try{await request({action:"login",...Object.fromEntries(new FormData(event.target))});location.href="/account"}catch(error){statusEl.textContent=error.message}};document.getElementById("signupForm").onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(event.target));if(values.password!==values.confirm){statusEl.textContent="Passwords do not match.";return}try{const data=await request({action:"signup",...values});statusEl.textContent=data.confirmationRequired?"Check your email to confirm your account.":"Account created."}catch(error){statusEl.textContent=error.message}};document.getElementById("forgot").onclick=async()=>{const email=document.querySelector("#loginForm [name=email]").value;if(!email){statusEl.textContent="Enter your email first.";return}try{await request({action:"forgot",email});statusEl.textContent="If that account exists, a reset email is on its way."}catch(error){statusEl.textContent=error.message}};
-</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Sentinel Prime</title>
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="logo" href="index.html">SENTINELPRIME</a>
+  <div class="nav-links">
+    <a href="signup.html">Sign up</a><a href="download.html">Download</a>
+  </div>
+</nav>
+<main>
+  <section class="section">
+    <div class="wrap narrow form-panel">
+      <h1>Login</h1>
+      <form id="loginForm">
+        <input required type="email" name="email" placeholder="Email">
+        <input required type="password" name="password" placeholder="Password">
+        <button class="button" type="submit">Login</button>
+        <div class="form-status" id="status"></div>
+      </form>
+      <p class="copy" style="margin-top:16px;"><a href="signup.html">Create account</a> · <a href="pricing.html">Purchase</a></p>
+    </div>
+  </section>
+</main>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const st = document.getElementById("status");
+  const body = Object.fromEntries(new FormData(e.target));
+  try {
+    const r = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Login failed");
+    localStorage.setItem("sentinel_user_id", d.user_id);
+    localStorage.setItem("sentinel_email", d.email);
+    location.href = "dashboard.html";
+  } catch (err) {
+    st.className = "form-status error";
+    st.textContent = err.message;
+  }
+});
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

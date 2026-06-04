@@ -1,3 +1,126 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin - Sentinel Prime</title><meta name="robots" content="noindex,nofollow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="page.css"></head><body><main><section class="page-hero"><div class="wrap narrow"><p class="eyebrow">Sentinel Prime Admin</p><h1>Activation control.</h1><p class="lead">Generate, inspect, and revoke Sentinel AI activation codes.</p></div></section><section class="section"><div class="wrap"><div class="form-panel" id="loginPanel"><p class="eyebrow">Admin Login</p><form id="adminLogin"><input required type="email" name="email" placeholder="Admin email"><input required type="password" name="password" placeholder="Password"><button class="button" type="submit">Login</button><button class="button secondary" id="forgot" type="button">Forgot Password?</button><div class="form-status" id="loginStatus"></div></form></div><div id="dashboard" class="hidden"><div class="grid-2"><div class="form-panel"><p class="eyebrow">Generate Code</p><form id="generate"><select required name="type"><option value="lifetime">Lifetime</option><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="gift">Gift</option><option value="admin">Admin</option></select><input type="email" name="email" placeholder="Customer email (optional)"><textarea name="notes" placeholder="Notes (optional)"></textarea><button class="button" type="submit">Generate Code</button><div class="form-status" id="generateStatus"></div></form></div><div class="panel"><p class="eyebrow">Stats</p><div id="stats" class="copy">Loading...</div></div></div><div class="panel" style="margin-top:20px"><p class="eyebrow">Recent Codes</p><button class="button mini-button" id="refresh">Refresh</button><div class="table-wrap"><table><thead><tr><th>Code</th><th>Type</th><th>Status</th><th>Email</th><th>Action</th></tr></thead><tbody id="codes"></tbody></table></div></div></div></div></section></main><footer><div>&copy; 2026 Sentinel Prime Inc. - Restricted Access</div></footer><script>
-const escapeHtml=value=>String(value||"").replace(/[&<>\"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));const loginPanel=document.getElementById("loginPanel"),dashboard=document.getElementById("dashboard"),loginStatus=document.getElementById("loginStatus"),generateStatus=document.getElementById("generateStatus");async function api(path,options={}){const response=await fetch(`/api/${path}`,{headers:{"Content-Type":"application/json"},...options});const data=await response.json();if(!response.ok)throw new Error(data.error||"Request failed");return data}async function refresh(){try{const data=await api("admin-codes");loginPanel.classList.add("hidden");dashboard.classList.remove("hidden");document.getElementById("stats").textContent=`Total codes: ${data.stats.total} | Active: ${data.stats.active} | Expired: ${data.stats.expired} | Monthly: ${data.stats.monthly} | Annual: ${data.stats.annual} | Lifetime: ${data.stats.lifetime}`;document.getElementById("codes").innerHTML=data.codes.map(code=>`<tr><td>${escapeHtml(code.code)}</td><td>${escapeHtml(code.type)}</td><td>${escapeHtml(code.status)}</td><td>${escapeHtml(code.email||"-")}</td><td>${["unused","active"].includes(code.status)?`<button class="button mini-button" data-revoke="${escapeHtml(code.id)}">Revoke</button>`:""}</td></tr>`).join("")||'<tr><td colspan="5">No codes yet.</td></tr>';document.querySelectorAll("[data-revoke]").forEach(button=>button.onclick=async()=>{await api("admin-revoke",{method:"POST",body:JSON.stringify({id:button.dataset.revoke})});refresh()})}catch(error){loginStatus.textContent=error.message}}document.getElementById("adminLogin").onsubmit=async event=>{event.preventDefault();try{await api("admin-login",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(event.target)))});refresh()}catch(error){loginStatus.textContent=error.message}};document.getElementById("forgot").onclick=async()=>{const email=document.querySelector("#adminLogin [name=email]").value;await api("admin-forgot-password",{method:"POST",body:JSON.stringify({email})});loginStatus.textContent="If the address matches the configured administrator, a reset email is on the way."};document.getElementById("generate").onsubmit=async event=>{event.preventDefault();try{const data=await api("admin-generate",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(event.target)))});generateStatus.textContent=`Generated: ${data.code}`;refresh()}catch(error){generateStatus.textContent=error.message}};document.getElementById("refresh").onclick=refresh;const resetToken=new URLSearchParams(location.search).get("reset");if(resetToken){const password=prompt("Enter a new admin password with at least 12 characters:");if(password)api("admin-reset-password",{method:"POST",body:JSON.stringify({token:resetToken,password})}).then(()=>loginStatus.textContent="Password updated. Login with the new password.").catch(error=>loginStatus.textContent=error.message)}refresh();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Sentinel Prime</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="page.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+.admin-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 24px 0; }
+.stat-card { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); border-radius: 8px; padding: 16px; }
+.stat-card h3 { margin: 0 0 8px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
+.stat-card p { margin: 0; font-size: 1.6rem; font-weight: 700; }
+.chart-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+.token-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.token-row input { flex: 1; min-width: 200px; padding: 10px 12px; background: #0a0a12; border: 1px solid #333; color: #fff; border-radius: 6px; }
+.error { color: #f66; margin-top: 12px; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="logo" href="index.html">SENTINELPRIME</a>
+  <div class="nav-links"><a href="index.html">Site</a></div>
+</nav>
+<main class="admin-wrap">
+  <p class="eyebrow">Internal</p>
+  <h1>Product analytics</h1>
+  <p class="copy">Downloads, installs, trials, conversions, and Stripe revenue. Requires admin token.</p>
+
+  <div class="token-row">
+    <input type="password" id="adminToken" placeholder="Admin token" autocomplete="off">
+    <button class="button" type="button" id="loadBtn">Load dashboard</button>
+  </div>
+  <div class="error" id="err" style="display:none;"></div>
+
+  <div id="dashboard" style="display:none;">
+    <div class="stat-grid">
+      <div class="stat-card"><h3>Total downloads</h3><p id="totalDownloads">—</p></div>
+      <div class="stat-card"><h3>Total installs</h3><p id="totalInstalls">—</p></div>
+      <div class="stat-card"><h3>Active trials (7d)</h3><p id="activeTrials">—</p></div>
+      <div class="stat-card"><h3>Converted (activated)</h3><p id="converted">—</p></div>
+      <div class="stat-card"><h3>Active subscriptions</h3><p id="activeSubs">—</p></div>
+      <div class="stat-card"><h3>Revenue (30d)</h3><p id="revenue">—</p></div>
+    </div>
+
+    <div class="chart-box">
+      <h2>Downloads (last 30 days)</h2>
+      <canvas id="downloadsChart" height="100"></canvas>
+    </div>
+    <div class="chart-box">
+      <h2>Installs (last 30 days)</h2>
+      <canvas id="installsChart" height="100"></canvas>
+    </div>
+  </div>
+</main>
+<script>
+let downloadsChart, installsChart;
+
+function showError(msg) {
+  const el = document.getElementById("err");
+  el.style.display = "block";
+  el.textContent = msg;
+}
+
+function makeChart(canvasId, label, daily, color) {
+  const ctx = document.getElementById(canvasId);
+  const labels = (daily || []).map(d => d.date);
+  const data = (daily || []).map(d => d.count);
+  return new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{ label, data, backgroundColor: color }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#888", maxTicksLimit: 10 } },
+        y: { ticks: { color: "#888" }, beginAtZero: true },
+      },
+    },
+  });
+}
+
+async function loadDashboard() {
+  const token = document.getElementById("adminToken").value.trim();
+  if (!token) { showError("Enter admin token."); return; }
+  sessionStorage.setItem("sentinel_admin_token", token);
+  document.getElementById("err").style.display = "none";
+
+  const res = await fetch("/api/admin/analytics", {
+    headers: { "x-admin-token": token },
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    showError(data.error || "Failed to load analytics");
+    return;
+  }
+
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("totalDownloads").textContent = data.downloads?.total ?? 0;
+  document.getElementById("totalInstalls").textContent = data.installs?.total ?? 0;
+  document.getElementById("activeTrials").textContent = data.active_trials ?? 0;
+  document.getElementById("converted").textContent = data.converted_users ?? 0;
+  document.getElementById("activeSubs").textContent = data.active_subscriptions ?? 0;
+  document.getElementById("revenue").textContent = "$" + (data.revenue_usd || "0.00");
+
+  if (downloadsChart) downloadsChart.destroy();
+  if (installsChart) installsChart.destroy();
+  downloadsChart = makeChart("downloadsChart", "Downloads", data.downloads?.daily, "rgba(0,255,136,0.5)");
+  installsChart = makeChart("installsChart", "Installs", data.installs?.daily, "rgba(100,180,255,0.5)");
+}
+
+document.getElementById("loadBtn").addEventListener("click", loadDashboard);
+const saved = sessionStorage.getItem("sentinel_admin_token");
+if (saved) {
+  document.getElementById("adminToken").value = saved;
+  loadDashboard();
+}
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

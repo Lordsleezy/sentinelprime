@@ -3,32 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>html, body { margin: 0; background: #000008; }</style>
-<title>SENTINEL PRIME - AI built for YOU</title>
-<meta name="description" content="AI built for YOU. SentinelAI is a local-first personal AI operating system with voice, memory, code, security, trading, smart home, and more running on your hardware.">
+<title>SENTINEL PRIME - The AI Operating System</title>
+<meta name="description" content="SentinelAI is a local-first personal AI operating system with voice, smart home, code repair, memory, finance, markets, and automation running on your hardware.">
 <link rel="canonical" href="https://sentinelprime.org/">
-<meta property="og:title" content="Sentinel Prime - AI built for YOU">
-<meta property="og:description" content="Your AI. Your machine. Your rules. SentinelAI is your private local AI operating system.">
+<meta property="og:title" content="Sentinel Prime - The AI Operating System">
+<meta property="og:description" content="The future runs locally. SentinelAI is your private local AI OS for work, home, code, memory, and automation.">
 <meta property="og:url" content="https://sentinelprime.org/">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
 <style>
 :root {
   --bg: #000005;
   --beam: #ffffff;
   --beam-glow: #a0d4ff;
   --star: #cce8ff;
+  --galaxy-core: #ff9944;
   --hud-blue: #00d4ff;
 }
 
@@ -44,14 +38,24 @@ body {
 }
 body.site-ready { overflow-y: auto; }
 
-#webgl-root {
+#galaxy-canvas {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  background: var(--bg);
+}
+
+.space-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
-  background: #000008;
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0 30%, rgba(0,0,5,0.18) 58%, rgba(0,0,5,0.76) 100%),
+    linear-gradient(180deg, rgba(0,0,5,0.04), rgba(0,0,5,0.42));
 }
 
 .intro {
@@ -89,6 +93,23 @@ body.site-ready { overflow-y: auto; }
   background:
     repeating-conic-gradient(from 0deg, rgba(255,255,255,0.96) 0deg 0.42deg, rgba(160,212,255,0.2) 0.7deg 1.3deg, transparent 1.55deg 4.2deg),
     radial-gradient(circle, #fff 0 1.8%, rgba(160,212,255,0.7) 4%, rgba(0,60,255,0.16) 18%, transparent 58%);
+}
+
+.intro-galaxy {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(150vmax, 1900px);
+  height: min(150vmax, 1900px);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.02) rotate(0deg);
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,1) 0 1.4%, rgba(255,153,68,0.95) 2.8%, rgba(255,153,68,0.26) 7%, transparent 16%),
+    repeating-conic-gradient(from 24deg, transparent 0deg 18deg, rgba(204,232,255,0.08) 19deg, rgba(204,232,255,0.36) 28deg, rgba(160,212,255,0.1) 38deg, transparent 54deg, transparent 88deg, rgba(255,153,68,0.08) 94deg, rgba(204,232,255,0.3) 103deg, transparent 124deg),
+    radial-gradient(ellipse at center, rgba(0,212,255,0.12) 0 28%, rgba(20,68,120,0.12) 45%, transparent 72%);
+  filter: drop-shadow(0 0 35px rgba(160,212,255,0.24));
 }
 
 .intro-title {
@@ -328,7 +349,7 @@ h1, h2 { margin: 0; }
   width: min(1000px, 100%);
   margin: 40px auto 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
@@ -501,14 +522,16 @@ footer {
 </style>
 </head>
 <body>
-<div id="webgl-root" aria-hidden="true"></div>
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
 
 <div class="intro" id="intro">
   <div class="intro-point" id="introPoint"></div>
   <div class="intro-burst" id="introBurst"></div>
+  <div class="intro-galaxy" id="introGalaxy"></div>
   <div class="intro-title" id="introTitle">
     <h1>SENTINEL PRIME</h1>
-    <p>Your AI. Your machine. Your rules.</p>
+    <p>The AI Operating System</p>
   </div>
 </div>
 
@@ -516,25 +539,25 @@ footer {
   <a class="logo" href="index.html">SENTINELPRIME</a>
   <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
   <div class="nav-links">
-    <a href="/sentinel-ai">Sentinel AI</a>
-    <a href="/sentinel-drive">Sentinel Drive</a>
+    <a href="products.html">Products</a>
+    <a href="sentinel-drive.html">Sentinel Drive</a>
     <a href="pricing.html">Pricing</a>
     <a href="download.html">Download</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
-    <a class="nav-cta" href="/download">Start Free Trial &rarr;</a>
+    <a class="nav-cta" href="checkout.html">Buy Pro &rarr;</a>
   </div>
 </nav>
 
 <main id="site">
   <section class="section hero" id="top">
     <div>
-      <p class="eyebrow">Your AI. Your machine. Your rules.</p>
-      <h1>AI built for YOU</h1>
-      <p class="sub">SentinelAI is a local-first personal AI operating system that runs entirely on your hardware. Voice, memory, code, security, trading, smart home, and more - all private, all yours.</p>
+      <p class="eyebrow">The AI Operating System</p>
+      <h1>The Future Runs Locally</h1>
+      <p class="sub">SentinelPrime is a private local AI ecosystem for workers, security, automation, memory, markets, smart home control, and real-world productivity.</p>
       <div class="buttons">
-        <a class="button" href="/download">Start Free Trial</a>
-        <a class="button" href="/sentinel-ai">See What It Does</a>
+        <a class="button" href="download.html">Download</a>
+        <a class="button" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">View GitHub</a>
       </div>
     </div>
   </section>
@@ -542,75 +565,62 @@ footer {
   <section class="section" id="sentinel">
     <div class="content-grid">
       <div class="info-panel">
-        <p class="eyebrow">Sentinel AI</p>
-        <h2 class="section-title">One AI. Every part of your life.</h2>
+        <p class="eyebrow">What Is SentinelAI</p>
+        <h2 class="section-title">Meet Sentinel - Your Personal AI Operating System</h2>
       </div>
       <div class="info-panel body-copy">
-        <p>Sentinel is your personal AI operating system. Ask it anything. Build anything. Control everything.</p>
-        <p>It routes your request to the right worker automatically - security, code, markets, memory, smart home, or something entirely new.</p>
-        <p>It consults Claude and ChatGPT when it needs to think harder (Claude and/or ChatGPT subscription required). It remembers everything. It runs on your machine.</p>
+        <p>SentinelAI is a local-first AI assistant and automation platform that runs entirely on your own hardware. It gives you a personal AI operating system without renting your life back from a cloud subscription.</p>
+        <p>You talk to Sentinel through an orb interface. Ask for what you need, and the system routes your request to the right worker automatically: search, code, repair, organize, monitor, summarize, automate, or build something new.</p>
+        <p>Sentinel can control your smart home, manage your calendar, track your finances, trade markets in paper mode, write and repair code, monitor your health data, capture memory and notes, and more.</p>
+        <p>Everything runs on your machine. No subscriptions. No cloud requirement. Your data never leaves unless you explicitly connect an integration that needs the internet.</p>
       </div>
     </div>
     <div class="feature-grid">
-      <article class="feature-card"><h3>Think</h3><p>Consults Claude and ChatGPT on your behalf. Merges their answers. Builds with the result. You stay in control.</p></article>
-      <article class="feature-card"><h3>Defend</h3><p>Guardian is built in. Scan, attack, defend, and run forensics with your local security AI.</p></article>
-      <article class="feature-card"><h3>Build</h3><p>Tell Sentinel what you want. It plans, builds with Aider and Ollama, fixes errors, and delivers working software.</p></article>
-      <article class="feature-card"><h3>Trade</h3><p>Paper trading with XGBoost signals, NautilusTrader data feeds, and real-time market data.</p></article>
-      <article class="feature-card"><h3>Remember</h3><p>Syncs your Claude and ChatGPT history into three-layer memory that never forgets.</p></article>
+      <article class="feature-card"><h3>Voice Control</h3><p>Wake word and voice workflows built around the Sentinel orb.</p></article>
+      <article class="feature-card"><h3>Smart Home</h3><p>Control lights, locks, cameras, thermostats, and routines.</p></article>
+      <article class="feature-card"><h3>Code & Repair</h3><p>Forge writes code, fixes bugs, and extends the system.</p></article>
+      <article class="feature-card"><h3>Market & Automate</h3><p>Run paper trading dashboards and local automation workflows.</p></article>
+      <article class="feature-card"><h3>Memory & Notes</h3><p>Local memory vault and Obsidian-compatible notes.</p></article>
+      <article class="feature-card"><h3>Health & Finance</h3><p>Bring wearables, budgets, and personal signals into one private OS.</p></article>
     </div>
-    <div class="buttons"><a class="button" href="/sentinel-ai">See Everything Sentinel Can Do</a></div>
   </section>
 
   <section class="section">
     <div class="stats-strip">
-      <div class="stat"><div><strong>15+</strong><span>AI WORKERS</span></div></div>
+      <div class="stat"><div><strong>6</strong><span>AI WORKERS</span></div></div>
       <div class="stat"><div><strong>100%</strong><span>LOCAL</span></div></div>
-      <div class="stat"><div><strong>0</strong><span>DATA HARVESTED</span></div></div>
-      <div class="stat"><div><strong>7-DAY</strong><span>FREE TRIAL</span></div></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="content-grid">
-      <div class="info-panel">
-        <p class="eyebrow">Sentinel Drive</p>
-        <h2 class="section-title">Take it with you.</h2>
-        <p class="section-copy">Sentinel Drive is your encrypted portable AI workspace. Your vault, your tools, your private browser - on a device you carry. Plug in anywhere, leave no trace.</p>
-      </div>
-      <div class="info-panel body-copy">
-        <p>Encrypted portable SentinelAI workspace</p>
-        <p>Private vault and browser</p>
-        <p>Securely auto-fills website logins when plugged into your device</p>
-        <p>Hardware-aware model routing</p>
-        <p>Works on iOS, Android, Windows, macOS, iPadOS, and Linux</p>
-        <p>No cloud, no accounts, no trace</p>
-        <div class="buttons"><a class="button" href="/sentinel-drive">Learn More</a><a class="button" href="/sentinel-drive#notify">Join Waitlist</a></div>
-      </div>
+      <div class="stat"><div><strong>0</strong><span>CLOUD REQUIRED</span></div></div>
+      <div class="stat"><div><strong>FREE</strong><span>TIER AVAILABLE</span></div></div>
     </div>
   </section>
 
   <section class="section">
     <div>
-      <p class="eyebrow" style="text-align:center">Pricing</p>
-      <h2 class="section-title" style="text-align:center">Start free. Own it forever.</h2>
-      <p class="section-copy" style="text-align:center">7-day free trial. No credit card required.</p>
+      <p class="eyebrow" style="text-align:center">Choose Your Tier</p>
+      <h2 class="section-title" style="text-align:center">Start free. Unlock the full local OS when ready.</h2>
       <div class="tier-grid">
-        <article class="tier-card"><h3>Monthly - $14.99/mo</h3><p>Full access. Cancel anytime.</p><div class="buttons"><a class="button" href="/download">Start Free Trial</a></div></article>
-        <article class="tier-card"><h3>Annual - $99/yr</h3><p>Save $81 vs monthly. Best for committed users.</p><div class="buttons"><a class="button" href="/download">Start Free Trial</a></div></article>
-        <article class="tier-card"><h3>Lifetime - $499</h3><p>Own it forever. Pay once, never again.</p><div class="buttons"><a class="button" href="/checkout">Buy Lifetime</a></div></article>
+        <article class="tier-card">
+          <h3>Free Tier</h3>
+          <p>Core orb interface, Forge, memory, web search, calendar, notes, and local automations.</p>
+          <div class="buttons"><a class="button" href="pricing.html">Compare Tiers</a></div>
+        </article>
+        <article class="tier-card">
+          <h3>Pro - $199 One-Time</h3>
+          <p>All integrations, market dashboard, smart home, voice activation, messaging bridges, proactive agents, and priority support.</p>
+          <div class="buttons"><a class="button" href="pricing.html">See Pro</a></div>
+        </article>
       </div>
-      <p class="section-copy" style="text-align:center">All plans include a 7-day free trial with full access. No credit card required to start.</p>
     </div>
   </section>
 
   <section class="section final" id="download">
     <div>
-      <p class="eyebrow">Your AI. Your machine. Your rules.</p>
-      <h2>AI built for YOU</h2>
-      <p>No subscriptions required to start. No data harvested. No cloud dependency. Just your AI, on your machine.</p>
+      <p class="eyebrow">Launch Locally</p>
+      <h2>The Future Runs Locally</h2>
+      <p>No subscriptions. No cloud. No compromise.</p>
       <div class="buttons">
-        <a class="button" href="/download">Start Free Trial</a>
-        <a class="button" href="/sentinel-ai">See Sentinel AI</a>
+        <a class="button" href="download.html">Download Free</a>
+        <a class="button" href="checkout.html">Buy Pro &rarr;</a>
       </div>
     </div>
   </section>
@@ -618,22 +628,22 @@ footer {
 
 <footer id="footer">
   <div class="footer-links">
-    <a href="/">Home</a>
-    <a href="/sentinel-ai">Sentinel AI</a>
-    <a href="/sentinel-drive">Sentinel Drive</a>
-    <a href="/download">Download</a>
-    <a href="/pricing">Pricing</a>
-    <a href="/about">About</a>
-    <a href="/contact">Contact</a>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="sentinel-drive.html">Sentinel Drive</a>
+    <a href="download.html">Download</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
   </div>
-  <div>&copy; 2026 Sentinel Prime Inc. - AI built for YOU</div>
+  <div>&copy; 2026 Sentinel Prime Inc. - paul@sentinelprime.org</div>
 </footer>
 
 <script>
 (function () {
   "use strict";
-  if (!window.gsap || !window.ScrollTrigger) {
-    document.getElementById("webgl-root").style.background = "#000008";
+  if (!window.THREE || !window.gsap || !window.ScrollTrigger) {
     document.body.classList.add("site-ready");
     document.getElementById("intro").style.display = "none";
     document.getElementById("site").style.opacity = "1";
@@ -644,11 +654,126 @@ footer {
 
   gsap.registerPlugin(ScrollTrigger);
 
+  var isMobile = window.matchMedia("(max-width: 800px)").matches;
+  var canvas = document.getElementById("galaxy-canvas");
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 6000);
+  camera.position.z = 980;
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000005, 1);
+
+  var mouse = { x: 0, y: 0 };
+  var target = { x: 0, y: 0 };
+  var introComplete = false;
+
+  function makeGlowTexture(inner, outer) {
+    var c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 256;
+    var ctx = c.getContext("2d");
+    var g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0, inner);
+    g.addColorStop(0.18, inner);
+    g.addColorStop(0.48, outer);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  var galaxy = new THREE.Group();
+  scene.add(galaxy);
+
+  var count = isMobile ? 6500 : 18000;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  var col = new Float32Array(count * 3);
+  var core = new THREE.Color(0xff9944);
+  var white = new THREE.Color(0xffffff);
+  var blue = new THREE.Color(0xcce8ff);
+  var deep = new THREE.Color(0x214a86);
+
+  for (var i = 0; i < count; i++) {
+    var arm = i % 4;
+    var radius = Math.pow(Math.random(), 0.54) * 960;
+    var coreParticle = Math.random() < 0.18;
+    if (coreParticle) radius = Math.pow(Math.random(), 2.7) * 150;
+    var angle = arm * Math.PI * 0.5 + radius * 0.014 + (Math.random() - 0.5) * (coreParticle ? 1.2 : 0.32);
+    var height = (Math.random() - 0.5) * (coreParticle ? 40 : 86) * (1 - Math.min(radius / 1100, 0.85));
+    pos[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 24;
+    pos[i * 3 + 1] = height;
+    pos[i * 3 + 2] = Math.sin(angle) * radius + (Math.random() - 0.5) * 24;
+    var c = coreParticle || radius < 120
+      ? white.clone().lerp(core, Math.random() * 0.78)
+      : (radius < 560 ? blue.clone().lerp(white, Math.random() * 0.25) : deep.clone().lerp(blue, Math.random() * 0.45));
+    col[i * 3] = c.r;
+    col[i * 3 + 1] = c.g;
+    col[i * 3 + 2] = c.b;
+  }
+
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  var mat = new THREE.PointsMaterial({
+    size: isMobile ? 1.55 : 1.9,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  var points = new THREE.Points(geo, mat);
+  galaxy.add(points);
+
+  function addGlow(texture, size, opacity) {
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      opacity: opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    }));
+    sprite.scale.set(size, size, 1);
+    galaxy.add(sprite);
+  }
+  addGlow(makeGlowTexture("rgba(255,235,170,1)", "rgba(255,153,68,0.14)"), 440, 0.95);
+  addGlow(makeGlowTexture("rgba(160,212,255,0.75)", "rgba(0,80,255,0.1)"), 1350, 0.22);
+
+  var starCount = isMobile ? 1100 : 2600;
+  var starGeo = new THREE.BufferGeometry();
+  var starPos = new Float32Array(starCount * 3);
+  var starCol = new Float32Array(starCount * 3);
+  for (var s = 0; s < starCount; s++) {
+    starPos[s * 3] = (Math.random() - 0.5) * 4200;
+    starPos[s * 3 + 1] = (Math.random() - 0.5) * 2600;
+    starPos[s * 3 + 2] = -1400 - Math.random() * 2200;
+    starCol[s * 3] = 0.8 + Math.random() * 0.2;
+    starCol[s * 3 + 1] = 0.9 + Math.random() * 0.1;
+    starCol[s * 3 + 2] = 1;
+  }
+  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+  starGeo.setAttribute("color", new THREE.BufferAttribute(starCol, 3));
+  var stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+    size: 1.4,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  }));
+  scene.add(stars);
+
+  galaxy.scale.setScalar(0.03);
+  galaxy.rotation.x = 1.04;
+
   function runIntro() {
     var tl = gsap.timeline({
       defaults: { ease: "power3.out" },
       onComplete: function () {
-        document.getElementById("webgl-root").style.background = "#000008";
+        introComplete = true;
+        galaxy.scale.setScalar(0.24);
+        camera.position.z = 980;
         document.body.classList.add("site-ready");
         gsap.set("#intro", { display: "none" });
         ScrollTrigger.refresh();
@@ -657,6 +782,10 @@ footer {
     tl.to("#introPoint", { scale: 18, duration: 0.75, ease: "expo.in" });
     tl.to("#introPoint", { scale: 500, opacity: 0, duration: 0.38, ease: "power4.in" }, "-=0.08");
     tl.to("#introBurst", { opacity: 1, scale: 1.2, rotate: 38, duration: 0.7, ease: "expo.out" }, "-=0.22");
+    tl.to(stars.material, { opacity: 0.82, duration: 0.8 }, "-=0.55");
+    tl.to(mat, { opacity: 1, duration: 0.85 }, "-=0.52");
+    tl.to(galaxy.scale, { x: 0.24, y: 0.24, z: 0.24, duration: 1.25, ease: "expo.out" }, "-=0.65");
+    tl.to("#introGalaxy", { opacity: 1, scale: 1, rotate: 120, duration: 1.1, ease: "expo.out" }, "-=1.05");
     tl.to("#introBurst", { opacity: 0, scale: 1.55, duration: 0.8 }, "-=0.32");
     tl.to("#introTitle", { opacity: 1, y: -8, duration: 0.75 }, "-=0.45");
     tl.to(["#site", "#nav", "#footer"], { opacity: 1, duration: 0.95, stagger: 0.08 }, "+=0.25");
@@ -676,15 +805,42 @@ footer {
 
   }
 
+  function render() {
+    galaxy.rotation.z += 0.00145;
+    if (introComplete) {
+      var maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      var p = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+      var scrollScale = 0.24 + p * 1.06;
+      galaxy.scale.setScalar(scrollScale);
+      camera.position.z = 980 - p * 220;
+    }
+    target.x += (mouse.x - target.x) * 0.045;
+    target.y += (mouse.y - target.y) * 0.045;
+    if (!isMobile) {
+      galaxy.rotation.y = target.x * 0.18;
+      galaxy.rotation.x = 1.04 + target.y * 0.14;
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+  }
+
+  window.addEventListener("mousemove", function (event) {
+    mouse.x = (event.clientX / window.innerWidth - 0.5) * 2;
+    mouse.y = (event.clientY / window.innerHeight - 0.5) * -2;
+  }, { passive: true });
+
   window.addEventListener("resize", function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
     ScrollTrigger.refresh();
   });
 
   scrollMotion();
+  render();
   runIntro();
 })();
 </script>
-<script type="module" src="js/index-tesseract.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>
