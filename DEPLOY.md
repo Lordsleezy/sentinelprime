@@ -24,15 +24,11 @@ STRIPE_PRICE_LIFETIME
 RESEND_API_KEY
 RESEND_FROM
 ADMIN_EMAIL
-ADMIN_PASSWORD_HASH
+ADMIN_PASSWORD
 SITE_URL=https://sentinelprime.org
 ```
 
-Generate the initial administrator password hash locally. Do not commit the password or hash:
-
-```powershell
-node -e "const bcrypt=require('bcryptjs'); bcrypt.hash(process.argv[1],12).then(console.log)" "your-long-admin-password"
-```
+Use a long, random `ADMIN_PASSWORD`. Do not commit it to the repository.
 
 ## Stripe Setup
 

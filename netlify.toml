@@ -9,6 +9,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/:splat"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/admin"
   to = "/admin.html"
   status = 200
