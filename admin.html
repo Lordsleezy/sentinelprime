@@ -27,10 +27,11 @@
 <main class="admin-wrap">
   <p class="eyebrow">Internal</p>
   <h1>Product analytics</h1>
-  <p class="copy">Downloads, installs, trials, conversions, and Stripe revenue. Requires admin token.</p>
+  <p class="copy">Downloads, installs, trials, conversions, and Stripe revenue. Requires admin login.</p>
 
   <div class="token-row">
-    <input type="password" id="adminToken" placeholder="Admin token" autocomplete="off">
+    <input type="email" id="adminEmail" placeholder="Admin email" autocomplete="username">
+    <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="current-password">
     <button class="button" type="button" id="loadBtn">Load dashboard</button>
   </div>
   <div class="error" id="err" style="display:none;"></div>
@@ -86,14 +87,24 @@ function makeChart(canvasId, label, daily, color) {
 }
 
 async function loadDashboard() {
-  const token = document.getElementById("adminToken").value.trim();
-  if (!token) { showError("Enter admin token."); return; }
-  sessionStorage.setItem("sentinel_admin_token", token);
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  if (!email || !password) { showError("Enter admin email and password."); return; }
+  sessionStorage.setItem("sentinel_admin_email", email);
   document.getElementById("err").style.display = "none";
 
-  const res = await fetch("/api/admin/analytics", {
-    headers: { "x-admin-token": token },
+  const loginRes = await fetch("/api/admin-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
   });
+  const loginData = await loginRes.json().catch(() => ({}));
+  if (!loginRes.ok) {
+    showError(loginData.error || "Admin login failed");
+    return;
+  }
+
+  const res = await fetch("/api/admin/analytics", { credentials: "same-origin" });
   const data = await res.json();
   if (!res.ok) {
     showError(data.error || "Failed to load analytics");
@@ -115,11 +126,8 @@ async function loadDashboard() {
 }
 
 document.getElementById("loadBtn").addEventListener("click", loadDashboard);
-const saved = sessionStorage.getItem("sentinel_admin_token");
-if (saved) {
-  document.getElementById("adminToken").value = saved;
-  loadDashboard();
-}
+const savedEmail = sessionStorage.getItem("sentinel_admin_email");
+if (savedEmail) document.getElementById("adminEmail").value = savedEmail;
 </script>
 <script src="nav.js"></script>
 </body>
