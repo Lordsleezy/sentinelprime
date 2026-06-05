@@ -1,12 +1,16 @@
 const { createClient } = require("@supabase/supabase-js");
 
 function configured() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+  return Boolean(process.env.SUPABASE_URL && serviceKey());
+}
+
+function serviceKey() {
+  return process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 function createServiceClient() {
   if (!configured()) throw new Error("Supabase is not configured");
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+  return createClient(process.env.SUPABASE_URL, serviceKey(), {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
