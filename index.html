@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SENTINEL PRIME - The AI Operating System</title>
-<meta name="description" content="SentinelAI is a local-first personal AI operating system with voice, smart home, code repair, memory, finance, markets, and automation running on your hardware.">
+<title>Sentinel Prime - One AI. Every capability.</title>
+<meta name="description" content="Sentinel Prime is a local-first, privacy-first AI that routes your intent to the right capability without manual switching.">
 <link rel="canonical" href="https://sentinelprime.org/">
-<meta property="og:title" content="Sentinel Prime - The AI Operating System">
-<meta property="og:description" content="The future runs locally. SentinelAI is your private local AI OS for work, home, code, memory, and automation.">
+<meta property="og:title" content="Sentinel Prime - One AI. Every capability.">
+<meta property="og:description" content="Local-first. Privacy-first. Autonomous. Sentinel routes your intent to the right capability.">
 <meta property="og:url" content="https://sentinelprime.org/">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -519,6 +519,492 @@ footer {
   .stats { grid-template-columns: 1fr; }
   .section { padding: 110px 20px; }
 }
+
+/* Sentinel Prime beta landing page. The intro above is intentionally preserved. */
+:root {
+  --prime-cyan: #00dcc8;
+  --prime-text: #ffffff;
+  --prime-muted: rgba(255,255,255,0.45);
+  --prime-border: rgba(0,220,200,0.2);
+  --prime-hover: rgba(0,220,200,0.06);
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.nav {
+  padding: 18px clamp(18px, 4vw, 64px);
+  background: rgba(0,0,0,0.85);
+  border-bottom: 1px solid rgba(0,220,200,0.14);
+}
+
+.brand-lockup,
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--prime-text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2.5px;
+}
+
+.prime-orb {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  position: relative;
+  flex: 0 0 auto;
+  background:
+    radial-gradient(circle at 42% 38%, #eaffff 0 6%, var(--prime-cyan) 7% 20%, rgba(0,220,200,0.24) 42%, transparent 66%),
+    radial-gradient(circle, rgba(0,220,200,0.35), transparent 68%);
+  box-shadow: 0 0 26px rgba(0,220,200,0.55);
+}
+
+.prime-orb::before,
+.prime-orb::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(0,220,200,0.75);
+  border-radius: 50%;
+  transform: rotateX(64deg) rotateZ(-25deg);
+}
+
+.prime-orb::after {
+  transform: rotateX(64deg) rotateZ(62deg);
+  opacity: 0.55;
+}
+
+.nav-links {
+  gap: clamp(14px, 2.5vw, 34px);
+}
+
+.nav-links a {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+}
+
+.nav-links .beta-link {
+  color: var(--prime-cyan);
+}
+
+.nav-links .nav-cta {
+  color: #001817;
+  background: var(--prime-cyan);
+  border-color: var(--prime-cyan);
+}
+
+.prime-main {
+  color: var(--prime-text);
+}
+
+.prime-section {
+  min-height: auto;
+  display: block;
+  padding: clamp(78px, 10vw, 132px) clamp(18px, 4vw, 64px);
+  border-bottom: 1px solid rgba(255,255,255,0.055);
+}
+
+.prime-wrap {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+.prime-hero {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding-top: 110px;
+}
+
+.prime-hero-inner {
+  width: min(880px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+}
+
+.prime-hero-orb {
+  width: clamp(190px, 30vw, 310px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  position: relative;
+  background:
+    radial-gradient(circle at 45% 38%, #f7ffff 0 4%, #84fff2 5% 13%, rgba(0,220,200,0.92) 20%, rgba(0,220,200,0.14) 52%, transparent 70%);
+  box-shadow: 0 0 72px rgba(0,220,200,0.55), inset 0 0 52px rgba(255,255,255,0.12);
+  animation: primePulse 3.5s ease-in-out infinite;
+}
+
+.prime-hero-orb::before,
+.prime-hero-orb::after {
+  content: "";
+  position: absolute;
+  inset: 13%;
+  border: 1px solid rgba(0,220,200,0.75);
+  border-radius: 50%;
+  animation: primeOrbit 7s linear infinite;
+}
+
+.prime-hero-orb::before {
+  transform: rotateX(68deg) rotateZ(20deg);
+}
+
+.prime-hero-orb::after {
+  inset: 5%;
+  opacity: 0.55;
+  animation-duration: 11s;
+  animation-direction: reverse;
+}
+
+@keyframes primePulse {
+  0%, 100% { filter: brightness(0.92); transform: scale(0.985); }
+  50% { filter: brightness(1.2); transform: scale(1.015); }
+}
+
+@keyframes primeOrbit {
+  to { rotate: 360deg; }
+}
+
+.prime-label {
+  margin-bottom: 18px;
+  color: var(--prime-cyan);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.prime-main h1,
+.prime-main h2,
+.prime-main h3,
+.prime-main p {
+  margin: 0;
+}
+
+.prime-main h1,
+.prime-main h2 {
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.prime-main h1 {
+  font-size: clamp(42px, 8vw, 92px);
+  line-height: 0.96;
+}
+
+.prime-main h2 {
+  max-width: 760px;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.02;
+}
+
+.prime-main h3 {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.prime-main p {
+  color: var(--prime-muted);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+.prime-lead {
+  max-width: 760px;
+  font-size: clamp(16px, 2vw, 20px);
+}
+
+.prime-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.prime-btn {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.prime-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0,220,200,0.18);
+}
+
+.prime-btn--primary {
+  background: var(--prime-cyan);
+  color: #001817;
+  border: 1px solid var(--prime-cyan);
+}
+
+.prime-btn--secondary {
+  background: transparent;
+  color: var(--prime-text);
+  border: 1px solid var(--prime-border);
+}
+
+.prime-head {
+  margin-bottom: 34px;
+}
+
+.prime-grid,
+.prime-pricing,
+.prime-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.prime-card,
+.prime-step,
+.prime-price {
+  border: 1px solid var(--prime-border);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.025);
+  transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.prime-card {
+  min-height: 180px;
+  padding: 24px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.prime-card:hover,
+.prime-price:hover {
+  transform: translateY(-5px);
+  background: var(--prime-hover);
+  border-color: rgba(0,220,200,0.6);
+  box-shadow: 0 18px 42px rgba(0,220,200,0.08);
+}
+
+.prime-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0,220,200,0.34);
+  border-radius: 6px;
+  color: var(--prime-cyan);
+  background: rgba(0,220,200,0.04);
+}
+
+.prime-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prime-steps {
+  position: relative;
+  gap: 18px;
+}
+
+.prime-steps::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 42px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--prime-cyan), transparent);
+  opacity: 0.6;
+}
+
+.prime-step {
+  min-height: 180px;
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  position: relative;
+  background: #020606;
+}
+
+.prime-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #001817;
+  background: var(--prime-cyan);
+  font-size: 13px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.prime-price {
+  min-height: 320px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.prime-price--featured {
+  border-color: var(--prime-cyan);
+  box-shadow: 0 0 38px rgba(0,220,200,0.12);
+}
+
+.prime-badge {
+  align-self: flex-end;
+  color: #001817;
+  background: var(--prime-cyan);
+  border-radius: 4px;
+  padding: 7px 10px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.prime-amount {
+  color: var(--prime-text);
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.prime-price .prime-btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+.prime-beta {
+  text-align: center;
+  background: linear-gradient(180deg, rgba(0,220,200,0.05), transparent 38%), #000;
+}
+
+.prime-beta-box {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+}
+
+.prime-download {
+  min-height: 58px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+
+.prime-requirements {
+  width: min(700px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  text-align: left;
+}
+
+.prime-requirements div {
+  border: 1px solid rgba(0,220,200,0.14);
+  border-radius: 6px;
+  padding: 14px 16px;
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.02);
+}
+
+.prime-notes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  color: var(--prime-muted);
+  font-size: 13px;
+}
+
+.prime-footer {
+  padding: 42px clamp(18px, 4vw, 64px) 28px;
+  text-align: left;
+}
+
+.prime-footer-row {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.prime-footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.prime-footer-links a,
+.prime-copy {
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.prime-bottom {
+  width: min(1160px, 100%);
+  margin: 28px auto 0;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.38);
+  font-size: 13px;
+}
+
+@media (max-width: 820px) {
+  .nav {
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
+
+  .prime-grid,
+  .prime-pricing,
+  .prime-steps,
+  .prime-requirements {
+    grid-template-columns: 1fr;
+  }
+
+  .prime-steps::before {
+    display: none;
+  }
+
+  .prime-footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .prime-btn {
+    width: min(100%, 320px);
+  }
+
+  .prime-download {
+    white-space: normal;
+    text-align: center;
+  }
+}
 </style>
 </head>
 <body>
@@ -536,108 +1022,104 @@ footer {
 </div>
 
 <nav class="nav" id="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
+  <a class="brand-lockup" href="#top" aria-label="Sentinel Prime home"><span class="prime-orb" aria-hidden="true"></span><span>SENTINEL PRIME</span></a>
   <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
   <div class="nav-links">
-    <a href="products.html">Products</a>
-    <a href="sentinel-drive.html">Sentinel Drive</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="download.html">Download</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a class="nav-cta" href="checkout.html">Buy Pro &rarr;</a>
+    <a href="#capabilities">Capabilities</a>
+    <a href="#pricing">Pricing</a>
+    <a class="beta-link" href="#beta">Beta</a>
+    <a href="#about">About</a>
+    <a class="nav-cta" href="#beta">Download</a>
   </div>
 </nav>
 
-<main id="site">
-  <section class="section hero" id="top">
-    <div>
-      <p class="eyebrow">The AI Operating System</p>
-      <h1>The Future Runs Locally</h1>
-      <p class="sub">SentinelPrime is a private local AI ecosystem for workers, security, automation, memory, markets, smart home control, and real-world productivity.</p>
-      <div class="buttons">
-        <a class="button" href="download.html">Download</a>
-        <a class="button" href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">View GitHub</a>
+<main id="site" class="prime-main">
+  <section class="prime-section prime-hero" id="top">
+    <div class="prime-hero-inner">
+      <div class="prime-hero-orb" aria-hidden="true"></div>
+      <h1>One AI. Every capability.</h1>
+      <p class="prime-lead">Local-first. Privacy-first. Autonomous. Sentinel routes your intent to the right capability - no manual switching.</p>
+      <div class="prime-actions">
+        <a class="prime-btn prime-btn--primary" href="#beta">Download Beta</a>
+        <a class="prime-btn prime-btn--secondary" href="#capabilities">See capabilities</a>
       </div>
     </div>
   </section>
 
-  <section class="section" id="sentinel">
-    <div class="content-grid">
-      <div class="info-panel">
-        <p class="eyebrow">What Is SentinelAI</p>
-        <h2 class="section-title">Meet Sentinel - Your Personal AI Operating System</h2>
+  <section class="prime-section" id="capabilities">
+    <div class="prime-wrap">
+      <div class="prime-head">
+        <div class="prime-label">What Sentinel does</div>
+        <h2>One interface. Every capability.</h2>
       </div>
-      <div class="info-panel body-copy">
-        <p>SentinelAI is a local-first AI assistant and automation platform that runs entirely on your own hardware. It gives you a personal AI operating system without renting your life back from a cloud subscription.</p>
-        <p>You talk to Sentinel through an orb interface. Ask for what you need, and the system routes your request to the right worker automatically: search, code, repair, organize, monitor, summarize, automate, or build something new.</p>
-        <p>Sentinel can control your smart home, manage your calendar, track your finances, trade markets in paper mode, write and repair code, monitor your health data, capture memory and notes, and more.</p>
-        <p>Everything runs on your machine. No subscriptions. No cloud requirement. Your data never leaves unless you explicitly connect an integration that needs the internet.</p>
-      </div>
-    </div>
-    <div class="feature-grid">
-      <article class="feature-card"><h3>Voice Control</h3><p>Wake word and voice workflows built around the Sentinel orb.</p></article>
-      <article class="feature-card"><h3>Smart Home</h3><p>Control lights, locks, cameras, thermostats, and routines.</p></article>
-      <article class="feature-card"><h3>Code & Repair</h3><p>Forge writes code, fixes bugs, and extends the system.</p></article>
-      <article class="feature-card"><h3>Market & Automate</h3><p>Run paper trading dashboards and local automation workflows.</p></article>
-      <article class="feature-card"><h3>Memory & Notes</h3><p>Local memory vault and Obsidian-compatible notes.</p></article>
-      <article class="feature-card"><h3>Health & Finance</h3><p>Bring wearables, budgets, and personal signals into one private OS.</p></article>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="stats-strip">
-      <div class="stat"><div><strong>6</strong><span>AI WORKERS</span></div></div>
-      <div class="stat"><div><strong>100%</strong><span>LOCAL</span></div></div>
-      <div class="stat"><div><strong>0</strong><span>CLOUD REQUIRED</span></div></div>
-      <div class="stat"><div><strong>FREE</strong><span>TIER AVAILABLE</span></div></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div>
-      <p class="eyebrow" style="text-align:center">Choose Your Tier</p>
-      <h2 class="section-title" style="text-align:center">Start free. Unlock the full local OS when ready.</h2>
-      <div class="tier-grid">
-        <article class="tier-card">
-          <h3>Free Tier</h3>
-          <p>Core orb interface, Forge, memory, web search, calendar, notes, and local automations.</p>
-          <div class="buttons"><a class="button" href="pricing.html">Compare Tiers</a></div>
-        </article>
-        <article class="tier-card">
-          <h3>Pro - $199 One-Time</h3>
-          <p>All integrations, market dashboard, smart home, voice activation, messaging bridges, proactive agents, and priority support.</p>
-          <div class="buttons"><a class="button" href="pricing.html">See Pro</a></div>
-        </article>
+      <div class="prime-grid">
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></div><h3>Chat</h3><p>Persistent memory across every conversation.</p></article>
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M4 20h7a3 3 0 0 0 3-3v-3H9a3 3 0 0 0-3 3v3"/></svg></div><h3>Builder</h3><p>Full project scaffolding and launch verification.</p></article>
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V7z"/><path d="M9 12l2 2 4-5"/></svg></div><h3>Guardian</h3><p>Offensive security and attack surface mapping.</p></article>
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 0 0-7 7v5a3 3 0 0 0 3 3h1v-8H5"/><path d="M12 5a7 7 0 0 1 7 7v5a3 3 0 0 1-3 3h-1v-8h4"/><path d="M12 5v15"/></svg></div><h3>Memory</h3><p>Long-term context across sessions and providers.</p></article>
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Vision</h3><p>Screen awareness and UI automation.</p></article>
+        <article class="prime-card"><div class="prime-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3>Earn</h3><p>Bounty research and opportunity discovery.</p></article>
       </div>
     </div>
   </section>
 
-  <section class="section final" id="download">
-    <div>
-      <p class="eyebrow">Launch Locally</p>
-      <h2>The Future Runs Locally</h2>
-      <p>No subscriptions. No cloud. No compromise.</p>
-      <div class="buttons">
-        <a class="button" href="download.html">Download Free</a>
-        <a class="button" href="checkout.html">Buy Pro &rarr;</a>
+  <section class="prime-section" id="about">
+    <div class="prime-wrap">
+      <div class="prime-head">
+        <div class="prime-label">How it works</div>
+        <h2>No mode switching. No configuration.</h2>
+      </div>
+      <div class="prime-steps">
+        <article class="prime-step"><div class="prime-number">1</div><h3>You talk to Sentinel</h3><p>User types anything in natural language and keeps moving.</p></article>
+        <article class="prime-step"><div class="prime-number">2</div><h3>Sentinel routes internally</h3><p>The capability router picks the right worker for the job.</p></article>
+        <article class="prime-step"><div class="prime-number">3</div><h3>Results appear</h3><p>No mode switching, no configuration, no tool hunting.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="prime-section" id="pricing">
+    <div class="prime-wrap">
+      <div class="prime-head">
+        <div class="prime-label">Pricing</div>
+        <h2>Start free. Own it forever.</h2>
+      </div>
+      <div class="prime-pricing">
+        <article class="prime-price"><h3>Monthly</h3><div class="prime-amount">$14.99/mo</div><p>Full access, cancel anytime.</p><a class="prime-btn prime-btn--secondary" href="#beta">Start beta</a></article>
+        <article class="prime-price prime-price--featured"><span class="prime-badge">Best value</span><h3>Annual</h3><div class="prime-amount">$99/yr</div><p>Save 45% with full access for the year.</p><a class="prime-btn prime-btn--primary" href="#beta">Start beta</a></article>
+        <article class="prime-price"><h3>Lifetime</h3><div class="prime-amount">$499</div><p>Pay once, all updates forever.</p><a class="prime-btn prime-btn--secondary" href="#beta">Start beta</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="prime-section prime-beta" id="beta">
+    <div class="prime-beta-box">
+      <div class="prime-label">Beta</div>
+      <h2>Sentinel AI Beta</h2>
+      <p class="prime-lead">v1.0.0-beta.1 - Windows 10/11 - 782 MB</p>
+      <p>7-day free trial. No account required. Install and start immediately.</p>
+      <a class="prime-btn prime-btn--primary prime-download" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/v1.0.0-beta.1/SentinelAISetup.exe" download>&#8595; Download for Windows - Free</a>
+      <div class="prime-requirements" aria-label="System requirements">
+        <div>Windows 10 or 11 (64-bit)</div>
+        <div>8GB RAM minimum, 16GB recommended</div>
+        <div>Ollama recommended for local AI (optional)</div>
+        <div>1GB free disk space</div>
+      </div>
+      <div class="prime-notes">
+        <span>Trial lasts 7 days</span>
+        <span>Upgrade at sentinelprime.org/pricing</span>
+        <span>Auto-updates via built-in updater</span>
       </div>
     </div>
   </section>
 </main>
 
-<footer id="footer">
-  <div class="footer-links">
-    <a href="index.html">Home</a>
-    <a href="products.html">Products</a>
-    <a href="sentinel-drive.html">Sentinel Drive</a>
-    <a href="download.html">Download</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
+<footer id="footer" class="prime-footer">
+  <div class="prime-footer-row">
+    <div class="footer-brand"><span class="prime-orb" aria-hidden="true"></span><span>SENTINEL PRIME</span></div>
+    <div class="prime-footer-links"><a href="privacy.html">Privacy</a><a href="#">Terms</a><a href="contact.html">Support</a></div>
+    <div class="prime-copy">&copy; 2026 Sentinel Prime Inc.</div>
   </div>
-  <div>&copy; 2026 Sentinel Prime Inc. - paul@sentinelprime.org</div>
+  <div class="prime-bottom">Built for privacy. No telemetry beyond licensing.</div>
 </footer>
 
 <script>
