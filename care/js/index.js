@@ -215,8 +215,11 @@ async function generateGroqResponse(userText) {
       }
       conversationHistory.push({ role: "assistant", content: data.response });
     } else {
-      console.error("[Client] API error:", data.error, data.details);
-      addMessage("assistant", "I'm having trouble connecting right now. (Error: " + (data.error || "Unknown") + ")");
+      // Show detailed error for debugging
+      const errorMsg = data.details || data.error || "Unknown error";
+      const statusInfo = response.status !== 200 ? ` [${response.status}]` : "";
+      console.error("[Client] API error:", data);
+      addMessage("assistant", "Connection issue: " + errorMsg + statusInfo);
     }
   } catch (error) {
     console.error("[Client] Fetch error:", error.message);

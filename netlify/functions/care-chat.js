@@ -9,77 +9,61 @@ Never provide technical troubleshooting, fixes, or step-by-step tech instruction
 const GROQ_MODEL = 'llama3-8b-8192';
 
 exports.handler = async function handler(event) {
-  // Log function invocation
-  console.log('care-chat function invoked', {
+  console.log('[care-chat] Function invoked', {
     httpMethod: event.httpMethod,
     hasBody: !!event.body,
-    timestamp: new Date().toISOString()
+    envKeys: Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API')).join(', ')
   });
 
   if (event.httpMethod !== 'POST') {
-    console.log('Rejected: Method not allowed', event.httpMethod);
     return json(405, { error: 'Method not allowed.' });
   }
 
   // Check API key
   const apiKey = process.env.GROQ_API_KEY;
-  console.log('GROQ_API_KEY check:', {
+  console.log('[care-chat] API Key check:', {
     exists: !!apiKey,
     length: apiKey ? apiKey.length : 0,
-    startsWith: apiKey ? apiKey.substring(0, 7) : 'N/A'
+    prefix: apiKey ? apiKey.substring(0, 10) + '...' : 'N/A'
   });
 
   if (!apiKey) {
-    console.error('ERROR: GROQ_API_KEY not configured in environment variables');
-    return json(500, { error: 'Groq API key not configured.' });
+    console.error('[care-chat] ERROR: GROQ_API_KEY not set');
+    return json(500, { 
+      error: 'Configuration error: API key not set',
+      details: 'GROQ_API_KEY environment variable is missing'
+    });
   }
 
   try {
     const body = JSON.parse(event.body || '{}');
     const { message, history = [] } = body;
     
-    console.log('Request body parsed:', {
+    console.log('[care-chat] Request:', {
       hasMessage: !!message,
-      messageType: typeof message,
+      messagePreview: message ? message.substring(0, 30) : 'N/A',
       historyLength: history.length
     });
     
     if (!message || typeof message !== 'string') {
-      console.log('Rejected: Message missing or invalid');
       return json(400, { error: 'Message is required.' });
     }
 
-    // Build messages array from history + current message
-    const messages = [
-      { role: 'system', content: SYSTEM_PROMPT }
-    ];
-    
-    // Add history (last 10 messages)
+    // Build messages
+    const messages = [{ role: 'system', content: SYSTEM_PROMPT }];
     const recentHistory = history.slice(-10);
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
+        messages.push({ role: msg.role, content: msg.content });
       }
     }
-    
-    // Add current message
-    messages.push({
-      role: 'user',
-      content: message
-    });
+    messages.push({ role: 'user', content: message });
 
-    console.log('Calling Groq API...', {
-      model: GROQ_MODEL,
-      messageCount: messages.length
-    });
+    console.log('[care-chat] Calling Groq API...');
 
     // Call Groq API
     const groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-    console.log('Groq URL:', groqUrl);
-
+    
     let response;
     try {
       response = await fetch(groqUrl, {
@@ -95,81 +79,108 @@ exports.handler = async function handler(event) {
           max_tokens: 300
         })
       });
-    } catch (fetchError) {
-      console.error('FETCH ERROR:', {
-        message: fetchError.message,
-        code: fetchError.code,
-        type: fetchError.type,
-        stack: fetchError.stack
-      });
-      return json(500, { 
-        error: 'Failed to connect to Groq API.',
-        details: fetchError.message
+    } catch (fetchErr) {
+      console.error('[care-chat] Fetch failed:', fetchErr.message, fetchErr.code);
+      return json(502, { 
+        error: 'Network error: Cannot reach Groq API',
+        details: fetchErr.message,
+        code: fetchErr.code || 'UNKNOWN'
       });
     }
 
-    console.log('Groq API response:', {
+    console.log('[care-chat] Groq response:', {
       status: response.status,
       statusText: response.statusText,
-      ok: response.ok
+      headers: Object.fromEntries(response.headers.entries())
     });
+
+    // Get response body even for error status
+    let responseBody;
+    try {
+      responseBody = await response.text();
+      console.log('[care-chat] Response body:', responseBody.substring(0, 500));
+    } catch (e) {
+      console.error('[care-chat] Failed to read response body:', e.message);
+    }
 
     if (!response.ok) {
-      let errorData = {};
+      // Parse error details
+      let errorDetails = responseBody;
       try {
-        errorData = await response.json();
+        const parsed = JSON.parse(responseBody);
+        errorDetails = parsed.error?.message || JSON.stringify(parsed);
       } catch (e) {
-        console.error('Failed to parse error response:', e.message);
+        // Keep raw body if JSON parse fails
       }
       
-      console.error('Groq API error response:', {
+      console.error('[care-chat] Groq API error:', {
         status: response.status,
-        errorData: JSON.stringify(errorData)
+        details: errorDetails
       });
       
-      return json(500, { 
-        error: 'AI service temporarily unavailable.',
-        details: errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`
+      // Return specific error based on status
+      if (response.status === 401) {
+        return json(401, {
+          error: 'Invalid API key',
+          details: 'The Groq API key is invalid or expired. Check GROQ_API_KEY in Netlify environment variables.'
+        });
+      } else if (response.status === 429) {
+        return json(429, {
+          error: 'Rate limit exceeded',
+          details: 'Too many requests. Please wait a moment and try again.'
+        });
+      } else if (response.status >= 500) {
+        return json(502, {
+          error: 'Groq API server error',
+          details: `Groq returned ${response.status}: ${errorDetails}`
+        });
+      }
+      
+      return json(500, {
+        error: `Groq API error (${response.status})`,
+        details: errorDetails
       });
     }
 
+    // Parse successful response
     let data;
     try {
-      data = await response.json();
-    } catch (parseError) {
-      console.error('Failed to parse success response:', parseError.message);
-      return json(500, { 
-        error: 'Failed to parse AI response.'
+      data = JSON.parse(responseBody);
+    } catch (parseErr) {
+      console.error('[care-chat] Failed to parse success JSON:', parseErr.message);
+      return json(500, {
+        error: 'Invalid response from AI service',
+        details: 'Failed to parse API response'
       });
     }
 
-    console.log('Groq API success:', {
-      hasChoices: !!data.choices,
-      choicesLength: data.choices?.length
-    });
+    const aiResponse = data.choices?.[0]?.message?.content;
+    if (!aiResponse) {
+      console.error('[care-chat] No response content:', data);
+      return json(500, {
+        error: 'Empty AI response',
+        details: 'The API returned no content'
+      });
+    }
 
-    const aiResponse = data.choices?.[0]?.message?.content || 'I apologize, I could not generate a response.';
-
-    // Check if this is a tech block response
     const isTechBlocked = aiResponse.includes("I'd love to help with that!") && 
                           aiResponse.includes("subscribers");
 
-    console.log('Sending response:', {
+    console.log('[care-chat] Success:', {
       responseLength: aiResponse.length,
       isTechBlocked
     });
 
     return json(200, { 
       response: aiResponse,
-      isTechBlocked: isTechBlocked
+      isTechBlocked
     });
 
   } catch (error) {
-    console.error('UNEXPECTED ERROR:', {
-      message: error.message,
-      stack: error.stack,
-      type: error.constructor.name
+    console.error('[care-chat] Unexpected error:', error.message, error.stack);
+    return json(500, { 
+      error: 'Internal server error',
+      details: error.message
     });
-    return json(500, { error: 'Failed to process message: ' + error.message });
   }
 };
