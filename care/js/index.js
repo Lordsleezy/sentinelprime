@@ -4,30 +4,59 @@ const modelStatus = document.querySelector('#modelStatus');
 const chatMessages = document.querySelector('#chatMessages');
 const chatForm = document.querySelector('#chatForm');
 const chatInput = document.querySelector('#chatInput');
-const subscribePrompt = document.querySelector('#subscribePrompt');
 
-// Tech support keywords - if any match, block and show subscription
+// Safe phrases - if any match, NEVER treat as tech support
+const safePhrases = [
+  'hows your day', 'how is your day', "how's your day",
+  'how are you', 'how are u', 'how do you do',
+  'whats up', 'what is up', "what's up",
+  'hows it going', 'how is it going', "how's it going",
+  'hows everything', 'how is everything', "how's everything",
+  'good morning', 'good afternoon', 'good evening', 'good night',
+  'hi there', 'hello there', 'hey there',
+  'hi sentinel', 'hello sentinel', 'hey sentinel',
+  'nice to meet you', 'pleased to meet you',
+  'what can you do', 'who are you', 'what are you',
+  'tell me about yourself', 'what do you do'
+];
+
+// Tech support keywords - requires context (multi-word or specific tech terms)
 const techSupportKeywords = [
-  'fix', 'broken', 'error', 'not working', "won't", 'wont', 'does not work', 'doesnt work', 'isnt working', "isn't working",
-  'issue', 'problem', 'troubleshoot', 'virus', 'malware', 'printer', 'password', 'forgot password',
-  'slow computer', 'freeze', 'crash', 'blue screen', 'wifi', 'internet', 'connection', 
-  'software', 'install', 'update', 'driver', 'email', 'outlook', 'gmail', 'windows', 'mac',
-  'backup', 'recovery', 'data', 'hard drive', 'disk', 'storage', 'printer not', "can't print", 
-  'cant print', 'virus removal', 'hacked', 'compromised', 'security', 'popup', 'ads', 'browser',
-  'chrome', 'firefox', 'safari', 'edge', 'zoom', 'teams', 'slack', 'excel', 'word', 'powerpoint',
-  'spreadsheets', 'documents', 'files', 'sync', 'cloud', 'onedrive', 'google drive', 'dropbox',
-  'icloud', 'antivirus', 'firewall', 'network', 'router', 'modem', 'ethernet', 'bluetooth',
-  'mouse', 'keyboard', 'monitor', 'screen', 'display', 'battery', 'charging', 'power', 'boot',
-  'startup', 'login', 'sign in', 'account locked', 'two factor', '2fa', 'authentication',
-  'certificate', 'ssl', 'vpn', 'remote desktop', 'rdp', 'ssh', 'terminal', 'command line',
-  'bash', 'powershell', 'registry', 'system32', 'dll', 'exe', 'application', 'app', 'program',
-  'uninstall', 'remove', 'delete', 'cleanup', 'disk cleanup', 'defrag', 'fragmented', 
-  'corrupted', 'damaged', 'failing', 'hardware', 'cpu', 'ram', 'memory', 'graphics', 'gpu',
-  'motherboard', 'cpu fan', 'overheating', 'temperature', 'bsod', 'kernel', 'panic',
-  'exception', 'fault', 'timeout', 'unreachable', 'dns', 'ip address', 'ping', 'packet loss',
-  'bandwidth', 'speed test', 'latency', 'lag', 'stutter', 'frame rate', 'fps', 'my computer',
-  'my laptop', 'my phone', 'my device', 'virus scan', 'malware scan', 'clean install',
-  'reinstall', 'factory reset', 'system restore', 'safe mode', 'bios', 'uefi', 'firmware'
+  // Multi-word phrases (high confidence)
+  'not working', 'does not work', 'doesnt work', 'isnt working', "isn't working",
+  'doesnt connect', "doesn't connect", 'not connecting', 'wont connect', "won't connect",
+  'slow computer', 'computer slow', 'laptop slow', 'pc slow',
+  'blue screen', 'bsod', 'black screen', 'blank screen',
+  'forgot password', 'reset password', 'change password', 'password reset',
+  'virus removal', 'malware removal', 'virus scan', 'malware scan',
+  'hard drive', 'hard disk', 'disk full', 'storage full', 'no space',
+  'printer not', "can't print", 'cant print', 'wont print', "won't print",
+  'wifi not', 'internet down', 'no internet', 'no wifi', 'connection lost',
+  'wont start', "won't start", 'wont turn', "won't turn", 'not turning on',
+  'install software', 'install program', 'reinstall windows', 'reinstall macos',
+  'update driver', 'driver update', 'driver issue', 'missing driver',
+  'backup data', 'data backup', 'recover file', 'file recovery', 'restore file',
+  'cpu fan', 'gpu temp', 'overheating', 'cpu hot', 'laptop hot',
+  'factory reset', 'system restore', 'clean install', 'reinstall os',
+  'ip address', 'dns server', 'packet loss', 'high latency', 'speed test',
+  'error message', 'error code', 'system error', 'fatal error',
+  'registry error', 'system32', 'dll error', 'dll missing',
+  'vpn connection', 'remote desktop', 'rdp issue', 'ssh connection',
+  'account locked', 'locked out', 'cant login', "can't login", 'cant sign', "can't sign",
+  'two factor', '2fa code', 'authentication failed', 'certificate error',
+  'ssl error', 'https error', 'security warning', 'untrusted site',
+  'popup ads', 'browser hijack', 'search redirect', 'toolbar',
+  'antivirus', 'firewall block', 'port blocked', 'connection refused',
+  'bluetooth not', 'wont pair', "won't pair", 'not pairing',
+  'mouse not', 'keyboard not', 'monitor not', 'screen flicker',
+  'battery drain', 'not charging', 'wont charge', "won't charge",
+  'boot loop', 'restart loop', 'keeps restarting', 'wont boot', "won't boot",
+  'safe mode', 'bios setting', 'uefi', 'firmware update',
+  'corrupted file', 'damaged file', 'file wont open', "file won't open",
+  
+  // Single tech words that are clear indicators (avoid false positives)
+  'troubleshoot', 'reinstall', 'uninstall', 'defrag', 'format drive',
+  'motherboard', 'graphics card', 'power supply', 'cpu upgrade', 'ram upgrade'
 ];
 
 let generator;
@@ -74,11 +103,8 @@ chatForm.addEventListener('submit', async (event) => {
   
   // Check if this is a tech support request
   if (isTechSupportRequest(text)) {
-    // HARD BLOCK - no tech help, show subscription immediately
-    const blockMsg = "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at \$14.99/month — cancel anytime.";
-    addMessage('assistant', blockMsg);
-    conversationHistory.push({ role: 'assistant', content: blockMsg });
-    subscribePrompt.classList.remove('hidden');
+    // HARD BLOCK - show subscription message as chat bubble
+    showSubscriptionMessage();
     return false;
   }
   
@@ -92,7 +118,42 @@ chatForm.addEventListener('submit', async (event) => {
 
 function isTechSupportRequest(text) {
   const lower = text.toLowerCase();
-  return techSupportKeywords.some(keyword => lower.includes(keyword.toLowerCase()));
+  
+  // FIRST: Check if it's a safe phrase (greetings, casual chat)
+  // Safe phrases override tech detection
+  for (const safe of safePhrases) {
+    if (lower.includes(safe)) {
+      return false;
+    }
+  }
+  
+  // SECOND: Check for tech keywords only in CURRENT message
+  for (const keyword of techSupportKeywords) {
+    if (lower.includes(keyword.toLowerCase())) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+function showSubscriptionMessage() {
+  // Create a special subscription message with inline button
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'message assistant subscription-msg';
+  msgDiv.innerHTML = `
+    I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at \$14.99/month — cancel anytime.
+    <div style="margin-top:12px;">
+      <a class="button" href="/care/checkout">Subscribe</a>
+    </div>
+  `;
+  chatMessages.append(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  
+  conversationHistory.push({ 
+    role: 'assistant', 
+    content: "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime."
+  });
 }
 
 async function generateResponse(userText) {
