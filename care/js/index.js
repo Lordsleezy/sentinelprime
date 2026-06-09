@@ -190,6 +190,8 @@ async function generateWebLLMResponse(userText) {
 }
 
 async function generateGroqResponse(userText) {
+  console.log("[Client] Calling Groq API...", { message: userText.substring(0, 50) });
+  
   try {
     const response = await fetch("/.netlify/functions/care-chat", {
       method: "POST",
@@ -200,7 +202,10 @@ async function generateGroqResponse(userText) {
       })
     });
     
+    console.log("[Client] Response status:", response.status, response.statusText);
+    
     const data = await response.json();
+    console.log("[Client] Response data:", data);
     
     if (response.ok && data.response) {
       if (data.isTechBlocked) {
@@ -210,11 +215,12 @@ async function generateGroqResponse(userText) {
       }
       conversationHistory.push({ role: "assistant", content: data.response });
     } else {
-      addMessage("assistant", "I'm having trouble connecting right now. Please try again!");
+      console.error("[Client] API error:", data.error, data.details);
+      addMessage("assistant", "I'm having trouble connecting right now. (Error: " + (data.error || "Unknown") + ")");
     }
   } catch (error) {
-    console.error("Groq API error:", error);
-    addMessage("assistant", "I'm having trouble connecting right now. Please try again!");
+    console.error("[Client] Fetch error:", error.message);
+    addMessage("assistant", "I'm having trouble connecting right now. (" + error.message + ")");
   }
 }
 
