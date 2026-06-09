@@ -1104,23 +1104,56 @@ body {
   gap: 24px;
 }
 
-.mock-shift { padding: 20px; }
-.mock-shift-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 16px; overflow: hidden; }
-.mock-shift-fill { height: 100%; width: 0; background: linear-gradient(90deg, #14b8a6, #5eead4); border-radius: 3px; animation: shiftProgress 8s ease-in-out infinite; }
-.mock-shift-steps { display: flex; gap: 8px; margin-bottom: 16px; }
-.mock-shift-step { flex: 1; height: 32px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; background: rgba(0,0,0,0.4); opacity: 0.4; animation: shiftStep 8s ease-in-out infinite; }
-.mock-shift-step:nth-child(1) { animation-delay: 0s; }
-.mock-shift-step:nth-child(2) { animation-delay: 2s; }
-.mock-shift-step:nth-child(3) { animation-delay: 4s; }
-.mock-shift-step:nth-child(4) { animation-delay: 6s; }
-.mock-shift-logos { display: flex; gap: 12px; justify-content: center; }
-.mock-shift-logo { width: 40px; height: 40px; border-radius: 50%; opacity: 0; animation: logoPop 8s ease-in-out infinite; }
-.mock-shift-logo:nth-child(1) { background: #e95420; animation-delay: 1s; }
-.mock-shift-logo:nth-child(2) { background: #fed500; animation-delay: 3s; }
-.mock-shift-logo:nth-child(3) { background: #30a9dc; animation-delay: 5s; }
-@keyframes shiftProgress { 0%,5% { width: 0; } 25% { width: 25%; } 50% { width: 50%; } 75% { width: 75%; } 95%,100% { width: 100%; } }
-@keyframes shiftStep { 0%,10% { opacity: 0.4; border-color: rgba(255,255,255,0.15); } 15%,30% { opacity: 1; border-color: #14b8a6; box-shadow: 0 0 12px rgba(20,184,166,0.4); } 35%,100% { opacity: 0.6; border-color: rgba(20,184,166,0.3); } }
-@keyframes logoPop { 0%,15% { opacity: 0; transform: scale(0.5); } 20%,35% { opacity: 1; transform: scale(1); } 40%,100% { opacity: 0.7; transform: scale(1); } }
+.mock-shift-penguin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 85%, rgba(20, 184, 166, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(0, 8, 12, 0.6), rgba(0, 0, 5, 0.92));
+  outline: none;
+}
+.mock-shift-penguin::after {
+  content: "";
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  bottom: 18%;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(6px);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+.mock-shift-penguin__img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.15s ease-out, filter 0.2s ease;
+  filter: drop-shadow(0 0 18px rgba(20, 184, 166, 0.35));
+}
+.mock-shift-penguin:hover .mock-shift-penguin__img,
+.mock-shift-penguin:focus-visible .mock-shift-penguin__img {
+  filter: drop-shadow(0 0 28px rgba(20, 184, 166, 0.7));
+}
+.mock-shift-penguin--hop .mock-shift-penguin__img {
+  animation: penguinHop 0.52s ease;
+}
+.mock-shift-penguin--hop::after {
+  transform: scaleX(0.55);
+}
+@keyframes penguinHop {
+  0%, 100% { transform: translateY(0) scale(1.1); }
+  40% { transform: translateY(-24px) scale(1.14) rotate(-4deg); }
+  70% { transform: translateY(-8px) scale(1.08) rotate(2deg); }
+}
 .mock-shield { padding: 24px; text-align: center; }
 .mock-shield-scan { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
 .mock-shield-scan-bar { height: 100%; width: 0; background: linear-gradient(90deg, #14b8a6, #22c55e); animation: shieldScan 6s ease-in-out infinite; }
@@ -1204,19 +1237,8 @@ body {
       <div class="home-products-grid">
         <article class="home-product-card">
           <div class="home-product-mockup">
-            <div class="mock-shift">
-              <div class="mock-shift-bar"><div class="mock-shift-fill"></div></div>
-              <div class="mock-shift-steps">
-                <div class="mock-shift-step"></div>
-                <div class="mock-shift-step"></div>
-                <div class="mock-shift-step"></div>
-                <div class="mock-shift-step"></div>
-              </div>
-              <div class="mock-shift-logos">
-                <div class="mock-shift-logo"></div>
-                <div class="mock-shift-logo"></div>
-                <div class="mock-shift-logo"></div>
-              </div>
+            <div class="mock-shift-penguin">
+              <img class="mock-shift-penguin__img" src="assets/tux-penguin.gif" alt="Linux penguin waddling" width="110" height="110">
             </div>
           </div>
           <div class="home-product-body">
@@ -1586,5 +1608,6 @@ body {
 })();
 </script>
 <script src="nav.js"></script>
+<script src="js/shift-penguin.js"></script>
 </body>
 </html>
