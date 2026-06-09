@@ -16,7 +16,7 @@
       <nav class="nav-links">
         <a href="#chat">Chat</a>
         <a href="#pricing">Pricing</a>
-        <a href="/care/portal">Account</a>
+        <a href="/care/portal">Sign in</a>
         <a class="button button-small" href="/care/checkout">Subscribe</a>
       </nav>
     </header>
@@ -61,15 +61,27 @@
                 <p class="eyebrow">Sentinel Care AI</p>
                 <h2>Tell Sentinel what is wrong</h2>
               </div>
-              <span id="modelStatus" class="pill">Loading AI...</span>
+              <span id="modelStatus" class="pill">Loading...</span>
             </div>
             <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-            <div id="subscribePrompt" class="notice hidden">
-              To connect with a real technician, you'll need a Sentinel Care plan. Plans start at $14.99/month.
-              <a class="button" href="/care/checkout" style="margin-top:12px;display:inline-block;">Subscribe</a>
+            
+            <!-- Auth prompt for unauthenticated users -->
+            <div id="authPrompt" class="notice hidden" style="text-align:center;padding:2rem;">
+              <p style="font-size:1.1rem;margin-bottom:1rem;">Sign in or subscribe to chat with Sentinel Care AI</p>
+              <div style="display:flex;gap:1rem;justify-content:center;">
+                <a class="button" href="/care/portal">Sign in</a>
+                <a class="button button-secondary" href="/care/checkout">Subscribe</a>
+              </div>
             </div>
-            <form id="chatForm" class="chat-form">
-              <textarea id="chatInput" rows="3" placeholder="Example: My printer will not connect to Wi-Fi" required></textarea>
+            
+            <!-- Escalation prompt for subscribers -->
+            <div id="subscribePrompt" class="notice hidden">
+              To connect with a real technician, you'll need an active Sentinel Care plan. Subscribers get human escalation after thorough troubleshooting.
+              <a class="button" href="/care/checkout" style="margin-top:12px;display:inline-block;">View plans</a>
+            </div>
+            
+            <form id="chatForm" class="chat-form hidden">
+              <textarea id="chatInput" rows="3" placeholder="Describe your tech issue in detail..." required disabled></textarea>
               <button class="button" type="submit">Send</button>
             </form>
             <button id="escalateButton" class="button button-secondary hidden">Connect me with a real technician</button>
