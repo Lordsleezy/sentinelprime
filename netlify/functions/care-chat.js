@@ -1,33 +1,106 @@
 ﻿const { json } = require('./care-shared');
 
-const SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant for Sentinel Care. You can chat casually about anything - hobbies, entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, and conversational.
+const BASE_SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant for Sentinel Care. You can chat casually about anything - hobbies, entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, and conversational.
 
-IMPORTANT: If the user asks for ANY technical support help with computers, software, phones, networks, printers, or devices, you must NOT provide technical help. Instead respond EXACTLY with: "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at $14.99/month."
+IMPORTANT: If the user asks for ANY technical support help with computers, software, phones, networks, printers, or devices, you must NOT provide technical help. Instead respond EXACTLY with: "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at \$14.99/month."
 
 Never provide technical troubleshooting, fixes, or step-by-step tech instructions to non-subscribers. Only casual conversation.`;
 
 const GROQ_MODEL = 'llama-3.1-8b-instant';
 
+// Keywords that indicate need for current information
+const CURRENT_INFO_KEYWORDS = [
+  'today', 'this year', 'current', 'latest', 'now', 'recent',
+  'who won', 'what happened', 'news', 'score', 'weather',
+  'yesterday', 'last week', 'last month', 'this week',
+  'election', 'vote', 'president', 'congress', 'senate',
+  'war', 'conflict', 'attack', 'invasion', 'peace',
+  'stock', 'market', 'price', 'crypto', 'bitcoin',
+  'covid', 'pandemic', 'virus', 'disease', 'outbreak',
+  'earthquake', 'hurricane', 'storm', 'flood', 'fire',
+  'championship', 'tournament', 'finals', 'playoffs',
+  'olympics', 'world cup', 'super bowl', 'nba', 'nfl',
+  'premier league', 'champions league', 'formula 1', 'f1',
+  'trump', 'biden', 'elon musk', 'musk', 'putin', 'zelensky'
+];
+
+// Check if query needs current information
+function needsCurrentInfo(message) {
+  const lower = message.toLowerCase();
+  return CURRENT_INFO_KEYWORDS.some(keyword => lower.includes(keyword.toLowerCase()));
+}
+
+// Call Tavily search API
+async function searchTavily(query, apiKey) {
+  console.log('[care-chat] Searching Tavily:', { query: query.substring(0, 50) });
+  
+  try {
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        query: query,
+        max_results: 3,
+        search_depth: 'basic',
+        include_answer: false,
+        include_images: false
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[care-chat] Tavily API error:', response.status, errorText);
+      return null;
+    }
+    
+    const data = await response.json();
+    console.log('[care-chat] Tavily results:', { resultCount: data.results?.length || 0 });
+    
+    return data.results || [];
+  } catch (error) {
+    console.error('[care-chat] Tavily search failed:', error.message);
+    return null;
+  }
+}
+
+// Build system prompt with optional search results
+function buildSystemPrompt(searchResults = null) {
+  if (!searchResults || searchResults.length === 0) {
+    return BASE_SYSTEM_PROMPT;
+  }
+  
+  // Format search results
+  const formattedResults = searchResults.map((result, i) => 
+    `[${i + 1}] ${result.title}: ${result.content.substring(0, 300)}${result.content.length > 300 ? '...' : ''}`
+  ).join('\n\n');
+  
+  return `${BASE_SYSTEM_PROMPT}\n\nHere is current information from the web to help answer this question:\n\n${formattedResults}\n\nUse this information to give an accurate, up-to-date answer. Cite sources naturally in your response.`;
+}
+
 exports.handler = async function handler(event) {
   console.log('[care-chat] Function invoked', {
     httpMethod: event.httpMethod,
     hasBody: !!event.body,
-    envKeys: Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API')).join(', ')
+    envKeys: Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('TAVILY')).join(', ')
   });
 
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Method not allowed.' });
   }
 
-  // Check API key
-  const apiKey = process.env.GROQ_API_KEY;
-  console.log('[care-chat] API Key check:', {
-    exists: !!apiKey,
-    length: apiKey ? apiKey.length : 0,
-    prefix: apiKey ? apiKey.substring(0, 10) + '...' : 'N/A'
+  // Check API keys
+  const groqKey = process.env.GROQ_API_KEY;
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  
+  console.log('[care-chat] API Keys check:', {
+    groqExists: !!groqKey,
+    tavilyExists: !!tavilyKey
   });
 
-  if (!apiKey) {
+  if (!groqKey) {
     console.error('[care-chat] ERROR: GROQ_API_KEY not set');
     return json(500, { 
       error: 'Configuration error: API key not set',
@@ -49,8 +122,21 @@ exports.handler = async function handler(event) {
       return json(400, { error: 'Message is required.' });
     }
 
+    // Check if we need current information
+    const shouldSearch = needsCurrentInfo(message);
+    console.log('[care-chat] Current info needed:', shouldSearch);
+    
+    // Search Tavily if needed and API key available
+    let searchResults = null;
+    if (shouldSearch && tavilyKey) {
+      searchResults = await searchTavily(message, tavilyKey);
+    }
+    
+    // Build system prompt (with or without search results)
+    const systemPrompt = buildSystemPrompt(searchResults);
+
     // Build messages
-    const messages = [{ role: 'system', content: SYSTEM_PROMPT }];
+    const messages = [{ role: 'system', content: systemPrompt }];
     const recentHistory = history.slice(-10);
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
@@ -59,7 +145,7 @@ exports.handler = async function handler(event) {
     }
     messages.push({ role: 'user', content: message });
 
-    console.log('[care-chat] Calling Groq API...');
+    console.log('[care-chat] Calling Groq API...', { model: GROQ_MODEL, messageCount: messages.length });
 
     // Call Groq API
     const groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -70,117 +156,77 @@ exports.handler = async function handler(event) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
           model: GROQ_MODEL,
           messages: messages,
           temperature: 0.7,
-          max_tokens: 300
+          max_tokens: 400
         })
       });
     } catch (fetchErr) {
-      console.error('[care-chat] Fetch failed:', fetchErr.message, fetchErr.code);
+      console.error('[care-chat] Fetch failed:', fetchErr.message);
       return json(502, { 
         error: 'Network error: Cannot reach Groq API',
-        details: fetchErr.message,
-        code: fetchErr.code || 'UNKNOWN'
+        details: fetchErr.message
       });
     }
 
-    console.log('[care-chat] Groq response:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-
-    // Get response body even for error status
+    // Get response body
     let responseBody;
     try {
       responseBody = await response.text();
-      console.log('[care-chat] Response body:', responseBody.substring(0, 500));
     } catch (e) {
       console.error('[care-chat] Failed to read response body:', e.message);
     }
 
     if (!response.ok) {
-      // Parse error details
       let errorDetails = responseBody;
       try {
         const parsed = JSON.parse(responseBody);
         errorDetails = parsed.error?.message || JSON.stringify(parsed);
-      } catch (e) {
-        // Keep raw body if JSON parse fails
-      }
+      } catch (e) {}
       
-      console.error('[care-chat] Groq API error:', {
-        status: response.status,
-        details: errorDetails
-      });
+      console.error('[care-chat] Groq API error:', { status: response.status, details: errorDetails });
       
-      // Return specific error based on status
       if (response.status === 401) {
         return json(401, {
           error: 'Invalid API key',
-          details: 'The Groq API key is invalid or expired. Check GROQ_API_KEY in Netlify environment variables.'
+          details: 'The Groq API key is invalid or expired.'
         });
       } else if (response.status === 429) {
-        return json(429, {
-          error: 'Rate limit exceeded',
-          details: 'Too many requests. Please wait a moment and try again.'
-        });
-      } else if (response.status >= 500) {
-        return json(502, {
-          error: 'Groq API server error',
-          details: `Groq returned ${response.status}: ${errorDetails}`
-        });
+        return json(429, { error: 'Rate limit exceeded' });
       }
       
-      return json(500, {
-        error: `Groq API error (${response.status})`,
-        details: errorDetails
-      });
+      return json(500, { error: `Groq API error (${response.status})`, details: errorDetails });
     }
 
-    // Parse successful response
     let data;
     try {
       data = JSON.parse(responseBody);
     } catch (parseErr) {
-      console.error('[care-chat] Failed to parse success JSON:', parseErr.message);
-      return json(500, {
-        error: 'Invalid response from AI service',
-        details: 'Failed to parse API response'
-      });
+      return json(500, { error: 'Invalid response from AI service' });
     }
 
     const aiResponse = data.choices?.[0]?.message?.content;
     if (!aiResponse) {
-      console.error('[care-chat] No response content:', data);
-      return json(500, {
-        error: 'Empty AI response',
-        details: 'The API returned no content'
-      });
+      return json(500, { error: 'Empty AI response' });
     }
 
     const isTechBlocked = aiResponse.includes("I'd love to help with that!") && 
                           aiResponse.includes("subscribers");
 
-    console.log('[care-chat] Success:', {
-      responseLength: aiResponse.length,
-      isTechBlocked
-    });
+    console.log('[care-chat] Success:', { responseLength: aiResponse.length, isTechBlocked, usedSearch: !!searchResults });
 
     return json(200, { 
       response: aiResponse,
-      isTechBlocked
+      isTechBlocked,
+      usedSearch: !!searchResults
     });
 
   } catch (error) {
     console.error('[care-chat] Unexpected error:', error.message, error.stack);
-    return json(500, { 
-      error: 'Internal server error',
-      details: error.message
-    });
+    return json(500, { error: 'Internal server error', details: error.message });
   }
 };
