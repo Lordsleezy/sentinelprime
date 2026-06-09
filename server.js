@@ -28,6 +28,8 @@ const seoPages = [
   { route: "/login", file: "login.html", loc: `${publicBaseUrl}/login.html` },
   { route: "/dashboard", file: "dashboard.html", loc: `${publicBaseUrl}/dashboard.html` },
   { route: "/admin", file: "admin.html", loc: `${publicBaseUrl}/admin.html` },
+  { route: "/terms", file: "terms.html", loc: `${publicBaseUrl}/terms` },
+  { route: "/privacy", file: "privacy.html", loc: `${publicBaseUrl}/privacy` },
 ];
 
 function sendMail({ to, subject, html, text }) {

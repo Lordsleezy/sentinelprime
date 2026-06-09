@@ -82,7 +82,7 @@ function renderHeaderFooter() {
       <footer class="il-footer">
         <nav class="il-footer__links" aria-label="Footer">
           <a href="/story.html">Our Story</a>
-          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/privacy">Privacy Policy</a>
           <a href="/sentinelweb.html">SentinelWeb</a>
           <a href="/contact.html">Contact</a>
         </nav>

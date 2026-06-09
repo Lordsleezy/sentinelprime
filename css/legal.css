@@ -1,0 +1,65 @@
+.legal-main {
+  position: relative;
+  z-index: 3;
+  padding: 130px 20px 80px;
+}
+
+.legal-card {
+  width: min(920px, calc(100vw - 40px));
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 48px);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(18px);
+}
+
+.legal-doc h1 {
+  margin: 0 0 12px;
+  font: 800 clamp(2rem, 5vw, 3rem) "Syne", sans-serif;
+  line-height: 1.05;
+}
+
+.legal-doc .legal-meta {
+  margin: 0 0 28px;
+  color: rgba(255, 255, 255, 0.5);
+  font: 400 0.86rem "Share Tech Mono", monospace;
+  letter-spacing: 0.06em;
+}
+
+.legal-doc h2 {
+  margin: 2rem 0 0.75rem;
+  color: #14b8a6;
+  font: 700 1.1rem "Syne", sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.legal-doc h3 {
+  margin: 1.25rem 0 0.5rem;
+  font: 600 0.95rem "Syne", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.legal-doc p,
+.legal-doc li {
+  color: rgba(255, 255, 255, 0.72);
+  font: 400 0.9rem / 1.75 "Share Tech Mono", monospace;
+}
+
+.legal-doc p { margin: 0 0 0.9rem; }
+
+.legal-doc ul,
+.legal-doc ol {
+  margin: 0 0 1rem;
+  padding-left: 1.4rem;
+}
+
+.legal-doc a {
+  color: #14b8a6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-doc a:hover { color: #5eead4; }
+
+.legal-doc strong { color: rgba(255, 255, 255, 0.92); }

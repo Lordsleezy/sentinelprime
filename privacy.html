@@ -1,126 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentinel Privacy Policy | Sentinal Prime Inc.</title>
-  <meta name="description" content="Privacy Policy for the Sentinel app by Sentinal Prime Inc.">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index-landing.css">
-  <style>
-    .privacy-doc h2 { margin-top: 2rem; margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--il-cyan); }
-    .privacy-doc p { margin: 0.5rem 0 0.9rem; color: #e4e6e9; }
-    .privacy-doc .meta { color: var(--il-muted); font-size: 0.95rem; margin-bottom: 1.25rem; }
-    .privacy-doc a { color: var(--il-cyan); }
-  </style>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "./js/lib/three.module.js",
-      "three/addons/": "./js/lib/three-addons/"
-    }
-  }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Sentinel Prime</title>
+<meta name="description" content="Privacy Policy for Sentinel Prime software, subscriptions, and services.">
+<link rel="canonical" href="https://sentinelprime.org/privacy">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
+<link rel="stylesheet" href="css/legal.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body class="il-body" data-page="privacy">
-  <div id="webgl-root" aria-hidden="true"></div>
-  <div class="il-wrap">
-    <div id="site-header"></div>
+<body>
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
 
-    <main class="shell-main">
-      <div class="il-container">
-        <article class="il-biz-card privacy-doc il-reveal" style="max-width:900px;margin:0 auto">
-          <h1 style="margin-top:0;font-size:clamp(1.85rem,4vw,2.35rem)">Privacy Policy for Sentinel</h1>
-          <p class="meta">
-            Effective Date: May 7, 2026<br>
-            Company: Sentinal Prime Inc.
-          </p>
+<main class="legal-main">
+  <article class="legal-card legal-doc">
+    <h1>Privacy Policy</h1>
+    <p class="legal-meta">Effective Date: June 9, 2026 · Sentinel Prime Inc. · sentinelprime.org</p>
 
-          <h2>Overview</h2>
-          <p>
-            Sentinel is designed with a simple principle:
-            your conversations and personal context stay on your device. We built Sentinel to be private
-            by default, with no hidden data collection.
-          </p>
+    <p>Sentinel Prime Inc. ("Sentinel Prime," "we," "us," or "our") respects your privacy. This Privacy Policy explains what information we collect when you use our websites, software, and services — including Shift by Sentinel, Sentinel Shield, Sentinel Care, SentinelAI, and related products (collectively, the "Services") — how we use that information, and the choices you have.</p>
 
-          <h2>Data We Collect</h2>
-          <p>
-            <strong>We do not collect any personal data.</strong> Sentinel does not collect, store, transmit,
-            or sell user information to Sentinal Prime Inc. or any third party.
-          </p>
-          <p>
-            There is no account system, no sign-in, and no user profile on our servers because we do not
-            run a user data backend for the app.
-          </p>
+    <h2>1. Our Privacy Commitment</h2>
+    <p>We build privacy-first tools. We do <strong>not sell your personal data</strong> to advertisers or data brokers. We collect only what is necessary to provide, secure, and improve our Services, process payments, and support customers.</p>
 
-          <h2>How Your AI Works</h2>
-          <p>
-            Sentinel's AI model runs locally on your phone. Your messages and AI conversations are processed
-            on-device and do not leave your device as part of the core assistant experience.
-          </p>
+    <h2>2. Information We Collect</h2>
 
-          <h2>Memory System</h2>
-          <p>
-            Sentinel's memory features (including saved facts and behavioral portrait data) are stored
-            exclusively on your device using local SQLite and AsyncStorage. This memory is never synced to
-            Sentinal Prime Inc. servers and is never transmitted to third parties.
-          </p>
+    <h3>Information you provide</h3>
+    <ul>
+      <li><strong>Account and contact data:</strong> Email address, name, and password when you create an account or contact support</li>
+      <li><strong>Payment data:</strong> Billing details processed by Stripe. We do not store full credit card numbers on our servers</li>
+      <li><strong>Support communications:</strong> Messages you send via Sentinel Care chat, contact forms, or email</li>
+      <li><strong>Subscription and license data:</strong> Activation codes, product selections, and subscription plan details</li>
+    </ul>
 
-          <h2>Web Search</h2>
-          <p>
-            If you use real-time web search features, Sentinel may send query text to third-party endpoints
-            only to retrieve current information. These services may include wttr.in, Yahoo Finance,
-            DuckDuckGo, ESPN, and CoinGecko.
-          </p>
-          <p>
-            Requests are sent without user account identity from Sentinal Prime Inc. because no account exists.
-            Sentinel does not attach profile-level identifiers for tracking users across services.
-          </p>
+    <h3>Information collected automatically</h3>
+    <ul>
+      <li><strong>Website usage:</strong> IP address, browser type, device information, pages visited, and referring URLs</li>
+      <li><strong>Download and install events:</strong> Version, operating system, and approximate region (for product analytics)</li>
+      <li><strong>License validation:</strong> Activation events, machine or device identifiers used to enforce license terms</li>
+      <li><strong>Security logs:</strong> Authentication attempts, API errors, and abuse-prevention signals</li>
+    </ul>
 
-          <h2>Third Party Services</h2>
-          <p>
-            Sentinel does <strong>not</strong> use third-party analytics SDKs, advertising SDKs, tracking pixels,
-            or cookies. We do not run analytics for user behavior in the app.
-          </p>
+    <h3>Information processed locally</h3>
+    <p>Many Sentinel Prime products are designed to run locally on your device. SentinelAI, Sentinel Shield, and related desktop software may process files, conversations, and system data on your machine without transmitting that content to our servers unless you explicitly use a cloud-connected feature (such as Sentinel Care AI chat or optional integrations).</p>
 
-          <h2>Children's Privacy</h2>
-          <p>
-            Sentinel is not designed to collect personal information from anyone, including children under 13,
-            because the app does not collect personal data at all.
-          </p>
+    <h2>3. How We Use Information</h2>
+    <p>We use collected information to:</p>
+    <ul>
+      <li>Provide, operate, and maintain the Services</li>
+      <li>Process payments and deliver activation codes</li>
+      <li>Authenticate accounts and validate licenses</li>
+      <li>Respond to support requests and Sentinel Care conversations</li>
+      <li>Send transactional emails (receipts, activation codes, password resets)</li>
+      <li>Monitor security, prevent fraud, and enforce our Terms</li>
+      <li>Analyze aggregate product usage to improve reliability and features</li>
+      <li>Comply with legal obligations</li>
+    </ul>
+    <p>We do not use your data for targeted advertising.</p>
 
-          <h2>Changes to This Policy</h2>
-          <p>
-            If this policy changes, we will update this page and revise the effective date above. Any future
-            changes will continue to reflect our privacy-first approach in plain language.
-          </p>
-          <p>
-            This policy is governed by the laws of the United States.
-          </p>
+    <h2>4. How We Store Data — Supabase</h2>
+    <p>Account profiles, subscriptions, activation codes, license events, and related records are stored in <strong>Supabase</strong>, a hosted PostgreSQL database with authentication services. Data is encrypted in transit (TLS) and at rest per Supabase's security practices. Access is restricted to authorized Sentinel Prime systems and personnel with a legitimate business need.</p>
+    <p>Tables may include: user profiles, subscriptions, activation codes, payment history references, download/install analytics, and audit logs. We retain data only as long as needed to provide the Services or meet legal requirements.</p>
 
-          <h2>Contact Us</h2>
-          <p>
-            For privacy questions, contact Sentinal Prime Inc. at
-            <a href="mailto:customerservice@sentinelprime.org">customerservice@sentinelprime.org</a>.
-          </p>
-          <p>
-            Because we collect no user data, there is no retained user dataset to access, export, or delete.
-            You can remove all local app data at any time by deleting the Sentinel app from your device.
-          </p>
-        </article>
-      </div>
-    </main>
+    <h2>5. Payments — Stripe</h2>
+    <p>Payments are processed by <strong>Stripe, Inc.</strong> When you purchase a subscription or product, Stripe collects payment card information and billing details directly. We receive limited information from Stripe (such as customer ID, payment status, and last four digits of your card) to fulfill your order and manage subscriptions.</p>
+    <p>Stripe's handling of your data is governed by <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe's Privacy Policy</a>. We never store complete payment card numbers on our servers.</p>
 
-    <div id="site-footer"></div>
+    <h2>6. AI and Third-Party Processors</h2>
+    <p>When you use Sentinel Care AI chat or other cloud AI features, your messages may be processed by third-party AI providers (such as Groq) solely to generate responses. We do not use those conversations to train third-party models for advertising. Optional web search features may send query text to search providers to retrieve current information.</p>
+    <p>We may also use:</p>
+    <ul>
+      <li><strong>Resend</strong> or similar services for transactional email delivery</li>
+      <li><strong>Netlify</strong> for website hosting and serverless functions</li>
+      <li><strong>GitHub</strong> for software distribution</li>
+    </ul>
+
+    <h2>7. Cookies and Similar Technologies</h2>
+    <p>Our website uses minimal cookies and local storage:</p>
+    <ul>
+      <li><strong>Essential cookies:</strong> Admin session authentication and security</li>
+      <li><strong>localStorage:</strong> Preferences such as whether the home page intro animation has played (<code>sentinel_visited</code>)</li>
+      <li><strong>Stripe cookies:</strong> When you complete checkout, Stripe may set cookies required for fraud prevention and payment processing</li>
+    </ul>
+    <p>We do not use third-party advertising cookies or cross-site tracking pixels on sentinelprime.org. You can control cookies through your browser settings; disabling essential cookies may limit certain features.</p>
+
+    <h2>8. Data Sharing</h2>
+    <p>We share information only in these circumstances:</p>
+    <ul>
+      <li><strong>Service providers:</strong> Vendors who help us operate the Services (hosting, payments, email, database) under contractual confidentiality obligations</li>
+      <li><strong>Legal requirements:</strong> When required by law, subpoena, or to protect rights, safety, and security</li>
+      <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets, with notice where required</li>
+    </ul>
+    <p><strong>We do not sell, rent, or trade your personal information.</strong></p>
+
+    <h2>9. Data Retention</h2>
+    <p>We retain personal data for as long as your account is active or as needed to provide Services. Analytics and log data may be retained in aggregated or de-identified form. You may request deletion of your account data subject to legal and operational retention requirements (e.g., payment records).</p>
+
+    <h2>10. Your Rights and Choices</h2>
+    <p>Depending on your location, you may have the right to:</p>
+    <ul>
+      <li>Access, correct, or delete personal information we hold about you</li>
+      <li>Export your data in a portable format</li>
+      <li>Opt out of marketing emails (we send few; transactional emails cannot always be opted out of)</li>
+      <li>Cancel subscriptions through your account or by contacting us</li>
+    </ul>
+    <p>California residents may have additional rights under the CCPA/CPRA. To exercise any right, contact <a href="mailto:paul@sentinelprime.org">paul@sentinelprime.org</a>.</p>
+
+    <h2>11. Children's Privacy</h2>
+    <p>Our Services are not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us personal data, contact us and we will delete it promptly.</p>
+
+    <h2>12. Security</h2>
+    <p>We implement reasonable technical and organizational measures to protect your information, including encryption in transit, access controls, and secure development practices. No method of transmission or storage is 100% secure; we cannot guarantee absolute security.</p>
+
+    <h2>13. International Users</h2>
+    <p>Sentinel Prime is based in the United States. If you access our Services from outside the U.S., your information may be transferred to and processed in the United States and other countries where our service providers operate.</p>
+
+    <h2>14. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will post the revised policy on this page with an updated effective date. Material changes may be communicated by email or prominent notice on our website.</p>
+
+    <h2>15. Contact Us</h2>
+    <p>Privacy questions or requests:</p>
+    <p>
+      <strong>Sentinel Prime Inc.</strong><br>
+      Email: <a href="mailto:paul@sentinelprime.org">paul@sentinelprime.org</a><br>
+      Website: <a href="https://sentinelprime.org">sentinelprime.org</a>
+    </p>
+    <p>See also our <a href="/terms">Terms and Conditions</a>.</p>
+  </article>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/contact">Support</a>
   </div>
+  <div>&copy; 2026 Sentinel Prime Inc.</div>
+</footer>
 
-  <script type="module" src="js/index-tesseract.js"></script>
-  <script src="js/site-config.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/shell.js" defer></script>
-  <script src="js/index-landing.js" defer></script>
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
+<script src="nav.js"></script>
 </body>
 </html>
