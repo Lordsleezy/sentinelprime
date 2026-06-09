@@ -1445,6 +1445,55 @@ body {
   galaxy.scale.setScalar(0.03);
   galaxy.rotation.x = 1.04;
 
+  function normalizePath(pathname) {
+    var p = pathname || "/";
+    if (p.slice(-11) === "/index.html") p = p.slice(0, -10) || "/";
+    if (p.length > 1 && p.charAt(p.length - 1) === "/") p = p.slice(0, -1);
+    return p || "/";
+  }
+
+  function isHomePath(path) {
+    return path === "/" || path === "";
+  }
+
+  function shouldShowIntro() {
+    var navEntry = performance.getEntriesByType("navigation")[0];
+    var navType = navEntry && navEntry.type;
+
+    if (navType === "reload") return true;
+    if (navType === "back_forward") return false;
+
+    if (navType === "navigate" || navType === "prerender") {
+      var referrer = document.referrer;
+      if (!referrer) return true;
+      try {
+        var refUrl = new URL(referrer);
+        if (refUrl.origin !== window.location.origin) return true;
+        var refPath = normalizePath(refUrl.pathname);
+        var currentPath = normalizePath(window.location.pathname);
+        if (isHomePath(currentPath) && !isHomePath(refPath)) return false;
+      } catch (e) {}
+      return true;
+    }
+
+    if (performance.navigation) {
+      if (performance.navigation.type === 1) return true;
+      if (performance.navigation.type === 2) return false;
+      if (performance.navigation.type === 0 && document.referrer) {
+        try {
+          var legacyRef = new URL(document.referrer);
+          if (legacyRef.origin === window.location.origin) {
+            var legacyRefPath = normalizePath(legacyRef.pathname);
+            var legacyCurrentPath = normalizePath(window.location.pathname);
+            if (isHomePath(legacyCurrentPath) && !isHomePath(legacyRefPath)) return false;
+          }
+        } catch (e2) {}
+      }
+    }
+
+    return true;
+  }
+
   function skipIntro() {
     introComplete = true;
     galaxy.scale.setScalar(0.24);
@@ -1467,7 +1516,6 @@ body {
         camera.position.z = 980;
         document.body.classList.add("site-ready");
         gsap.set("#intro", { display: "none" });
-        localStorage.setItem("sentinel_visited", "true");
         ScrollTrigger.refresh();
       }
     });
@@ -1530,10 +1578,10 @@ body {
 
   scrollMotion();
   render();
-  if (localStorage.getItem("sentinel_visited") === "true") {
-    skipIntro();
-  } else {
+  if (shouldShowIntro()) {
     runIntro();
+  } else {
+    skipIntro();
   }
 })();
 </script>
