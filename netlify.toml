@@ -3,6 +3,74 @@
   functions = "netlify/functions"
 
 [[redirects]]
+  from = "/care"
+  to = "/care/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/care/checkout"
+  to = "/care/checkout.html"
+  status = 200
+
+[[redirects]]
+  from = "/care/portal"
+  to = "/care/portal.html"
+  status = 200
+
+[[redirects]]
+  from = "/care/admin"
+  to = "/care/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/care/api/config"
+  to = "/.netlify/functions/care-config"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/checkout"
+  to = "/.netlify/functions/care-checkout"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/webhook"
+  to = "/.netlify/functions/care-webhook"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/notify"
+  to = "/.netlify/functions/care-notify"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/customer-profile"
+  to = "/.netlify/functions/care-profile"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/track-interaction"
+  to = "/.netlify/functions/care-track"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/admin-data"
+  to = "/.netlify/functions/care-admin-data"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/care/api/resolve-ticket"
+  to = "/.netlify/functions/care-resolve-ticket"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/download/sentinelai"
   to = "/.netlify/functions/download-sentinelai"
   status = 200

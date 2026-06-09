@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Sentinel Care</title>
+    <link rel="stylesheet" href="/care/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/care"><span class="brand-mark">S</span><span>Sentinel Care Admin</span></a>
+      <nav class="nav-links"><button id="adminSignOutButton" class="button button-small hidden">Sign out</button></nav>
+    </header>
+
+    <main class="section narrow">
+      <section id="adminAuthPanel" class="glass-card auth-card">
+        <p class="eyebrow">Protected admin</p>
+        <h1>Admin sign in</h1>
+        <p>Only paul@sentinelprime.org can access this panel.</p>
+        <form id="adminAuthForm" class="stacked-form">
+          <label for="adminEmail">Email address</label>
+          <input id="adminEmail" name="email" type="email" required value="paul@sentinelprime.org" />
+          <button class="button" type="submit">Send magic link</button>
+        </form>
+        <div id="adminAuthStatus" class="notice hidden"></div>
+      </section>
+
+      <section id="adminPanel" class="hidden admin-panel">
+        <div class="split-section">
+          <div>
+            <p class="eyebrow">Operations</p>
+            <h1>Open escalation tickets</h1>
+          </div>
+          <button id="refreshAdmin" class="button button-secondary">Refresh</button>
+        </div>
+        <div id="statsGrid" class="stats-grid"></div>
+        <div id="ticketsList" class="ticket-list"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/care/js/admin.js"></script>
+  </body>
+</html>
