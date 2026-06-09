@@ -3,62 +3,238 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing - Sentinel Prime</title>
-<meta name="description" content="SentinelAI Pro — Monthly, Annual, or Lifetime. Local-first AI operating system.">
-<link rel="canonical" href="https://sentinelprime.org/pricing.html">
+<title>Pricing — Sentinel Prime</title>
+<meta name="description" content="Simple, honest pricing for Shift, Sentinel Shield, SentinelAI, Sentinel Care, Sentinel Prime X, and Sentinel Market.">
+<link rel="canonical" href="https://sentinelprime.org/pricing">
+<meta property="og:title" content="Sentinel Prime Pricing">
+<meta property="og:description" content="No hidden fees. No surprise charges. Cancel anytime.">
+<meta property="og:url" content="https://sentinelprime.org/pricing">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
+<link rel="stylesheet" href="css/pricing.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
-<nav class="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
-  <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
-  <div class="nav-links">
-    <a href="products.html">Products</a><a href="pricing.html">Pricing</a><a href="download.html">Download</a>
-    <a href="login.html">Login</a><a class="nav-cta" href="signup.html">Sign up</a>
-  </div>
-</nav>
-<main>
-  <section class="page-hero">
-    <div class="wrap narrow">
+<body class="has-galaxy-canvas" data-page="pricing">
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
+
+<main class="pricing-page">
+  <section class="page-hero pricing-hero">
+    <div class="wrap">
       <p class="eyebrow">Pricing</p>
-      <h1>Pro plans for your local AI OS.</h1>
-      <p class="lead">Start free. Upgrade with one account — license syncs to desktop activation.</p>
+      <h1>Simple, honest pricing.</h1>
+      <p class="lead">No hidden fees. No surprise charges. Cancel anytime.</p>
     </div>
   </section>
-  <section class="section">
-    <div class="wrap grid-3">
-      <article class="price-card">
-        <h2>Monthly</h2>
-        <div class="price">$19.99<span style="font-size:14px">/mo</span></div>
-        <p class="copy">Cancel anytime. License stays active while subscribed.</p>
-        <div class="buttons"><a class="button" href="checkout.html?plan=monthly">Subscribe</a></div>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap pricing-stack">
+
+      <article class="pricing-card">
+        <div class="pricing-card-header">
+          <h2>Shift by Sentinel</h2>
+          <div class="pricing-card-meta">
+            <span class="pricing-badge">One-time</span>
+            <div class="pricing-price">$29</div>
+          </div>
+        </div>
+        <ul class="pricing-features">
+          <li>Full OS installer</li>
+          <li>Try before you install with live demos</li>
+          <li>Windows key saved and protected</li>
+          <li>Go Back to Windows revert system</li>
+          <li>Lifetime updates</li>
+        </ul>
+        <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shift/Shift.by.Sentinel.Setup.0.1.6.exe">Download</a>
       </article>
-      <article class="price-card">
-        <span class="badge">Best value</span>
-        <h2 style="margin-top:18px">Annual</h2>
-        <div class="price">$199<span style="font-size:14px">/yr</span></div>
-        <p class="copy">Two months free vs monthly.</p>
-        <div class="buttons"><a class="button" href="checkout.html?plan=annual">Subscribe</a></div>
+
+      <article class="pricing-card">
+        <div class="pricing-card-header">
+          <h2>Sentinel Shield</h2>
+          <div class="pricing-card-meta">
+            <span class="pricing-badge pricing-badge--green">1 Day Free Trial</span>
+            <div class="pricing-price">$19.99<span>/year</span> <span style="font-size:0.5em;display:block;font-weight:500;color:rgba(255,255,255,0.55);margin-top:4px;">after trial</span></div>
+          </div>
+        </div>
+        <ul class="pricing-features">
+          <li>Real-time protection</li>
+          <li>Virus and malware scanner</li>
+          <li>Network monitor</li>
+          <li>PC optimizer and cleaner</li>
+          <li>Startup manager</li>
+          <li>Auto-updates</li>
+          <li>Android companion app</li>
+        </ul>
+        <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shield/SentinelShield-Setup-0.1.1.exe">Download Free Trial</a>
       </article>
-      <article class="price-card">
-        <h2>Lifetime</h2>
-        <div class="price">$499</div>
-        <p class="copy">One-time. Pro forever on your hardware.</p>
-        <div class="buttons"><a class="button" href="checkout.html?plan=lifetime">Buy lifetime</a></div>
+
+      <article class="pricing-card">
+        <div class="pricing-card-header">
+          <h2>SentinelAI</h2>
+        </div>
+        <div class="pricing-tier-grid pricing-tier-grid--3">
+          <div class="pricing-tier">
+            <h3>Monthly</h3>
+            <div class="pricing-price">$14.99<span>/month</span></div>
+            <ul class="pricing-features">
+              <li>Full access</li>
+              <li>Cancel anytime</li>
+            </ul>
+            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
+          </div>
+          <div class="pricing-tier">
+            <span class="pricing-badge pricing-badge--amber">Save 45%</span>
+            <h3>Annual</h3>
+            <div class="pricing-price">$99<span>/year</span></div>
+            <ul class="pricing-features">
+              <li>Full access for the year</li>
+            </ul>
+            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
+          </div>
+          <div class="pricing-tier">
+            <span class="pricing-badge">Best Value</span>
+            <h3>Lifetime</h3>
+            <div class="pricing-price">$499</div>
+            <ul class="pricing-features">
+              <li>Pay once, all updates forever</li>
+            </ul>
+            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
+          </div>
+        </div>
+        <p class="pricing-note">Currently free during beta — 7 day free trial, no account required</p>
       </article>
-    </div>
-    <div class="wrap" style="margin-top:32px;text-align:center;">
-      <a class="button secondary" href="download.html">Download Free tier</a>
+
+      <article class="pricing-card">
+        <div class="pricing-card-header">
+          <h2>Sentinel Care</h2>
+        </div>
+        <div class="pricing-tier-grid pricing-tier-grid--3">
+          <div class="pricing-tier">
+            <h3>Free</h3>
+            <div class="pricing-price">$0</div>
+            <ul class="pricing-features">
+              <li>Unlimited casual AI chat</li>
+              <li>No tech support included</li>
+            </ul>
+            <a class="pricing-btn" href="/care">Try Free</a>
+          </div>
+          <div class="pricing-tier">
+            <h3>Basic</h3>
+            <div class="pricing-price">$14.99<span>/month</span></div>
+            <ul class="pricing-features">
+              <li>Everything in Free</li>
+              <li>Full AI tech support</li>
+              <li>Phone support</li>
+              <li>1 remote desktop session/month included</li>
+              <li>Additional remote desktop: $50/hour</li>
+            </ul>
+            <a class="pricing-btn" href="/care/checkout?plan=basic">Subscribe</a>
+          </div>
+          <div class="pricing-tier pricing-tier--popular">
+            <span class="pricing-badge">Most Popular</span>
+            <h3>Plus</h3>
+            <div class="pricing-price">$29.99<span>/month</span></div>
+            <ul class="pricing-features">
+              <li>Everything in Basic</li>
+              <li>2 remote desktop sessions/month included</li>
+              <li>Additional remote desktop: $50/hour</li>
+            </ul>
+            <a class="pricing-btn" href="/care/checkout?plan=plus">Subscribe</a>
+          </div>
+        </div>
+        <p class="pricing-note">Remote desktop support without a membership: $100/hour</p>
+      </article>
+
+      <article class="pricing-card pricing-card--featured">
+        <div class="pricing-card-header">
+          <h2>Sentinel Prime X</h2>
+          <div class="pricing-card-meta">
+            <span class="pricing-badge">Best Value</span>
+            <div class="pricing-price">$49.99<span>/month</span></div>
+          </div>
+        </div>
+        <ul class="pricing-features">
+          <li>Everything in Shift, Shield, SentinelAI, and Sentinel Care</li>
+          <li>Sentinel Market Smart Search — type what you want, AI finds the top 5 cheapest deals with active sales across the web, subscribers only</li>
+          <li>3 remote desktop sessions/month included</li>
+          <li>Additional remote desktop: $30/hour (members-only rate)</li>
+          <li>Phone support</li>
+          <li>Full AI tech support</li>
+          <li>Priority escalation</li>
+        </ul>
+        <a class="pricing-btn" href="/care/checkout?plan=prime-x">Get Sentinel Prime X</a>
+      </article>
+
+      <article class="pricing-card">
+        <div class="pricing-card-header">
+          <h2>Sentinel Market</h2>
+          <div class="pricing-card-meta">
+            <div class="pricing-price">Free</div>
+          </div>
+        </div>
+        <ul class="pricing-features">
+          <li>Free to browse and buy</li>
+          <li>No membership fee</li>
+          <li>Sentinel Prime X subscribers get Smart Search feature</li>
+        </ul>
+        <a class="pricing-btn" href="https://market.sentinelprime.org">Shop Now</a>
+      </article>
+
+      <aside class="pricing-rdp-summary">
+        <h3>Remote Desktop Pricing Summary</h3>
+        <div class="pricing-rdp-grid">
+          <p><strong>No membership:</strong> $100/hour</p>
+          <p><strong>Care Basic or Plus:</strong> $50/hour</p>
+          <p><strong>Sentinel Prime X:</strong> $30/hour</p>
+          <p><strong>Care Basic:</strong> 1 session/month included</p>
+          <p><strong>Care Plus:</strong> 2 sessions/month included</p>
+          <p><strong>Sentinel Prime X:</strong> 3 sessions/month included</p>
+        </div>
+      </aside>
+
+      <div class="pricing-bottom">
+        <p class="pricing-privacy-line">All products include: No telemetry. No data selling. Privacy first.</p>
+        <div class="pricing-faq">
+          <details>
+            <summary>Can I cancel anytime?</summary>
+            <p>Yes, all subscriptions cancel anytime with no penalty.</p>
+          </details>
+          <details>
+            <summary>Do you offer refunds?</summary>
+            <p>Contact <a href="mailto:paul@sentinelprime.org">paul@sentinelprime.org</a> within 7 days of purchase.</p>
+          </details>
+          <details>
+            <summary>Is my data safe?</summary>
+            <p>We use Supabase and Stripe — industry standard encryption and security.</p>
+          </details>
+        </div>
+      </div>
+
     </div>
   </section>
 </main>
+
 <footer>
   <div class="footer-links">
-    <a href="index.html">Home</a><a href="download.html">Download</a><a href="contact.html">Contact</a>
-  <a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/care">Care</a>
+    <a href="https://market.sentinelprime.org">Market</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="contact.html">Contact</a>
+  </div>
   <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
 </footer>
-<script src="js/site-shell.js"></script>
+
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

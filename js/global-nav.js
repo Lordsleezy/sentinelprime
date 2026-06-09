@@ -5,6 +5,7 @@
     { href: "/", label: "Home", key: "home" },
     { href: "/products", label: "Products", key: "products" },
     { href: "https://market.sentinelprime.org", label: "Market", key: "market" },
+    { href: "/pricing", label: "Pricing", key: "pricing" },
     { href: "/care", label: "Care", key: "care" },
     { href: "/admin", label: "Admin", key: "admin" }
   ];
