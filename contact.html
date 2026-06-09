@@ -3,86 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact - Sentinel Prime</title>
-<meta name="description" content="Contact Sentinel Prime for support, business partnerships, press, bug reports, and questions about SentinelAI or Sentinel Drive.">
-<link rel="canonical" href="https://sentinelprime.org/contact.html">
+<title>Contact — Sentinel Prime</title>
+<meta name="description" content="Contact Sentinel Prime customer service for support, billing, and product questions.">
+<link rel="canonical" href="https://sentinelprime.org/contact">
 <meta property="og:title" content="Contact Sentinel Prime">
-<meta property="og:description" content="Reach Sentinel Prime at paul@sentinelprime.org.">
-<meta property="og:url" content="https://sentinelprime.org/contact.html">
+<meta property="og:description" content="Reach Sentinel Prime at customerservice@sentinelprime.org.">
+<meta property="og:url" content="https://sentinelprime.org/contact">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
+<link rel="stylesheet" href="css/legal.css">
+<link rel="stylesheet" href="css/contact.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
-<nav class="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
-  <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
-  <div class="nav-links">
-    <a href="products.html">Products</a><a href="sentinel-drive.html">Sentinel Drive</a><a href="pricing.html">Pricing</a><a href="download.html">Download</a><a href="about.html">About</a><a href="contact.html">Contact</a><a class="nav-cta" href="checkout.html">Buy Pro &rarr;</a>
-  </div>
-</nav>
+<body class="has-galaxy-canvas" data-page="contact">
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
 
-<main>
-  <section class="page-hero">
-    <div class="wrap narrow">
+<main class="legal-main contact-main">
+  <div class="wrap contact-grid">
+    <article class="legal-card contact-card">
       <p class="eyebrow">Contact</p>
-      <h1>Talk to Sentinel Prime.</h1>
-      <p class="lead">Questions, support, partnerships, press, and bug reports. We'll respond within 24-48 hours.</p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="form-panel">
-        <form id="contactForm">
-          <input required name="name" placeholder="Name">
-          <input required type="email" name="email" placeholder="Email">
-          <select required name="subject">
-            <option value="">Subject</option>
-            <option>General</option>
-            <option>Support</option>
-            <option>Business/Partnership</option>
-            <option>Press</option>
-            <option>Bug Report</option>
-          </select>
-          <textarea required name="message" placeholder="Message"></textarea>
-          <button class="button" type="submit">Submit</button>
-          <div class="form-status" id="contactStatus"></div>
-        </form>
+      <h1>We&rsquo;re here to help.</h1>
+      <p class="contact-lead">Questions about products, billing, or your account? Our team typically responds within 24&ndash;48 hours.</p>
+      <div class="contact-email-block">
+        <p class="contact-label">Customer service</p>
+        <a class="contact-email" href="mailto:customerservice@sentinelprime.org">customerservice@sentinelprime.org</a>
       </div>
-      <div class="panel">
-        <p class="eyebrow">Direct Contact</p>
-        <h2>paul@sentinelprime.org</h2>
-        <p class="copy">GitHub: <a style="color:#fff" href="https://github.com/Lordsleezy" target="_blank" rel="noopener">github.com/Lordsleezy</a></p>
-        <p class="copy">Free tier support is handled through GitHub Issues. Pro tier includes direct email support at paul@sentinelprime.org.</p>
-      </div>
-    </div>
-  </section>
+      <form id="contactForm" class="contact-form">
+        <input required name="name" placeholder="Name" autocomplete="name">
+        <input required type="email" name="email" placeholder="Email" autocomplete="email">
+        <select required name="subject">
+          <option value="">Subject</option>
+          <option>General</option>
+          <option>Support</option>
+          <option>Billing</option>
+          <option>Business / Partnership</option>
+          <option>Press</option>
+          <option>Bug Report</option>
+        </select>
+        <textarea required name="message" placeholder="Message" rows="6"></textarea>
+        <button class="contact-btn" type="submit">Send Message</button>
+        <div class="form-status" id="contactStatus"></div>
+      </form>
+    </article>
+  </div>
 </main>
 
 <footer>
   <div class="footer-links">
-    <a href="index.html">Home</a><a href="products.html">Products</a><a href="sentinel-drive.html">Sentinel Drive</a><a href="download.html">Download</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
-  <a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/care">Care</a>
+    <a href="https://market.sentinelprime.org">Market</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/contact">Contact</a>
+  </div>
   <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
 </footer>
 
 <script>
 document.getElementById("contactForm").addEventListener("submit", async function (event) {
   event.preventDefault();
-  const status = document.getElementById("contactStatus");
+  var status = document.getElementById("contactStatus");
   status.className = "form-status";
   status.textContent = "Sending...";
-  const payload = Object.fromEntries(new FormData(event.currentTarget));
+  var payload = Object.fromEntries(new FormData(event.currentTarget));
   if (!payload.name || !payload.email || !payload.subject || !payload.message) {
     status.classList.add("error");
     status.textContent = "Please fill out every field.";
     return;
   }
   try {
-    const response = await fetch("/api/contact", {
+    var response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -93,11 +92,12 @@ document.getElementById("contactForm").addEventListener("submit", async function
     event.currentTarget.reset();
   } catch (error) {
     status.classList.add("error");
-    status.textContent = "Contact endpoint unavailable. Email paul@sentinelprime.org directly.";
+    status.textContent = "Unable to send right now. Email customerservice@sentinelprime.org directly.";
   }
 });
 </script>
-<script src="js/site-shell.js"></script>
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

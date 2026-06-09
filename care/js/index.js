@@ -15,7 +15,7 @@ let useGroqAPI = false;
 const MODEL_ID = "Llama-3.2-3B-Instruct-q4f32_1-MLC";
 
 // System prompt for free users - friendly chat, tech support blocked
-const SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant. You can chat about anything - hobbies, entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, and conversational. However, if the user asks for technical support help with computers, software, phones, networks, printers, or devices, you must NOT provide technical help. Instead respond exactly with: "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at \$14.99/month." Never provide technical troubleshooting, fixes, or step-by-step tech instructions to non-subscribers.`;
+const SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant. You can chat about anything - hobbies, entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, and conversational. However, if the user asks for technical support help with computers, software, phones, networks, printers, or devices, you must NOT provide technical help. Instead respond exactly with: "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at \$19.99/month." Never provide technical troubleshooting, fixes, or step-by-step tech instructions to non-subscribers.`;
 
 // Check WebGPU support
 function checkWebGPU() {
@@ -39,7 +39,7 @@ const TECH_SUPPORT_KEYWORDS = [
   "my computer", "my laptop", "my phone", "my device", "my pc", "my printer"
 ];
 
-const TECH_BLOCK_MESSAGE = "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime.";
+const TECH_BLOCK_MESSAGE = "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $19.99/month — cancel anytime.";
 
 function isTechSupportRequest(text) {
   const lower = text.toLowerCase();

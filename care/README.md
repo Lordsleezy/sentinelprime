@@ -67,8 +67,8 @@ FROM_EMAIL=Sentinel Care <support@sentinelprime.org>
 
 Create two monthly recurring prices:
 
-- Basic: `$14.99/month`
-- Plus: `$29.99/month`
+- Basic: `$19.99/month`
+- Plus: `$34.99/month`
 
 Set the price IDs in Netlify environment variables. Configure a webhook pointing to:
 
@@ -135,5 +135,5 @@ and conversational. However, if the user asks for technical support help with
 computers, software, phones, networks, printers, or devices, you must NOT provide 
 technical help. Instead respond exactly with: "I'd love to help with that! That's 
 what Sentinel Care subscribers get - real step by step tech support. Plans start 
-at $14.99/month."
+at $19.99/month."
 ```
