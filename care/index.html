@@ -61,7 +61,10 @@
                 <p class="eyebrow">Sentinel Care AI</p>
                 <h2>Chat with Sentinel</h2>
               </div>
-              <span id="modelStatus" class="pill">Loading...</span>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span id="modelStatus" class="pill">Loading...</span>
+                <span id="webgpuWarning" class="pill warning hidden">Chrome/Edge recommended for full AI</span>
+              </div>
             </div>
             <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
             

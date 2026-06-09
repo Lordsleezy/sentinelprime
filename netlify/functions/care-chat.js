@@ -1,15 +1,21 @@
-const { json } = require('./care-shared');
+﻿const { json } = require('./care-shared');
 
-const SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant for Sentinel Care. You can chat casually about anything — news, weather, jokes, general questions. However if the user asks for ANY technical support help with computers, software, printers, phones, networks, or devices, respond ONLY with: I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime. Never provide tech support to non-subscribers. Be warm, friendly and conversational for everything else.`;
+const SYSTEM_PROMPT = `You are Sentinel, a friendly AI assistant for Sentinel Care. You can chat casually about anything - hobbies, entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, and conversational.
+
+IMPORTANT: If the user asks for ANY technical support help with computers, software, phones, networks, printers, or devices, you must NOT provide technical help. Instead respond EXACTLY with: "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at $14.99/month."
+
+Never provide technical troubleshooting, fixes, or step-by-step tech instructions to non-subscribers. Only casual conversation.`;
+
+const GROQ_MODEL = 'llama3-8b-8192';
 
 exports.handler = async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Method not allowed.' });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return json(500, { error: 'Anthropic API key not configured.' });
+    return json(500, { error: 'Groq API key not configured.' });
   }
 
   try {
@@ -20,9 +26,11 @@ exports.handler = async function handler(event) {
     }
 
     // Build messages array from history + current message
-    const messages = [];
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT }
+    ];
     
-    // Add history (last 10 messages to stay within token limits)
+    // Add history (last 10 messages)
     const recentHistory = history.slice(-10);
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
@@ -39,25 +47,24 @@ exports.handler = async function handler(event) {
       content: message
     });
 
-    // Call Anthropic Claude API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Call Groq API
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 300,
-        system: SYSTEM_PROMPT,
-        messages: messages
+        model: GROQ_MODEL,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 300
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Anthropic API error:', errorData);
+      console.error('Groq API error:', errorData);
       return json(500, { 
         error: 'AI service temporarily unavailable.',
         details: errorData.error?.message || 'Unknown error'
@@ -65,11 +72,15 @@ exports.handler = async function handler(event) {
     }
 
     const data = await response.json();
-    const aiResponse = data.content?.[0]?.text || 'I apologize, I could not generate a response.';
+    const aiResponse = data.choices?.[0]?.message?.content || 'I apologize, I could not generate a response.';
+
+    // Check if this is a tech block response
+    const isTechBlocked = aiResponse.includes("I'd love to help with that!") && 
+                          aiResponse.includes("subscribers");
 
     return json(200, { 
       response: aiResponse,
-      isTechBlocked: aiResponse.includes('Technical support is available to Sentinel Care subscribers')
+      isTechBlocked: isTechBlocked
     });
 
   } catch (error) {

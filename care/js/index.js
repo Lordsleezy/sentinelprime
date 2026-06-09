@@ -1,6 +1,7 @@
 ﻿import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
 const modelStatus = document.querySelector("#modelStatus");
+const webgpuWarning = document.querySelector("#webgpuWarning");
 const chatMessages = document.querySelector("#chatMessages");
 const chatForm = document.querySelector("#chatForm");
 const chatInput = document.querySelector("#chatInput");
@@ -9,6 +10,7 @@ let engine = null;
 let hasGreeted = false;
 let conversationHistory = [];
 let isWebGPUSupported = false;
+let useGroqAPI = false;
 
 const MODEL_ID = "Llama-3.2-3B-Instruct-q4f32_1-MLC";
 
@@ -20,12 +22,7 @@ function checkWebGPU() {
   if (!navigator.gpu) {
     return false;
   }
-  try {
-    // Try to request an adapter
-    return true;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 async function init() {
@@ -41,14 +38,13 @@ async function init() {
 }
 
 function showWebGPUFallback() {
-  modelStatus.textContent = "Limited";
-  modelStatus.classList.add("limited");
-  
-  const fallbackMsg = "Your browser doesn't support our AI — try Chrome or Edge for the full experience. I can still chat with you using basic responses!";
-  addMessage("assistant", fallbackMsg);
-  
-  // Use rule-based responses instead
-  engine = null;
+  useGroqAPI = true;
+  // Show subtle warning banner instead of chat message
+  if (webgpuWarning) {
+    webgpuWarning.classList.remove("hidden");
+  }
+  modelStatus.textContent = "Online (API)";
+  showGreeting();
 }
 
 async function loadModel() {
@@ -78,11 +74,12 @@ async function loadModel() {
     modelStatus.textContent = "Online";
   } catch (error) {
     console.error("Model load error:", error);
-    modelStatus.textContent = "Error";
     hideLoadingScreen();
     
-    // Fall back to rule-based
-    showWebGPUFallback();
+    // Fall back to Groq API
+    useGroqAPI = true;
+    modelStatus.textContent = "Online (API)";
+    showGreeting();
   }
 }
 
@@ -125,6 +122,14 @@ function showGreeting() {
   conversationHistory.push({ role: "assistant", content: welcomeMsg });
 }
 
+// Enter key to send, Shift+Enter for new line
+chatInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    chatForm.dispatchEvent(new Event("submit"));
+  }
+});
+
 chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   event.stopPropagation();
@@ -136,20 +141,22 @@ chatForm.addEventListener("submit", async (event) => {
   addMessage("user", text);
   conversationHistory.push({ role: "user", content: text });
   
-  if (!isWebGPUSupported || !engine) {
-    // Use rule-based fallback
-    const response = getRuleBasedResponse(text);
-    addMessage("assistant", response);
-    conversationHistory.push({ role: "assistant", content: response });
+  if (useGroqAPI) {
+    // Use Groq API via Netlify Function
+    await generateGroqResponse(text);
+  } else if (!engine) {
+    // Fallback to Groq if engine not available
+    useGroqAPI = true;
+    await generateGroqResponse(text);
   } else {
     // Use WebLLM
-    await generateResponse(text);
+    await generateWebLLMResponse(text);
   }
   
   return false;
 });
 
-async function generateResponse(userText) {
+async function generateWebLLMResponse(userText) {
   try {
     // Build messages with system prompt
     const messages = [
@@ -176,7 +183,38 @@ async function generateResponse(userText) {
     conversationHistory.push({ role: "assistant", content: response });
   } catch (error) {
     console.error("Generation error:", error);
-    addMessage("assistant", "I'm having trouble thinking right now. Could you try again?");
+    // Fall back to Groq
+    useGroqAPI = true;
+    await generateGroqResponse(userText);
+  }
+}
+
+async function generateGroqResponse(userText) {
+  try {
+    const response = await fetch("/.netlify/functions/care-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: userText,
+        history: conversationHistory
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.response) {
+      if (data.isTechBlocked) {
+        showTechBlockMessage(data.response);
+      } else {
+        addMessage("assistant", data.response);
+      }
+      conversationHistory.push({ role: "assistant", content: data.response });
+    } else {
+      addMessage("assistant", "I'm having trouble connecting right now. Please try again!");
+    }
+  } catch (error) {
+    console.error("Groq API error:", error);
+    addMessage("assistant", "I'm having trouble connecting right now. Please try again!");
   }
 }
 
@@ -191,72 +229,6 @@ function showTechBlockMessage(message) {
   `;
   chatMessages.append(msgDiv);
   chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function getRuleBasedResponse(text) {
-  const lower = text.toLowerCase();
-  
-  // Check if it's a tech support question
-  const techKeywords = [
-    "fix", "broken", "error", "not working", "won't", "wont", "issue", "problem",
-    "troubleshoot", "virus", "malware", "printer", "password", "forgot",
-    "slow", "freeze", "crash", "blue screen", "wifi", "internet", "connection",
-    "software", "install", "update", "driver", "email", "outlook", "windows",
-    "backup", "recovery", "hard drive", "disk", "storage", "can't print",
-    "hacked", "security", "popup", "browser", "network", "router", "monitor",
-    "mouse", "keyboard", "battery", "charging", "reinstall", "uninstall"
-  ];
-  
-  const isTechQuestion = techKeywords.some(kw => lower.includes(kw));
-  
-  if (isTechQuestion) {
-    const blockMsg = "I'd love to help with that! That's what Sentinel Care subscribers get - real step by step tech support. Plans start at $14.99/month.";
-    setTimeout(() => showTechBlockMessage(blockMsg), 100);
-    return blockMsg;
-  }
-  
-  // Casual conversation fallbacks
-  if (lower.includes("how are you") || lower.includes("how do you do")) {
-    return "I'm doing well, thanks for asking! Ready to chat about whatever's on your mind. How about you?";
-  }
-  if (lower.includes("hows your day") || lower.includes("how's your day")) {
-    return "My day's going great! Thanks for asking. How's yours been?";
-  }
-  if (lower.includes("hello") || lower.includes("hi ") || lower === "hi" || lower.includes("hey")) {
-    return "Hey there! Nice to meet you. What would you like to chat about?";
-  }
-  if (lower.includes("weather")) {
-    return "I can't check the live weather, but I'd love to hear how it is where you are! Or we can chat about climate, seasons, or travel destinations. What's on your mind?";
-  }
-  if (lower.includes("joke") || lower.includes("funny")) {
-    return "Here's one: Why don't scientists trust atoms? Because they make up everything! 😄 Got any favorites?";
-  }
-  if (lower.includes("movie") || lower.includes("film") || lower.includes("tv")) {
-    return "I love discussing movies! What genres do you enjoy? Any recent favorites or recommendations?";
-  }
-  if (lower.includes("music") || lower.includes("song")) {
-    return "Music is great! What kind of music do you enjoy? Any favorite artists?";
-  }
-  if (lower.includes("book") || lower.includes("read")) {
-    return "Books are wonderful! What do you like to read? Fiction, non-fiction, any genres you love?";
-  }
-  if (lower.includes("hobby") || lower.includes("hobbies")) {
-    return "I enjoy learning about different topics! What about you? Any hobbies you'd like to share?";
-  }
-  if (lower.includes("food") || lower.includes("cook") || lower.includes("eat")) {
-    return "Food is always a fun topic! What kind of cuisine do you enjoy? Do you like cooking?";
-  }
-  if (lower.includes("travel") || lower.includes("vacation")) {
-    return "Travel is exciting! Any favorite places you've been or dream destinations?";
-  }
-  if (lower.includes("news") || lower.includes("current")) {
-    return "I don't have live news feeds, but I'd love to discuss current topics or hear your thoughts on what's happening in the world!";
-  }
-  if (lower.includes("who are you") || lower.includes("your name")) {
-    return "I'm Sentinel! I'm here to chat about anything — hobbies, entertainment, general questions, or just casual conversation. What would you like to talk about?";
-  }
-  
-  return "That's interesting! Tell me more, or ask me anything — I'm here to chat about whatever you'd like.";
 }
 
 function addMessage(role, text) {

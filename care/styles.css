@@ -147,3 +147,15 @@ textarea { resize: vertical; }
   color: var(--danger);
   border-color: rgba(251, 113, 133, 0.36);
 }
+
+.pill.warning {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.36);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.hidden {
+  display: none !important;
+}
