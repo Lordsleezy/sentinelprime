@@ -5,23 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Sentinel Care is a friendly tech support subscription service from Sentinel Prime." />
     <title>Sentinel Care | Personal IT support</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/page.css" />
+    <link rel="stylesheet" href="/css/galaxy-shell.css" />
     <link rel="stylesheet" href="/care/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="/care">
-        <span class="brand-mark">S</span>
-        <span>Sentinel Care</span>
-      </a>
-      <nav class="nav-links">
-        <a href="#chat">Chat</a>
-        <a href="#pricing">Pricing</a>
-        <a href="/care/portal">Account</a>
-        <a class="button button-small" href="/care/checkout">Subscribe</a>
-      </nav>
-    </header>
+  <body data-page="care">
+    <canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+    <div class="space-vignette"></div>
+    <div id="global-nav-mount"></div>
 
-    <main>
+    <main class="care-main">
+      <section id="chat" class="section chat-first">
+        <div class="chat-section">
+          <section class="glass-card chat-card full-width">
+            <div class="chat-header">
+              <div>
+                <p class="eyebrow">Sentinel Care AI</p>
+                <h2>Chat with Sentinel</h2>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span id="modelStatus" class="pill">Loading...</span>
+                <span id="webgpuWarning" class="pill warning hidden">Chrome/Edge recommended for full AI</span>
+              </div>
+            </div>
+            <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+
+            <form id="chatForm" class="chat-form" onsubmit="return false;" action="javascript:void(0);">
+              <textarea id="chatInput" rows="3" placeholder="Ask me anything..." required></textarea>
+              <button class="button" type="submit">Send</button>
+            </form>
+          </section>
+        </div>
+      </section>
+
       <section class="hero section">
         <div class="hero-copy">
           <p class="eyebrow">Sentinel Prime support subscription</p>
@@ -53,29 +73,6 @@
         <p>Sentinel explains fixes in plain English with numbered instructions. If the issue needs hands-on support, the portal creates a ticket and alerts the Sentinel Prime team.</p>
       </section>
 
-      <section id="chat" class="section">
-        <div class="chat-section">
-          <section class="glass-card chat-card full-width">
-            <div class="chat-header">
-              <div>
-                <p class="eyebrow">Sentinel Care AI</p>
-                <h2>Chat with Sentinel</h2>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span id="modelStatus" class="pill">Loading...</span>
-                <span id="webgpuWarning" class="pill warning hidden">Chrome/Edge recommended for full AI</span>
-              </div>
-            </div>
-            <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-            
-            <form id="chatForm" class="chat-form" onsubmit="return false;" action="javascript:void(0);">
-              <textarea id="chatInput" rows="3" placeholder="Ask me anything..." required></textarea>
-              <button class="button" type="submit">Send</button>
-            </form>
-          </section>
-        </div>
-      </section>
-
       <section id="pricing" class="section pricing-grid">
         <article class="price-card">
           <h2>Basic</h2>
@@ -103,11 +100,14 @@
       </section>
     </main>
 
-    <script type="module" src="/care/js/index.js"></script>
-
     <footer class="site-footer">
       <span>© Sentinel Prime</span>
       <a href="/care/admin">Admin</a>
     </footer>
+
+    <script type="module" src="/care/js/index.js"></script>
+    <script src="/js/global-nav.js"></script>
+    <script src="/js/galaxy-background.js"></script>
+    <script src="/nav.js"></script>
   </body>
 </html>

@@ -25,24 +25,33 @@ function checkWebGPU() {
   return true;
 }
 
+const TECH_SUPPORT_KEYWORDS = [
+  "fix", "broken", "error", "not working", "won't", "wont", "does not work", "doesnt work", "isnt working", "isn't working",
+  "issue", "problem", "troubleshoot", "virus", "malware", "printer", "password", "forgot password",
+  "slow computer", "freeze", "crash", "blue screen", "wifi", "internet", "connection",
+  "software", "install", "update", "driver", "email", "outlook", "gmail", "windows", "mac",
+  "backup", "recovery", "data", "hard drive", "disk", "storage", "printer not", "can't print",
+  "cant print", "virus removal", "hacked", "compromised", "security", "popup", "ads", "browser",
+  "chrome", "firefox", "safari", "edge", "zoom", "teams", "slack", "excel", "word", "powerpoint",
+  "network", "router", "modem", "bluetooth", "mouse", "keyboard", "monitor", "screen", "display",
+  "battery", "charging", "boot", "startup", "login", "sign in", "account locked", "vpn",
+  "remote desktop", "uninstall", "reinstall", "factory reset", "system restore", "safe mode",
+  "my computer", "my laptop", "my phone", "my device", "my pc", "my printer"
+];
+
+const TECH_BLOCK_MESSAGE = "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime.";
+
+function isTechSupportRequest(text) {
+  const lower = text.toLowerCase();
+  return TECH_SUPPORT_KEYWORDS.some((keyword) => lower.includes(keyword));
+}
+
 async function init() {
-  isWebGPUSupported = checkWebGPU();
-  
-  if (!isWebGPUSupported) {
-    showWebGPUFallback();
-    return;
-  }
-  
-  await loadModel();
-  showGreeting();
+  showWebGPUFallback();
 }
 
 function showWebGPUFallback() {
   useGroqAPI = true;
-  // Show subtle warning banner instead of chat message
-  if (webgpuWarning) {
-    webgpuWarning.classList.remove("hidden");
-  }
   modelStatus.textContent = "Online (API)";
   showGreeting();
 }
@@ -117,7 +126,7 @@ function hideLoadingScreen() {
 function showGreeting() {
   if (hasGreeted) return;
   hasGreeted = true;
-  const welcomeMsg = "Hi there! I'm Sentinel. I can chat about anything — news, weather, hobbies, general questions, or just shoot the breeze. What would you like to talk about?";
+  const welcomeMsg = "Hi there! I'm Sentinel. I can chat about anything — news, weather, general questions, or just shoot the breeze. If you need tech support help, just ask!";
   addMessage("assistant", welcomeMsg);
   conversationHistory.push({ role: "assistant", content: welcomeMsg });
 }
@@ -140,6 +149,12 @@ chatForm.addEventListener("submit", async (event) => {
   chatInput.value = "";
   addMessage("user", text);
   conversationHistory.push({ role: "user", content: text });
+
+  if (isTechSupportRequest(text)) {
+    showTechBlockMessage(TECH_BLOCK_MESSAGE);
+    conversationHistory.push({ role: "assistant", content: TECH_BLOCK_MESSAGE });
+    return false;
+  }
   
   if (useGroqAPI) {
     // Use Groq API via Netlify Function
@@ -193,7 +208,7 @@ async function generateGroqResponse(userText) {
   console.log("[Client] Calling Groq API...", { message: userText.substring(0, 50) });
   
   try {
-    const response = await fetch("/.netlify/functions/care-chat", {
+    const response = await fetch("/care/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
