@@ -108,7 +108,7 @@ chatForm.addEventListener('submit', async (event) => {
     return false;
   }
   
-  // Not tech support - generate conversational response
+  // Not tech support - generate conversational response using the model
   const answer = await generateResponse(text);
   addMessage('assistant', answer);
   conversationHistory.push({ role: 'assistant', content: answer });
@@ -138,11 +138,13 @@ function isTechSupportRequest(text) {
 }
 
 function showSubscriptionMessage() {
+  const exactMessage = "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime.";
+  
   // Create a special subscription message with inline button
   const msgDiv = document.createElement('div');
-  msgDiv.className = 'message assistant subscription-msg';
+  msgDiv.className = 'message assistant';
   msgDiv.innerHTML = `
-    I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at \$14.99/month — cancel anytime.
+    ${exactMessage}
     <div style="margin-top:12px;">
       <a class="button" href="/care/checkout">Subscribe</a>
     </div>
@@ -150,20 +152,18 @@ function showSubscriptionMessage() {
   chatMessages.append(msgDiv);
   chatMessages.scrollTop = chatMessages.scrollHeight;
   
-  conversationHistory.push({ 
-    role: 'assistant', 
-    content: "I'd love to help with that! Technical support is available to Sentinel Care subscribers. Plans start at $14.99/month — cancel anytime."
-  });
+  conversationHistory.push({ role: 'assistant', content: exactMessage });
 }
 
 async function generateResponse(userText) {
+  // Always try to use the model first
   if (!generator) {
-    return fallbackResponse(userText);
+    return "I'm having trouble connecting right now. Please try again in a moment!";
   }
   
   try {
     // Build prompt with conversation history for context
-    let prompt = '<|system|>\nYou are Sentinel, a friendly and conversational AI assistant. You chat about casual topics like weather, news, hobbies, entertainment, jokes, general knowledge, advice, etc. You do NOT provide tech support. Keep responses natural, warm, and engaging.</s>\n';
+    let prompt = '<|system|>\nYou are Sentinel, a friendly and conversational AI assistant. You chat about casual topics like weather, news, hobbies, entertainment, jokes, general knowledge, advice, etc. You do NOT provide tech support. Keep responses natural, warm, and engaging. Respond directly to what the user said.</s>\n';
     
     // Add recent conversation history (last 8 messages)
     const recentHistory = conversationHistory.slice(-8);
@@ -188,67 +188,18 @@ async function generateResponse(userText) {
     });
     
     const generated = output?.[0]?.generated_text || '';
-    const cleaned = cleanAnswer(generated.replace(prompt, ''));
-    return cleaned || fallbackResponse(userText);
+    let cleaned = cleanAnswer(generated.replace(prompt, ''));
+    
+    // Only use generic fallback if model truly failed (empty/whitespace response)
+    if (!cleaned || cleaned.trim().length === 0) {
+      cleaned = "I'm not sure how to respond to that. Could you tell me more?";
+    }
+    
+    return cleaned;
   } catch (error) {
     console.error('Generation error:', error);
-    return fallbackResponse(userText);
+    return "I'm having a momentary glitch. Could you try rephrasing that?";
   }
-}
-
-function fallbackResponse(text) {
-  const lower = text.toLowerCase();
-  
-  if (lower.includes('weather')) {
-    return "I don't have real-time weather data, but I can chat about climate patterns, seasons, or help you find a good weather app! What's on your mind?";
-  }
-  if (lower.includes('news') || lower.includes('happening') || lower.includes('current events')) {
-    return "I don't have live news feeds, but I'm happy to discuss current topics, explain concepts, or chat about pretty much anything. What are you interested in?";
-  }
-  if (lower.includes('how are you') || lower.includes('how do you do')) {
-    return "I'm doing well, thanks for asking! Ready to chat, answer questions, or help out however I can. How about you?";
-  }
-  if (lower.includes('joke') || lower.includes('funny')) {
-    const jokes = [
-      "Why don't scientists trust atoms? Because they make up everything! 😄",
-      "Why did the scarecrow win an award? He was outstanding in his field! 🌾",
-      "Why don't eggs tell jokes? They'd crack each other up! 🥚",
-      "What do you call a fake noodle? An impasta! 🍝"
-    ];
-    return jokes[Math.floor(Math.random() * jokes.length)] + " Got any favorites?";
-  }
-  if (lower.includes('hello') || lower.includes('hi ') || lower === 'hi' || lower.includes('hey')) {
-    return "Hey there! Nice to meet you. What's on your mind today?";
-  }
-  if (lower.includes('your name') || lower.includes('who are you')) {
-    return "I'm Sentinel! I'm here to chat about anything — general questions, hobbies, entertainment, or just casual conversation. What would you like to talk about?";
-  }
-  if (lower.includes('hobby') || lower.includes('hobbies')) {
-    return "I enjoy learning about all sorts of topics! What about you? Any hobbies or interests you'd like to share or discuss?";
-  }
-  if (lower.includes('movie') || lower.includes('film') || lower.includes('show') || lower.includes('tv')) {
-    return "I love talking about movies and shows! What genres do you enjoy? Any recent favorites or recommendations?";
-  }
-  if (lower.includes('book') || lower.includes('read')) {
-    return "Books are great! What do you like to read? Fiction, non-fiction, sci-fi, mystery? Any recent reads you'd recommend?";
-  }
-  if (lower.includes('music') || lower.includes('song') || lower.includes('band')) {
-    return "Music is wonderful! What kind of music do you enjoy? Any favorite artists or genres?";
-  }
-  if (lower.includes('food') || lower.includes('cook') || lower.includes('eat') || lower.includes('recipe')) {
-    return "Food is always a good topic! What kind of cuisine do you enjoy? Do you like to cook or prefer dining out?";
-  }
-  if (lower.includes('travel') || lower.includes('vacation') || lower.includes('trip')) {
-    return "Travel is exciting! Any favorite destinations or places you'd love to visit someday?";
-  }
-  if (lower.includes('sport') || lower.includes('game') || lower.includes('team')) {
-    return "Sports can be really engaging! Do you follow any particular teams or play any sports yourself?";
-  }
-  if (lower.includes('help') || lower.includes('what can you do')) {
-    return "I can chat about general topics — hobbies, entertainment, answer questions, discuss ideas, or just have a casual conversation. What would you like to talk about?";
-  }
-  
-  return "That's interesting! Tell me more, or ask me anything — I'm here to chat about whatever you'd like.";
 }
 
 function cleanAnswer(answer) {
