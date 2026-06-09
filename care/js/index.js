@@ -8,12 +8,12 @@ const subscribePrompt = document.querySelector('#subscribePrompt');
 
 // Tech support keywords that trigger subscription prompt
 const techSupportKeywords = [
-  'fix', 'broken', 'error', 'not working', 'won't', 'wont', 'issue', 'problem',
+  'fix', 'broken', 'error', 'not working', "won't", 'wont', 'issue', 'problem',
   'troubleshoot', 'virus', 'malware', 'printer', 'password', 'forgot password',
   'slow computer', 'freeze', 'crash', 'blue screen', 'wifi', 'internet',
   'connection', 'software', 'install', 'update', 'driver', 'email', 'outlook',
   'gmail', 'windows', 'mac', 'backup', 'recovery', 'data', 'hard drive',
-  'disk', 'storage', 'printer not', 'can't print', 'cant print', 'virus removal',
+  'disk', 'storage', 'printer not', "can't print", 'cant print', 'virus removal',
   'hacked', 'compromised', 'security', 'popup', 'ads', 'browser', 'chrome',
   'firefox', 'safari', 'edge', 'zoom', 'teams', 'slack', 'excel', 'word',
   'powerpoint', 'spreadsheets', 'documents', 'files', 'sync', 'cloud',
@@ -57,8 +57,9 @@ async function loadModel() {
 
 chatForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  event.stopPropagation();
   const text = chatInput.value.trim();
-  if (!text) return;
+  if (!text) return false;
   
   chatInput.value = '';
   addMessage('user', text);
