@@ -27,7 +27,13 @@ const CURRENT_INFO_KEYWORDS = [
 // Check if query needs current information
 function needsCurrentInfo(message) {
   const lower = message.toLowerCase();
-  return CURRENT_INFO_KEYWORDS.some(keyword => lower.includes(keyword.toLowerCase()));
+  const matched = CURRENT_INFO_KEYWORDS.filter(keyword => lower.includes(keyword.toLowerCase()));
+  console.log('[care-chat] Current info check:', { 
+    message: message.substring(0, 50), 
+    matchedKeywords: matched,
+    needsSearch: matched.length > 0 
+  });
+  return matched.length > 0;
 }
 
 // Call Tavily search API
@@ -35,20 +41,25 @@ async function searchTavily(query, apiKey) {
   console.log('[care-chat] Searching Tavily:', { query: query.substring(0, 50) });
   
   try {
+    const requestBody = {
+      query: query,
+      max_results: 3,
+      search_depth: 'basic',
+      include_answer: false,
+      include_images: false
+    };
+    console.log('[care-chat] Tavily request:', requestBody);
+    
     const response = await fetch('https://api.tavily.com/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        query: query,
-        max_results: 3,
-        search_depth: 'basic',
-        include_answer: false,
-        include_images: false
-      })
+      body: JSON.stringify(requestBody)
     });
+    
+    console.log('[care-chat] Tavily response status:', response.status);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -57,11 +68,15 @@ async function searchTavily(query, apiKey) {
     }
     
     const data = await response.json();
-    console.log('[care-chat] Tavily results:', { resultCount: data.results?.length || 0 });
+    console.log('[care-chat] Tavily results:', { 
+      resultCount: data.results?.length || 0,
+      answer: data.answer ? 'present' : 'none',
+      firstResult: data.results?.[0]?.title || 'none'
+    });
     
     return data.results || [];
   } catch (error) {
-    console.error('[care-chat] Tavily search failed:', error.message);
+    console.error('[care-chat] Tavily search failed:', error.message, error.stack);
     return null;
   }
 }
@@ -69,6 +84,7 @@ async function searchTavily(query, apiKey) {
 // Build system prompt with optional search results
 function buildSystemPrompt(searchResults = null) {
   if (!searchResults || searchResults.length === 0) {
+    console.log('[care-chat] Using base prompt (no search results)');
     return BASE_SYSTEM_PROMPT;
   }
   
@@ -77,14 +93,16 @@ function buildSystemPrompt(searchResults = null) {
     `[${i + 1}] ${result.title}: ${result.content.substring(0, 300)}${result.content.length > 300 ? '...' : ''}`
   ).join('\n\n');
   
-  return `${BASE_SYSTEM_PROMPT}\n\nHere is current information from the web to help answer this question:\n\n${formattedResults}\n\nUse this information to give an accurate, up-to-date answer. Cite sources naturally in your response.`;
+  const enhancedPrompt = `${BASE_SYSTEM_PROMPT}\n\nHere is current information from the web to help answer this question:\n\n${formattedResults}\n\nUse this information to give an accurate, up-to-date answer. Cite sources naturally in your response.`;
+  
+  console.log('[care-chat] Using enhanced prompt with search results');
+  return enhancedPrompt;
 }
 
 exports.handler = async function handler(event) {
   console.log('[care-chat] Function invoked', {
     httpMethod: event.httpMethod,
-    hasBody: !!event.body,
-    envKeys: Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('TAVILY')).join(', ')
+    hasBody: !!event.body
   });
 
   if (event.httpMethod !== 'POST') {
@@ -97,7 +115,10 @@ exports.handler = async function handler(event) {
   
   console.log('[care-chat] API Keys check:', {
     groqExists: !!groqKey,
-    tavilyExists: !!tavilyKey
+    groqLength: groqKey ? groqKey.length : 0,
+    tavilyExists: !!tavilyKey,
+    tavilyLength: tavilyKey ? tavilyKey.length : 0,
+    tavilyPrefix: tavilyKey ? tavilyKey.substring(0, 8) : 'none'
   });
 
   if (!groqKey) {
@@ -113,8 +134,7 @@ exports.handler = async function handler(event) {
     const { message, history = [] } = body;
     
     console.log('[care-chat] Request:', {
-      hasMessage: !!message,
-      messagePreview: message ? message.substring(0, 30) : 'N/A',
+      message: message ? message.substring(0, 50) : 'N/A',
       historyLength: history.length
     });
     
@@ -124,12 +144,21 @@ exports.handler = async function handler(event) {
 
     // Check if we need current information
     const shouldSearch = needsCurrentInfo(message);
-    console.log('[care-chat] Current info needed:', shouldSearch);
     
     // Search Tavily if needed and API key available
     let searchResults = null;
-    if (shouldSearch && tavilyKey) {
-      searchResults = await searchTavily(message, tavilyKey);
+    let searchPerformed = false;
+    
+    if (shouldSearch) {
+      if (tavilyKey) {
+        console.log('[care-chat] Tavily key exists, performing search...');
+        searchResults = await searchTavily(message, tavilyKey);
+        searchPerformed = true;
+      } else {
+        console.log('[care-chat] Search needed but no Tavily key available');
+      }
+    } else {
+      console.log('[care-chat] No search needed for this query');
     }
     
     // Build system prompt (with or without search results)
@@ -145,7 +174,11 @@ exports.handler = async function handler(event) {
     }
     messages.push({ role: 'user', content: message });
 
-    console.log('[care-chat] Calling Groq API...', { model: GROQ_MODEL, messageCount: messages.length });
+    console.log('[care-chat] Calling Groq API...', { 
+      model: GROQ_MODEL, 
+      messageCount: messages.length,
+      systemPromptLength: systemPrompt.length 
+    });
 
     // Call Groq API
     const groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -217,12 +250,17 @@ exports.handler = async function handler(event) {
     const isTechBlocked = aiResponse.includes("I'd love to help with that!") && 
                           aiResponse.includes("subscribers");
 
-    console.log('[care-chat] Success:', { responseLength: aiResponse.length, isTechBlocked, usedSearch: !!searchResults });
+    console.log('[care-chat] Success:', { 
+      responseLength: aiResponse.length, 
+      isTechBlocked, 
+      searchPerformed,
+      searchResultsCount: searchResults?.length || 0
+    });
 
     return json(200, { 
       response: aiResponse,
       isTechBlocked,
-      usedSearch: !!searchResults
+      usedSearch: searchPerformed && searchResults && searchResults.length > 0
     });
 
   } catch (error) {
