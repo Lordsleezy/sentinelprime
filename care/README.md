@@ -7,7 +7,7 @@ Sentinel Care is a static Netlify app for Sentinel Prime's tech support subscrip
 - Landing page with Basic and Plus pricing
 - Stripe subscription checkout
 - Supabase magic-link auth and customer portal
-- Client-side AI support chat using Transformers.js
+- Client-side AI chat using WebLLM (@mlc-ai/web-llm) with Llama-3.2-3B
 - Ticket escalation with Supabase tracking and Resend email notifications
 - Admin panel protected for `paul@sentinelprime.org`
 - Netlify Functions backend for secrets and privileged operations
@@ -19,7 +19,7 @@ Sentinel Care is a static Netlify app for Sentinel Prime's tech support subscrip
 - Supabase Auth and Postgres
 - Stripe Checkout and webhooks
 - Resend email notifications
-- Transformers.js in-browser AI
+- WebLLM with Llama-3.2-3B-Instruct model running via WebGPU
 
 ## Local setup
 
@@ -60,6 +60,7 @@ STRIPE_PLUS_PRICE_ID=
 RESEND_API_KEY=
 SUPPORT_NOTIFICATION_EMAIL=paul@sentinelprime.org
 FROM_EMAIL=Sentinel Care <support@sentinelprime.org>
+# ANTHROPIC_API_KEY=sk-ant-...  # Optional: for server-side AI fallback
 ```
 
 ## Stripe setup
@@ -96,6 +97,43 @@ Recommended events:
 
 The included `netlify.toml` already defines the build settings.
 
-## AI model note
+## AI Chat
 
-The portal attempts to load `Xenova/Phi-3-mini-4k-instruct` in the browser. First load can be large and slow. If the model fails to load, the app falls back to guided local support responses so the portal remains usable.
+Sentinel Care uses **WebLLM** (`@mlc-ai/web-llm`) to run the **Llama-3.2-3B-Instruct** model directly in the browser via WebGPU.
+
+### Features
+
+- **Client-side inference** — No API calls, works offline after first load
+- **WebGPU acceleration** — Fast responses on modern browsers
+- **Smart caching** — Model cached after first 30-second load
+- **Tech support gating** — AI provides friendly conversation but blocks tech support requests with subscription prompt
+
+### Browser Support
+
+WebLLM requires WebGPU support. Currently supported browsers:
+- Chrome 113+
+- Edge 113+
+- Chrome Canary (for Android)
+
+If WebGPU is not available, the chat falls back to rule-based responses with a message directing users to Chrome or Edge.
+
+### Model
+
+- **Model**: `Llama-3.2-3B-Instruct-q4f32_1-MLC`
+- **Size**: ~2GB (quantized 4-bit)
+- **First load**: ~30 seconds (with loading screen)
+- **Subsequent loads**: Instant (cached in browser)
+
+### System Prompt
+
+The AI is configured to be friendly and conversational about general topics, but blocks technical support requests:
+
+```
+You are Sentinel, a friendly AI assistant. You can chat about anything - hobbies, 
+entertainment, news, weather, jokes, general questions, advice. Be warm, engaging, 
+and conversational. However, if the user asks for technical support help with 
+computers, software, phones, networks, printers, or devices, you must NOT provide 
+technical help. Instead respond exactly with: "I'd love to help with that! That's 
+what Sentinel Care subscribers get - real step by step tech support. Plans start 
+at $14.99/month."
+```
