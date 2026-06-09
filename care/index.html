@@ -14,8 +14,9 @@
         <span>Sentinel Care</span>
       </a>
       <nav class="nav-links">
+        <a href="#chat">Chat</a>
         <a href="#pricing">Pricing</a>
-        <a href="/care/portal">Customer portal</a>
+        <a href="/care/portal">Account</a>
         <a class="button button-small" href="/care/checkout">Subscribe</a>
       </nav>
     </header>
@@ -52,6 +53,30 @@
         <p>Sentinel explains fixes in plain English with numbered instructions. If the issue needs hands-on support, the portal creates a ticket and alerts the Sentinel Prime team.</p>
       </section>
 
+      <section id="chat" class="section">
+        <div class="chat-section">
+          <section class="glass-card chat-card full-width">
+            <div class="chat-header">
+              <div>
+                <p class="eyebrow">Sentinel Care AI</p>
+                <h2>Tell Sentinel what is wrong</h2>
+              </div>
+              <span id="modelStatus" class="pill">Loading AI...</span>
+            </div>
+            <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+            <div id="subscribePrompt" class="notice hidden">
+              To connect with a real technician, you'll need a Sentinel Care plan. Plans start at $14.99/month.
+              <a class="button" href="/care/checkout" style="margin-top:12px;display:inline-block;">Subscribe</a>
+            </div>
+            <form id="chatForm" class="chat-form">
+              <textarea id="chatInput" rows="3" placeholder="Example: My printer will not connect to Wi-Fi" required></textarea>
+              <button class="button" type="submit">Send</button>
+            </form>
+            <button id="escalateButton" class="button button-secondary hidden">Connect me with a real technician</button>
+          </section>
+        </div>
+      </section>
+
       <section id="pricing" class="section pricing-grid">
         <article class="price-card">
           <h2>Basic</h2>
@@ -78,6 +103,8 @@
         </article>
       </section>
     </main>
+
+    <script type="module" src="/care/js/index.js"></script>
 
     <footer class="site-footer">
       <span>© Sentinel Prime</span>

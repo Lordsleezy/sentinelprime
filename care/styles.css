@@ -57,7 +57,9 @@ textarea { resize: vertical; }
 .metric { border-top: 1px solid var(--line); padding: 1rem 0; display: grid; gap: 0.35rem; color: var(--muted); }
 .metric strong { color: var(--text); font-size: 1.3rem; }
 .account-card { display: grid; gap: 0.8rem; }
+.chat-section { width: min(900px, 100%); margin: 0 auto; }
 .chat-card { min-height: 680px; display: grid; grid-template-rows: auto 1fr auto auto; gap: 1rem; }
+.chat-card.full-width { width: 100%; max-width: none; }
 .chat-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
 .chat-messages { overflow: auto; display: grid; align-content: start; gap: 0.9rem; padding: 0.5rem; }
 .message { max-width: 82%; padding: 0.95rem 1rem; border-radius: 1.15rem; white-space: pre-wrap; line-height: 1.55; }
