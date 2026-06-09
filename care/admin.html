@@ -16,11 +16,13 @@
       <section id="adminAuthPanel" class="glass-card auth-card">
         <p class="eyebrow">Protected admin</p>
         <h1>Admin sign in</h1>
-        <p>Only paul@sentinelprime.org can access this panel.</p>
+        <p>Use the same credentials as sentinelprime.org/admin. If you're already logged in there, refresh this page.</p>
         <form id="adminAuthForm" class="stacked-form">
           <label for="adminEmail">Email address</label>
-          <input id="adminEmail" name="email" type="email" required value="paul@sentinelprime.org" />
-          <button class="button" type="submit">Send magic link</button>
+          <input id="adminEmail" name="email" type="email" autocomplete="username" required placeholder="paul@sentinelprime.org" />
+          <label for="adminPassword">Password</label>
+          <input id="adminPassword" name="password" type="password" autocomplete="current-password" required placeholder="Enter password" />
+          <button class="button" type="submit">Sign in</button>
         </form>
         <div id="adminAuthStatus" class="notice hidden"></div>
       </section>

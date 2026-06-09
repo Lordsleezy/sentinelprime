@@ -1,16 +1,20 @@
-import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+﻿import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 import { hideNotice, showNotice } from './config.js';
 import { getSession, getSupabase } from './supabaseClient.js';
 
 const authPanel = document.querySelector('#authPanel');
-const portalPanel = document.querySelector('#portalPanel');
+const accountPanel = document.querySelector('#accountPanel');
 const authForm = document.querySelector('#authForm');
 const authStatus = document.querySelector('#authStatus');
+const signInLink = document.querySelector('#signInLink');
+const cancelAuth = document.querySelector('#cancelAuth');
 const signOutButton = document.querySelector('#signOutButton');
 const customerName = document.querySelector('#customerName');
 const currentPlan = document.querySelector('#currentPlan');
 const interactionUsage = document.querySelector('#interactionUsage');
 const remoteUsage = document.querySelector('#remoteUsage');
+const interactionsMetric = document.querySelector('#interactionsMetric');
+const sessionsMetric = document.querySelector('#sessionsMetric');
 const remoteButton = document.querySelector('#remoteButton');
 const callbackButton = document.querySelector('#callbackButton');
 const portalStatus = document.querySelector('#portalStatus');
@@ -20,6 +24,7 @@ const chatForm = document.querySelector('#chatForm');
 const chatInput = document.querySelector('#chatInput');
 const escalateButton = document.querySelector('#escalateButton');
 const upgradePrompt = document.querySelector('#upgradePrompt');
+const subscribePrompt = document.querySelector('#subscribePrompt');
 
 const supportPrompt = `You are Sentinel, a friendly, patient tech support agent for Sentinel Care. Speak in plain English. Never use jargon unless you explain it simply. Help with slow computers, virus concerns, printer setup, email problems, browser issues, software installs, password help, and vague computer problems. Walk users through fixes step by step with numbered instructions. If you cannot solve the issue, say exactly: "I want to make sure this gets fixed properly. Let me connect you with a real technician."`;
 
@@ -29,15 +34,40 @@ let profile;
 let lastUserIssue = '';
 
 async function init() {
-  session = await getSession();
-  if (!session) return;
-  authPanel.classList.add('hidden');
-  portalPanel.classList.remove('hidden');
-  signOutButton.classList.remove('hidden');
-  await loadProfile();
+  // AI chat is public - initialize immediately
   await loadModel();
-  addMessage('assistant', 'Hi, I’m Sentinel. Tell me what is happening with your computer, printer, email, browser, or account, and I’ll walk you through it one step at a time.');
+  addMessage('assistant', "Hi, I'm Sentinel. Tell me what is happening with your computer, printer, email, browser, or account, and I'll walk you through it one step at a time.");
+  
+  // Check for existing session
+  session = await getSession();
+  if (session) {
+    await showLoggedInState();
+  } else {
+    showAnonymousState();
+  }
 }
+
+function showAnonymousState() {
+  signInLink.classList.remove('hidden');
+  signOutButton.classList.add('hidden');
+  accountPanel.classList.add('hidden');
+}
+
+async function showLoggedInState() {
+  signInLink.classList.add('hidden');
+  signOutButton.classList.remove('hidden');
+  accountPanel.classList.remove('hidden');
+  await loadProfile();
+}
+
+signInLink.addEventListener('click', (event) => {
+  event.preventDefault();
+  authPanel.classList.remove('hidden');
+});
+
+cancelAuth.addEventListener('click', () => {
+  authPanel.classList.add('hidden');
+});
 
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -60,11 +90,21 @@ chatForm.addEventListener('submit', async (event) => {
   lastUserIssue = text;
   chatInput.value = '';
   addMessage('user', text);
-  await trackInteraction('ai_chat', text);
+  
+  // Track interaction only if logged in
+  if (session) {
+    await trackInteraction('ai_chat', text);
+  }
+  
   const answer = await askSentinel(text);
   addMessage('assistant', answer);
+  
   if (answer.includes('Let me connect you with a real technician.')) {
-    escalateButton.classList.remove('hidden');
+    if (session && profile?.subscription?.plan) {
+      escalateButton.classList.remove('hidden');
+    } else {
+      subscribePrompt.classList.remove('hidden');
+    }
   }
 });
 
@@ -82,9 +122,23 @@ async function loadProfile() {
   profile = data;
   customerName.textContent = `Welcome${profile.customer?.name ? `, ${profile.customer.name}` : ''}`;
   currentPlan.textContent = formatPlan(profile.subscription?.plan);
-  interactionUsage.textContent = `${profile.usage.humanInteractions} / ${profile.limits.humanInteractions}`;
-  remoteUsage.textContent = `${profile.usage.remoteSessions} / ${profile.limits.remoteSessions}`;
-  callbackButton.disabled = profile.subscription?.plan !== 'plus';
+  
+  // Show metrics only for paid plans
+  if (profile.subscription?.plan === 'basic' || profile.subscription?.plan === 'plus') {
+    interactionsMetric.style.display = '';
+    sessionsMetric.style.display = '';
+    interactionUsage.textContent = `${profile.usage.humanInteractions} / ${profile.limits.humanInteractions}`;
+    remoteUsage.textContent = `${profile.usage.remoteSessions} / ${profile.limits.remoteSessions}`;
+    remoteButton.classList.remove('hidden');
+    callbackButton.classList.remove('hidden');
+    callbackButton.disabled = profile.subscription?.plan !== 'plus';
+  } else {
+    interactionsMetric.style.display = 'none';
+    sessionsMetric.style.display = 'none';
+    remoteButton.classList.add('hidden');
+    callbackButton.classList.add('hidden');
+  }
+  
   if (profile.usage.humanInteractions >= profile.limits.humanInteractions) {
     upgradePrompt.classList.remove('hidden');
   }
@@ -115,15 +169,15 @@ async function askSentinel(userText) {
 function fallbackAnswer(text) {
   const lower = text.toLowerCase();
   if (lower.includes('virus') || lower.includes('popup') || lower.includes('scam')) {
-    return 'Let’s handle this carefully.\n\n1. Do not click the popup or call any number shown on it.\n2. Close your browser completely.\n3. Restart your computer.\n4. Open your security app and run a full scan.\n5. If the warning comes back, I want to make sure this gets fixed properly. Let me connect you with a real technician.';
+    return "Let's handle this carefully.\n\n1. Do not click the popup or call any number shown on it.\n2. Close your browser completely.\n3. Restart your computer.\n4. Open your security app and run a full scan.\n5. If the warning comes back, I want to make sure this gets fixed properly. Let me connect you with a real technician.";
   }
   if (lower.includes('printer')) {
-    return 'Let’s check the printer step by step.\n\n1. Make sure the printer is turned on.\n2. Confirm it is connected to the same Wi-Fi as your computer.\n3. Restart the printer and your computer.\n4. Try printing a simple test page.\n5. If it still does not print, remove and re-add the printer in your computer settings.';
+    return "Let's check the printer step by step.\n\n1. Make sure the printer is turned on.\n2. Confirm it is connected to the same Wi-Fi as your computer.\n3. Restart the printer and your computer.\n4. Try printing a simple test page.\n5. If it still does not print, remove and re-add the printer in your computer settings.";
   }
   if (lower.includes('password')) {
-    return 'Let’s work through the password issue safely.\n\n1. Go directly to the official website or app.\n2. Choose “Forgot password.”\n3. Check your email or phone for the reset code.\n4. Create a new password you do not use anywhere else.\n5. If you think someone else accessed the account, tell me and we can secure it next.';
+    return "Let's work through the password issue safely.\n\n1. Go directly to the official website or app.\n2. Choose \"Forgot password.\"\n3. Check your email or phone for the reset code.\n4. Create a new password you do not use anywhere else.\n5. If you think someone else accessed the account, tell me and we can secure it next.";
   }
-  return 'Let’s start with the safest basic checks.\n\n1. Save anything you are working on.\n2. Restart the computer.\n3. After it turns back on, try the same task again.\n4. Tell me exactly what message you see, or what happens right before the problem starts.\n5. If this affects your work right now, I want to make sure this gets fixed properly. Let me connect you with a real technician.';
+  return "Let's start with the safest basic checks.\n\n1. Save anything you are working on.\n2. Restart the computer.\n3. After it turns back on, try the same task again.\n4. Tell me exactly what message you see, or what happens right before the problem starts.\n5. If this affects your work right now, I want to make sure this gets fixed properly. Let me connect you with a real technician.";
 }
 
 function cleanAnswer(answer) {
@@ -139,14 +193,24 @@ function addMessage(role, text) {
 }
 
 async function trackInteraction(type, summary) {
-  await fetch('/care/api/track-interaction', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ type, summary })
-  });
+  if (!session) return;
+  try {
+    await fetch('/care/api/track-interaction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ type, summary })
+    });
+  } catch (e) {
+    // Silent fail for tracking
+  }
 }
 
 async function requestHumanHelp(type, summary) {
+  if (!session) {
+    subscribePrompt.classList.remove('hidden');
+    return;
+  }
+  
   hideNotice(portalStatus);
   const humanLimitReached = profile.usage.humanInteractions >= profile.limits.humanInteractions;
   if (humanLimitReached && type !== 'ai_chat') {
@@ -169,7 +233,7 @@ async function requestHumanHelp(type, summary) {
 function formatPlan(plan) {
   if (plan === 'plus') return 'Plus';
   if (plan === 'basic') return 'Basic';
-  return 'No active subscription';
+  return 'Free AI chat';
 }
 
 init();

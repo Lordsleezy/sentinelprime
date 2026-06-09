@@ -9,11 +9,16 @@
   <body>
     <header class="site-header">
       <a class="brand" href="/care"><span class="brand-mark">S</span><span>Sentinel Care</span></a>
-      <nav class="nav-links"><a href="/care/checkout">Subscribe</a><button id="signOutButton" class="button button-small hidden">Sign out</button></nav>
+      <nav class="nav-links">
+        <a href="/care/checkout">Subscribe</a>
+        <a href="#" id="signInLink">Sign in</a>
+        <button id="signOutButton" class="button button-small hidden">Sign out</button>
+      </nav>
     </header>
 
     <main class="section portal-layout">
-      <section id="authPanel" class="glass-card auth-card">
+      <!-- Sign In Modal -->
+      <section id="authPanel" class="glass-card auth-card hidden">
         <p class="eyebrow">Customer portal</p>
         <h1>Sign in for support</h1>
         <p>Use your email to receive a secure magic link.</p>
@@ -21,38 +26,43 @@
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
           <button class="button" type="submit">Send magic link</button>
+          <button class="button button-secondary" type="button" id="cancelAuth">Cancel</button>
         </form>
         <div id="authStatus" class="notice hidden"></div>
       </section>
 
-      <section id="portalPanel" class="hidden portal-grid">
-        <aside class="glass-card account-card">
-          <p class="eyebrow">Your care plan</p>
-          <h1 id="customerName">Welcome</h1>
-          <div class="metric"><span>Current plan</span><strong id="currentPlan">Loading...</strong></div>
-          <div class="metric"><span>Human interactions this cycle</span><strong id="interactionUsage">0 / 0</strong></div>
-          <div class="metric"><span>Remote sessions this cycle</span><strong id="remoteUsage">0 / 0</strong></div>
-          <button id="remoteButton" class="button full-width">Request remote session</button>
-          <button id="callbackButton" class="button button-secondary full-width">Request phone callback</button>
-          <div id="portalStatus" class="notice hidden"></div>
-        </aside>
+      <!-- Account Panel (visible only when logged in) -->
+      <aside id="accountPanel" class="glass-card account-card hidden">
+        <p class="eyebrow">Your care plan</p>
+        <h1 id="customerName">Welcome</h1>
+        <div class="metric"><span>Current plan</span><strong id="currentPlan">Free AI chat</strong></div>
+        <div class="metric" id="interactionsMetric" style="display:none;"><span>Human interactions this cycle</span><strong id="interactionUsage">0 / 0</strong></div>
+        <div class="metric" id="sessionsMetric" style="display:none;"><span>Remote sessions this cycle</span><strong id="remoteUsage">0 / 0</strong></div>
+        <button id="remoteButton" class="button full-width hidden">Request remote session</button>
+        <button id="callbackButton" class="button button-secondary full-width hidden">Request phone callback</button>
+        <div id="portalStatus" class="notice hidden"></div>
+      </aside>
 
-        <section class="glass-card chat-card">
-          <div class="chat-header">
-            <div>
-              <p class="eyebrow">Sentinel Care AI</p>
-              <h2>Tell Sentinel what is wrong</h2>
-            </div>
-            <span id="modelStatus" class="pill">Sentinel Care AI is warming up...</span>
+      <!-- AI Chat (always visible) -->
+      <section class="glass-card chat-card">
+        <div class="chat-header">
+          <div>
+            <p class="eyebrow">Sentinel Care AI</p>
+            <h2>Tell Sentinel what is wrong</h2>
           </div>
-          <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-          <div id="upgradePrompt" class="notice hidden">You have reached your monthly human support limit. You can still use AI chat, or upgrade for more included support.</div>
-          <form id="chatForm" class="chat-form">
-            <textarea id="chatInput" rows="3" placeholder="Example: My printer will not connect to Wi-Fi" required></textarea>
-            <button class="button" type="submit">Send</button>
-          </form>
-          <button id="escalateButton" class="button button-secondary hidden">Connect me with a real technician</button>
-        </section>
+          <span id="modelStatus" class="pill">Sentinel Care AI is warming up...</span>
+        </div>
+        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+        <div id="upgradePrompt" class="notice hidden">You have reached your monthly human support limit. You can still use AI chat, or upgrade for more included support.</div>
+        <div id="subscribePrompt" class="notice hidden">
+          To connect with a real technician, you'll need a Sentinel Care plan. Plans start at $14.99/month.
+          <a class="button" href="/care/checkout" style="margin-top:12px;display:inline-block;">Subscribe</a>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <textarea id="chatInput" rows="3" placeholder="Example: My printer will not connect to Wi-Fi" required></textarea>
+          <button class="button" type="submit">Send</button>
+        </form>
+        <button id="escalateButton" class="button button-secondary hidden">Connect me with a real technician</button>
       </section>
     </main>
 
