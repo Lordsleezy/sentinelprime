@@ -4,8 +4,8 @@
   var LINKS = [
     { href: "/", label: "Home", key: "home" },
     { href: "/products", label: "Products", key: "products" },
+    { href: "https://market.sentinelprime.org", label: "Market", key: "market" },
     { href: "/care", label: "Care", key: "care" },
-    { href: "/market", label: "Market", key: "market" },
     { href: "/admin", label: "Admin", key: "admin" }
   ];
 
