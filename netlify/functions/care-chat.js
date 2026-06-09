@@ -6,7 +6,7 @@ IMPORTANT: If the user asks for ANY technical support help with computers, softw
 
 Never provide technical troubleshooting, fixes, or step-by-step tech instructions to non-subscribers. Only casual conversation.`;
 
-const GROQ_MODEL = 'llama3-8b-8192';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
 
 exports.handler = async function handler(event) {
   console.log('[care-chat] Function invoked', {
