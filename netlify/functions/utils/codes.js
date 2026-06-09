@@ -22,8 +22,11 @@ function expiryFor(type, unixSeconds) {
   return null;
 }
 
+const PRODUCT_TYPES = ["sentinelai", "shift", "shield", "care"];
+
 async function createCode(supabase, values) {
   if (!CODE_TYPES.includes(values.type)) throw new Error("Invalid activation-code type");
+  const product = values.product && PRODUCT_TYPES.includes(values.product) ? values.product : "sentinelai";
   for (let attempts = 0; attempts < 10; attempts += 1) {
     const code = generateCode();
     const { data, error } = await supabase
@@ -31,6 +34,7 @@ async function createCode(supabase, values) {
       .insert({
         code,
         type: values.type,
+        product,
         status: "unused",
         email: values.email?.toLowerCase() || null,
         user_id: values.userId || null,
@@ -48,5 +52,5 @@ async function createCode(supabase, values) {
   throw new Error("Unable to create a unique activation code");
 }
 
-module.exports = { CODE_TYPES, createCode, expiryFor, generateCode };
+module.exports = { CODE_TYPES, PRODUCT_TYPES, createCode, expiryFor, generateCode };
 

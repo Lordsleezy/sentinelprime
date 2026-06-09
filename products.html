@@ -3,101 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Products - Sentinel Prime</title>
-<meta name="description" content="Explore SentinelAI and Sentinel Drive: the local-first AI operating system and encrypted portable AI stack from Sentinel Prime.">
-<link rel="canonical" href="https://sentinelprime.org/products.html">
+<title>Products — Sentinel Prime</title>
+<meta name="description" content="Shift, Sentinel Shield, Sentinel Care, and SentinelAI — the complete Sentinel Prime product suite.">
+<link rel="canonical" href="https://sentinelprime.org/products">
 <meta property="og:title" content="Sentinel Prime Products">
-<meta property="og:description" content="SentinelAI, Sentinel Drive, and the local-first private AI ecosystem.">
-<meta property="og:url" content="https://sentinelprime.org/products.html">
+<meta property="og:description" content="Switch to Linux, protect your PC, get IT support, and run autonomous AI.">
+<meta property="og:url" content="https://sentinelprime.org/products">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
+<link rel="stylesheet" href="css/products.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
-<nav class="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
-  <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
-  <div class="nav-links">
-    <a href="products.html">Products</a>
-    <a href="sentinel-drive.html">Sentinel Drive</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="download.html">Download</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a class="nav-cta" href="checkout.html">Buy Pro &rarr;</a>
-  </div>
-</nav>
+<body data-page="products">
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
 
 <main>
-  <section class="page-hero">
+  <section class="page-hero products-hero">
     <div class="wrap">
-      <p class="eyebrow">SentinelAI</p>
-      <h1>The autonomous AI OS for your life</h1>
-      <p class="lead">SentinelAI is a local-first personal operating system built around an orb interface. Speak or type a request, and Sentinel routes it to the right worker automatically: automation, code, search, security, markets, memory, home control, or a new tool it builds for you.</p>
-      <div class="buttons">
-        <a class="button" href="download.html">Download</a>
-        <a class="button secondary" href="pricing.html">Free Tier | Pro $199</a>
-      </div>
+      <p class="eyebrow">Our Products</p>
+      <h1>Built for real people.</h1>
+      <p class="lead">From switching to Linux to autonomous AI — every Sentinel product is designed to just work.</p>
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="panel">
-        <p class="eyebrow">How The Orb Works</p>
-        <h2>One interface. Many workers.</h2>
-        <p class="copy">The orb is the user-facing brain. It listens for intent, chooses the right worker, checks whether approval is needed, and gives the result back in plain language. OpenClaw handles commands, Forge writes and repairs code, Guardian scans and protects, Market tracks paper trading, Voice handles wake word flows, and the Home Assistant bridge connects your smart home.</p>
-      </div>
-      <div class="panel">
-        <p class="eyebrow">Self-Extending</p>
-        <h2>When a tool does not exist, Sentinel can build it.</h2>
-        <p class="copy">SentinelAI can search for existing capability, route known work to existing workers, or ask for approval before Forge builds a new tool. This keeps automation useful without letting an AI silently expand itself behind your back.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
+  <section class="section" style="padding-top: 0;">
     <div class="wrap">
-      <p class="eyebrow">Capabilities</p>
-      <h2>Built for the daily surface area of life.</h2>
-      <ul class="feature-list">
-        <li>Always-listening wake word: "Hey Sentinel"</li>
-        <li>Smart home control: lights, locks, cameras, thermostat</li>
-        <li>Calendar, contacts, and reminders</li>
-        <li>Web search and page summarization</li>
-        <li>Local automation workflows and scheduled agents</li>
-        <li>Paper trading market dashboard: Freqtrade + OpenBB</li>
-        <li>Code writing and repair with Forge</li>
-        <li>Health tracking with wearables integration</li>
-        <li>Finance tracking with Firefly III</li>
-        <li>Spotify music control</li>
-        <li>Package tracking</li>
-        <li>Obsidian-compatible memory vault</li>
-        <li>Self-extending capability system</li>
-        <li>Telegram and WhatsApp remote control from anywhere</li>
-      </ul>
-    </div>
-  </section>
+      <div class="products-grid">
 
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="panel">
-        <span class="badge">Coming Soon</span>
-        <p class="eyebrow" style="margin-top:22px">Sentinel Drive</p>
-        <h2>Your encrypted portable AI stack</h2>
-        <p class="copy">Sentinel Drive is the hardware layer: an encrypted USB/drive product that carries your entire SentinelAI setup. Plug it into a machine and bring your vault, private browser, local models, workers, and encrypted storage with you.</p>
-        <p class="copy">The goal is simple: your AI life travels with you, but your data stays yours.</p>
-      </div>
-      <div class="form-panel">
-        <p class="eyebrow">Launch Notification</p>
-        <h2>Notify me when Sentinel Drive launches</h2>
-        <form id="driveNotifyForm">
-          <input required type="email" name="email" placeholder="you@example.com">
-          <button class="button" type="submit">Notify Me</button>
-          <div class="form-status" id="driveNotifyStatus"></div>
-        </form>
+        <article class="product-card">
+          <div class="product-mockup">
+            <div class="mock-shift">
+              <div class="mock-shift-bar"><div class="mock-shift-fill"></div></div>
+              <div class="mock-shift-steps">
+                <div class="mock-shift-step"></div>
+                <div class="mock-shift-step"></div>
+                <div class="mock-shift-step"></div>
+                <div class="mock-shift-step"></div>
+              </div>
+              <div class="mock-shift-logos">
+                <div class="mock-shift-logo"></div>
+                <div class="mock-shift-logo"></div>
+                <div class="mock-shift-logo"></div>
+              </div>
+            </div>
+          </div>
+          <div class="product-body">
+            <h2>Shift by Sentinel</h2>
+            <p class="product-tagline">Switch to Linux without losing Windows</p>
+            <p class="product-desc">Install any Linux distro alongside Windows in minutes. Try before you install with live demos. Your Windows key is saved. Go back anytime.</p>
+            <div class="product-meta">
+              <span class="product-price">$29 one-time</span>
+            </div>
+            <a class="product-cta" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shift/Shift.by.Sentinel.Setup.0.1.6.exe">Download</a>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-mockup">
+            <div class="mock-shield">
+              <div class="mock-shield-scan"><div class="mock-shield-scan-bar"></div></div>
+              <div class="mock-shield-threats"></div>
+              <div class="mock-shield-status"></div>
+            </div>
+          </div>
+          <div class="product-body">
+            <h2>Sentinel Shield</h2>
+            <p class="product-tagline">Security that actually works for everyone</p>
+            <p class="product-desc">Real-time protection, virus scanner, network monitor, and PC optimizer. Built for Windows. Simple enough for your grandparents.</p>
+            <div class="product-meta">
+              <span class="product-badge">1 Day Free Trial</span>
+              <span class="product-price">$19.99/year</span>
+            </div>
+            <a class="product-cta" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shield/SentinelShield-Setup-0.1.1.exe">Download Free Trial</a>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-mockup">
+            <div class="mock-care">
+              <div class="mock-care-bubble mock-care-bubble--user">My printer won't connect</div>
+              <div class="mock-care-bubble mock-care-bubble--ai">Let me walk you through it step by step.</div>
+              <div class="mock-care-bubble mock-care-bubble--user">That worked, thanks!</div>
+              <div class="mock-care-bubble mock-care-bubble--ai">Happy to help. Anything else?</div>
+            </div>
+          </div>
+          <div class="product-body">
+            <h2>Sentinel Care</h2>
+            <p class="product-tagline">Your personal IT department for less than Netflix</p>
+            <p class="product-desc">Chat with Sentinel AI anytime. Real technician support when you need it. No contracts, no Best Buy lines.</p>
+            <div class="product-meta">
+              <span class="product-price">From $14.99/month</span>
+            </div>
+            <a class="product-cta" href="/care">Subscribe</a>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-mockup">
+            <div class="mock-ai">
+              <div class="mock-ai-particle"></div>
+              <div class="mock-ai-particle"></div>
+              <div class="mock-ai-particle"></div>
+              <div class="mock-ai-particle"></div>
+              <div class="mock-ai-particle"></div>
+              <div class="mock-ai-orb"></div>
+            </div>
+          </div>
+          <div class="product-body">
+            <h2>SentinelAI Beta</h2>
+            <p class="product-tagline">Your AI that actually works for you</p>
+            <p class="product-desc">Autonomous AI assistant with browser automation, earn pipeline, and home assistant integration. Currently in beta.</p>
+            <div class="product-meta">
+              <span class="product-badge product-badge--beta">Beta — Free</span>
+            </div>
+            <a class="product-cta" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Download Beta</a>
+          </div>
+        </article>
+
       </div>
     </div>
   </section>
@@ -105,17 +133,18 @@
 
 <footer>
   <div class="footer-links">
-    <a href="index.html">Home</a><a href="products.html">Products</a><a href="sentinel-drive.html">Sentinel Drive</a><a href="download.html">Download</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="https://github.com/Lordsleezy/sentinelprime" target="_blank" rel="noopener">GitHub</a>
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="/care">Care</a>
+    <a href="/market">Market</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="contact.html">Contact</a>
   </div>
-  <div>&copy; 2026 Sentinel Prime Inc. - paul@sentinelprime.org</div>
+  <div>&copy; 2026 Sentinel Prime Inc.</div>
 </footer>
 
-<script>
-document.getElementById("driveNotifyForm").addEventListener("submit", function (event) {
-  event.preventDefault();
-  document.getElementById("driveNotifyStatus").textContent = "Thanks. We will email you when Sentinel Drive is ready.";
-});
-</script>
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

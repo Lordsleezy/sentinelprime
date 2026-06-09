@@ -117,3 +117,42 @@ alter table public.download_events enable row level security;
 alter table public.installs enable row level security;
 alter table public.trial_events enable row level security;
 alter table public.license_events enable row level security;
+
+-- ─── Activation codes (products, care, SentinelAI licenses) ─────────────────
+
+create table if not exists public.activation_codes (
+  id uuid primary key default uuid_generate_v4(),
+  code text not null unique,
+  email text,
+  product text not null default 'sentinelai',
+  type text not null default 'monthly',
+  status text not null default 'unused' check (status in ('unused', 'active', 'used', 'revoked', 'expired', 'cancelled')),
+  device_id text,
+  user_id uuid references public.profiles(id) on delete set null,
+  stripe_subscription_id text,
+  stripe_customer_id text,
+  stripe_payment_intent_id text,
+  expires_at timestamptz,
+  used_at timestamptz,
+  activated_at timestamptz,
+  last_validated_at timestamptz,
+  machine_id text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists activation_codes_email_idx on public.activation_codes (email);
+create index if not exists activation_codes_product_idx on public.activation_codes (product);
+create index if not exists activation_codes_status_idx on public.activation_codes (status);
+create index if not exists activation_codes_created_at_idx on public.activation_codes (created_at desc);
+
+create table if not exists public.code_generation_log (
+  id uuid primary key default uuid_generate_v4(),
+  code_id uuid references public.activation_codes(id) on delete cascade,
+  generated_by text not null,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.activation_codes enable row level security;
+alter table public.code_generation_log enable row level security;

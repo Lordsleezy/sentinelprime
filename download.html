@@ -142,6 +142,7 @@ fetch("/api/beta/release").then(r => r.json()).then(data => {
   if (btn && data.installerName) btn.textContent = "Download " + data.installerName;
 }).catch(() => {});
 </script>
+<script src="js/site-shell.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

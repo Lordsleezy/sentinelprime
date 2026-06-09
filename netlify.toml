@@ -92,3 +92,18 @@
   from = "/admin"
   to = "/admin.html"
   status = 200
+
+[[redirects]]
+  from = "/products"
+  to = "/products.html"
+  status = 200
+
+[[redirects]]
+  from = "/care"
+  to = "/care.html"
+  status = 200
+
+[[redirects]]
+  from = "/market"
+  to = "/market.html"
+  status = 200
