@@ -1,185 +1,188 @@
 ﻿import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
-import { getSession } from './supabaseClient.js';
 
 const modelStatus = document.querySelector('#modelStatus');
 const chatMessages = document.querySelector('#chatMessages');
 const chatForm = document.querySelector('#chatForm');
 const chatInput = document.querySelector('#chatInput');
-const escalateButton = document.querySelector('#escalateButton');
 const subscribePrompt = document.querySelector('#subscribePrompt');
-const authPrompt = document.querySelector('#authPrompt');
 
-// Persistent AI system prompt - do NOT escalate easily
-const supportPrompt = `You are Sentinel, a capable and persistent tech support agent for Sentinel Care. You help with: slow computers, viruses/malware, printer issues, email problems, browser issues, software installs, password resets, Wi-Fi connectivity, virtual machines, and general troubleshooting.
-
-Guidelines:
-- Be thorough and methodical. Walk users through detailed troubleshooting steps.
-- Ask clarifying questions to diagnose properly.
-- Try at least 3-4 different approaches before suggesting escalation.
-- For virtual machines: check settings, resources, hypervisor status, guest additions, network config.
-- Never say "contact a technician" or escalate on the first few messages.
-- Only escalate if: (1) user explicitly says "I tried everything" or "nothing works", OR (2) hardware failure is confirmed, OR (3) after 5+ back-and-forth exchanges.
-- Always provide specific numbered steps, not generic advice.
-- If unsure, ask more diagnostic questions rather than giving up.`;
+// Tech support keywords that trigger subscription prompt
+const techSupportKeywords = [
+  'fix', 'broken', 'error', 'not working', 'won't', 'wont', 'issue', 'problem',
+  'troubleshoot', 'virus', 'malware', 'printer', 'password', 'forgot password',
+  'slow computer', 'freeze', 'crash', 'blue screen', 'wifi', 'internet',
+  'connection', 'software', 'install', 'update', 'driver', 'email', 'outlook',
+  'gmail', 'windows', 'mac', 'backup', 'recovery', 'data', 'hard drive',
+  'disk', 'storage', 'printer not', 'can't print', 'cant print', 'virus removal',
+  'hacked', 'compromised', 'security', 'popup', 'ads', 'browser', 'chrome',
+  'firefox', 'safari', 'edge', 'zoom', 'teams', 'slack', 'excel', 'word',
+  'powerpoint', 'spreadsheets', 'documents', 'files', 'sync', 'cloud',
+  'onedrive', 'google drive', 'dropbox', 'icloud', 'backup', 'restore',
+  'antivirus', 'firewall', 'network', 'router', 'modem', 'ethernet',
+  'bluetooth', 'mouse', 'keyboard', 'monitor', 'screen', 'display',
+  'battery', 'charging', 'power', 'boot', 'startup', 'login', 'sign in',
+  'account locked', 'two factor', '2fa', 'authentication', 'certificate',
+  'ssl', 'vpn', 'remote desktop', 'rdp', 'ssh', 'terminal', 'command line',
+  'bash', 'powershell', 'registry', 'system32', 'dll', 'exe', 'application',
+  'app', 'program', 'uninstall', 'remove', 'delete', 'cleanup', 'disk cleanup',
+  'defrag', 'fragmented', 'corrupted', 'damaged', 'failing', 'hardware',
+  'cpu', 'ram', 'memory', 'graphics', 'gpu', 'motherboard', 'cpu fan',
+  'overheating', 'temperature', 'bsod', 'kernel', 'panic', 'exception',
+  'fault', 'timeout', 'unreachable', 'dns', 'ip address', 'ping', 'packet loss',
+  'bandwidth', 'speed test', 'latency', 'lag', 'stutter', 'frame rate', 'fps'
+];
 
 let generator;
-let session = null;
-let messageCount = 0;
-let lastUserIssue = '';
+let isTechSupportMode = false;
+let gaveTechTip = false;
 
 async function init() {
-  // Check authentication first
-  session = await getSession();
-  
-  if (!session) {
-    showAuthPrompt();
-    return;
-  }
-  
-  // User is authenticated - show chat
-  authPrompt.classList.add('hidden');
-  chatForm.classList.remove('hidden');
-  chatInput.disabled = false;
-  
   await loadModel();
-  addMessage('assistant', "Hi, I'm Sentinel. I'm here to help with your tech issues. What problem are you experiencing?");
-}
-
-function showAuthPrompt() {
-  // Hide chat UI, show auth prompt
-  chatForm.classList.add('hidden');
-  chatInput.disabled = true;
-  authPrompt.classList.remove('hidden');
-  modelStatus.textContent = 'Sign in required';
-  
-  // Add a message explaining auth is required
-  chatMessages.innerHTML = '';
-  const msg = document.createElement('div');
-  msg.className = 'notice';
-  msg.style.cssText = 'text-align:center;padding:2rem;';
-  msg.innerHTML = `
-    <p style="font-size:1.1rem;margin-bottom:1rem;">Sign in or subscribe to chat with Sentinel Care AI</p>
-    <div style="display:flex;gap:1rem;justify-content:center;">
-      <a class="button" href="/care/portal">Sign in</a>
-      <a class="button button-secondary" href="/care/checkout">Subscribe</a>
-    </div>
-  `;
-  chatMessages.append(msg);
+  addMessage('assistant', "Hi there! I'm Sentinel. I can chat about anything — news, weather, general questions, or just shoot the breeze. If you need tech support help, just ask!");
 }
 
 async function loadModel() {
   try {
-    modelStatus.textContent = 'Loading AI...';
+    modelStatus.textContent = 'Loading...';
     generator = await pipeline('text-generation', 'Xenova/TinyLlama-1.1B-Chat-v1.0', {
       quantized: true,
       revision: 'main'
     });
-    modelStatus.textContent = 'Ready';
+    modelStatus.textContent = 'Online';
   } catch (error) {
     console.error('Model load error:', error);
-    modelStatus.textContent = 'Using fallback';
+    modelStatus.textContent = 'Ready';
   }
 }
 
 chatForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  
-  // Double-check auth
-  if (!session) {
-    showAuthPrompt();
-    return;
-  }
-  
   const text = chatInput.value.trim();
   if (!text) return;
   
-  lastUserIssue = text;
   chatInput.value = '';
   addMessage('user', text);
-  messageCount++;
   
-  const answer = await askSentinel(text);
+  // Check if this is a tech support request
+  const isTechRequest = isTechSupportRequest(text);
+  
+  if (isTechRequest && !isTechSupportMode) {
+    // First tech support request - enter tech mode and give one tip
+    isTechSupportMode = true;
+    gaveTechTip = false;
+  }
+  
+  const answer = await generateResponse(text, isTechRequest);
   addMessage('assistant', answer);
   
-  // Only show escalation after 4+ messages AND AI suggests it
-  if (messageCount >= 4 && shouldEscalate(answer, text)) {
-    escalateButton.classList.remove('hidden');
+  // If we just gave a tech tip for the first time, show subscription prompt
+  if (isTechSupportMode && isTechRequest && !gaveTechTip) {
+    gaveTechTip = true;
+    subscribePrompt.classList.remove('hidden');
   }
 });
 
-function shouldEscalate(aiResponse, userText) {
-  const lowerResponse = aiResponse.toLowerCase();
-  const lowerUser = userText.toLowerCase();
-  
-  // User explicitly says they tried everything
-  const triedEverything = /tried everything|nothing works|still broken|still not working|gave up|doesn't work at all/i.test(lowerUser);
-  
-  // AI indicates it cannot solve
-  const aiCannotSolve = /i want to make sure this gets fixed properly|let me connect you|unable to resolve|beyond what i can fix/i.test(lowerResponse);
-  
-  // Hardware failure indicators
-  const hardwareFailure = /hardware failure|physical damage|broken component|dead hard drive/i.test(lowerResponse + ' ' + lowerUser);
-  
-  return triedEverything || aiCannotSolve || hardwareFailure;
+function isTechSupportRequest(text) {
+  const lower = text.toLowerCase();
+  return techSupportKeywords.some(keyword => lower.includes(keyword.toLowerCase()));
 }
 
-escalateButton.addEventListener('click', () => {
-  if (!session) {
-    showAuthPrompt();
-    return;
+async function generateResponse(userText, isTechRequest) {
+  if (!generator) {
+    return fallbackResponse(userText, isTechRequest);
   }
-  subscribePrompt.classList.remove('hidden');
-  escalateButton.classList.add('hidden');
-});
-
-async function askSentinel(userText) {
-  if (!generator) return fallbackAnswer(userText);
+  
   try {
-    const prompt = `<|system|>\n${supportPrompt}</s>\n<|user|>\n${userText}</s>\n<|assistant|>\n`;
+    let prompt;
+    
+    if (isTechRequest && isTechSupportMode && gaveTechTip) {
+      // After first tech tip, be brief and point to subscription
+      return "I've shared the first step above. For complete step-by-step troubleshooting with detailed guidance, a Sentinel Care subscription gives you full access to our tech support system.";
+    } else if (isTechRequest) {
+      // First tech request - give one helpful tip
+      prompt = `<|system|>
+You are Sentinel, a friendly tech support assistant. The user has a tech problem. Give ONE specific, helpful first step or tip to address their issue. Be concise but useful. Do not give a full troubleshooting guide — just the first most important step.</s>
+<|user|>
+${userText}</s>
+<|assistant|>
+`;
+    } else {
+      // General conversation - be friendly and casual
+      prompt = `<|system|>
+You are Sentinel, a friendly and conversational AI assistant. You can chat about anything — general knowledge, current topics, casual conversation, advice, opinions (clearly stated as such), weather, news, hobbies, entertainment, etc. Be warm, engaging, and helpful. Keep responses natural and conversational.</s>
+<|user|>
+${userText}</s>
+<|assistant|>
+`;
+    }
+    
     const output = await generator(prompt, { 
-      max_new_tokens: 250, 
-      temperature: 0.35, 
+      max_new_tokens: isTechRequest ? 150 : 200, 
+      temperature: 0.7, 
       do_sample: true,
       top_k: 50,
       top_p: 0.9
     });
+    
     const generated = output?.[0]?.generated_text || '';
-    return cleanAnswer(generated.replace(prompt, '')) || fallbackAnswer(userText);
+    const cleaned = cleanAnswer(generated.replace(prompt, ''));
+    return cleaned || fallbackResponse(userText, isTechRequest);
   } catch (error) {
     console.error('Generation error:', error);
-    return fallbackAnswer(userText);
+    return fallbackResponse(userText, isTechRequest);
   }
 }
 
-function fallbackAnswer(text) {
+function fallbackResponse(text, isTechRequest) {
   const lower = text.toLowerCase();
   
-  // VM-specific detailed troubleshooting
-  if (lower.includes('virtual machine') || lower.includes('vm ') || lower.includes('hyper-v') || lower.includes('vmware') || lower.includes('virtualbox')) {
-    return "Let's troubleshoot your virtual machine systematically:\n\n1. Check VM settings - is it allocated enough RAM and CPU cores?\n2. Verify the virtual disk isn't full (check within the VM and host)\n3. Check if the VM tools/additions are installed and up to date\n4. Try restarting the VM service/hypervisor on your host\n5. Check if other VMs work - is it just this one or all VMs?\n6. Review any error messages in the VM logs\n\nWhat specific error are you seeing, and which hypervisor are you using (VMware, VirtualBox, Hyper-V)?";
+  if (!isTechRequest) {
+    // General conversation fallbacks
+    if (lower.includes('weather')) {
+      return "I don't have real-time weather data, but I can chat about climate patterns, seasons, or help you find a good weather app! What's on your mind?";
+    }
+    if (lower.includes('news') || lower.includes('happening')) {
+      return "I don't have live news feeds, but I'm happy to discuss current topics, explain concepts, or chat about pretty much anything. What are you interested in?";
+    }
+    if (lower.includes('how are you') || lower.includes('how do you do')) {
+      return "I'm doing well, thanks for asking! Ready to chat, answer questions, or help out however I can. How about you?";
+    }
+    if (lower.includes('joke')) {
+      return "Why don't scientists trust atoms? Because they make up everything! 😄 Got any favorites?";
+    }
+    if (lower.includes('hello') || lower.includes('hi ') || lower === 'hi') {
+      return "Hey there! Nice to meet you. What's on your mind today?";
+    }
+    return "That's interesting! Tell me more, or ask me anything — I'm here to chat about whatever you'd like.";
   }
   
-  if (lower.includes('virus') || lower.includes('popup') || lower.includes('scam') || lower.includes('malware')) {
-    return "Let's handle this security issue carefully:\n\n1. Do NOT click any suspicious popups or call numbers shown\n2. Disconnect from the internet temporarily\n3. Open Task Manager and end suspicious browser processes\n4. Run a full antivirus scan with Windows Security or your antivirus\n5. Check browser extensions and remove unknown ones\n6. Clear browser cache and cookies\n7. Restart in Safe Mode if issues persist\n\nWhat specific warning or popup are you seeing? Is it in your browser or appearing on your desktop?";
+  // Tech support fallbacks - give one tip then done
+  if (lower.includes('printer') || lower.includes('print')) {
+    return "First, check that your printer is turned on and has paper loaded. Then verify the USB cable or Wi-Fi connection is active.";
+  }
+  if (lower.includes('slow') || lower.includes('freeze') || lower.includes('lag')) {
+    return "Start by closing unused browser tabs and applications, then restart your computer to free up memory.";
+  }
+  if (lower.includes('wifi') || lower.includes('internet') || lower.includes('connection')) {
+    return "Try unplugging your router for 30 seconds, then plug it back in and wait for it to fully reconnect.";
+  }
+  if (lower.includes('password') || lower.includes('forgot') || lower.includes('login')) {
+    return "Go directly to the service's website and use the 'Forgot Password' link — avoid clicking reset links from emails for security.";
+  }
+  if (lower.includes('virus') || lower.includes('malware') || lower.includes('popup') || lower.includes('scam')) {
+    return "Don't click any suspicious popups. Disconnect from the internet temporarily and run a full antivirus scan.";
+  }
+  if (lower.includes('update') || lower.includes('install')) {
+    return "Make sure you have enough free disk space (at least 10GB), then restart and try the update again.";
+  }
+  if (lower.includes('email') || lower.includes('outlook') || lower.includes('gmail')) {
+    return "Check your internet connection first, then verify your account settings and password haven't changed.";
+  }
+  if (lower.includes('error') || lower.includes('not working') || lower.includes('broken')) {
+    return "Note the exact error message you're seeing, then try closing and reopening the application or restarting your device.";
   }
   
-  if (lower.includes('printer')) {
-    return "Let's check your printer connection step by step:\n\n1. Verify the printer is powered on and showing a ready status\n2. Check cable connections (USB) or Wi-Fi signal strength\n3. Restart both the printer and your computer\n4. On your computer, go to Settings > Printers and check if it's listed as online\n5. Try removing and re-adding the printer in Settings\n6. Check if there are pending print jobs stuck in the queue\n7. Update printer drivers from the manufacturer's website\n\nIs this a USB or wireless printer, and what error message do you see when trying to print?";
-  }
-  
-  if (lower.includes('password') || lower.includes('forgot') || lower.includes('locked out')) {
-    return "Let's work through the password issue safely:\n\n1. Go directly to the official website (not through email links)\n2. Click 'Forgot password' or 'Reset password'\n3. Check your email (including spam/junk) for the reset link\n4. If using a work/school account, contact your IT admin\n5. For local Windows accounts, try password hint or reset via Microsoft account\n6. If you have backup codes or recovery email, use those\n\nWhat type of account is this - email, work, bank, or something else?";
-  }
-  
-  if (lower.includes('slow') || lower.includes('freeze') || lower.includes('crash') || lower.includes('lag')) {
-    return "Let's speed up your system:\n\n1. Save your work and close unnecessary browser tabs\n2. Check Task Manager (Ctrl+Shift+Esc) for high CPU/memory usage\n3. Close unused applications running in the background\n4. Restart your computer to clear memory\n5. Run Disk Cleanup to free up space\n6. Check for Windows/macOS updates\n7. Scan for malware that might be consuming resources\n8. Consider uninstalling programs you don't use\n\nWhen did the slowness start - suddenly or gradually over time?";
-  }
-  
-  if (lower.includes('wifi') || lower.includes('internet') || lower.includes('network') || lower.includes('connection')) {
-    return "Let's diagnose your connection:\n\n1. Check if other devices can connect to the same Wi-Fi\n2. Toggle Wi-Fi off and on, or unplug/replug ethernet cable\n3. Restart your router/modem (unplug for 30 seconds)\n4. Run Windows Network Troubleshooter or macOS Wireless Diagnostics\n5. Forget the network and reconnect with the password\n6. Update network adapter drivers\n7. Check if airplane mode is accidentally on\n8. Test at a different location to rule out ISP issues\n\nIs this affecting just one device or multiple? Are you on Wi-Fi or wired connection?";
-  }
-  
-  return "I understand you're having an issue. Let me help you troubleshoot this properly:\n\n1. First, can you describe exactly what you were doing when the problem started?\n2. What error messages (if any) are you seeing - please quote them exactly\n3. Have you restarted your computer since this began?\n4. Is this affecting just one application or multiple things?\n5. When did this start - today, or has it been ongoing?\n\nThe more details you provide, the more specific I can be with solutions.";
+  return "Start by restarting the affected device or application — this resolves about 80% of tech issues.";
 }
 
 function cleanAnswer(answer) {
