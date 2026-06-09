@@ -86,7 +86,7 @@ function renderHeaderFooter() {
           <a href="/sentinelweb.html">SentinelWeb</a>
           <a href="/contact.html">Contact</a>
         </nav>
-        <p class="il-footer__tag">Sentinel Prime Inc. 2026 - Building what big tech won't</p>
+        <p class="il-footer__tag">Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</p>
       </footer>
     `;
   }
