@@ -1,0 +1,27 @@
+#galaxy-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.space-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 28%, rgba(0,0,5,0.22) 60%, rgba(0,0,5,0.86) 100%),
+    linear-gradient(180deg, rgba(0,0,5,0.3), rgba(0,0,5,0.7));
+}
+
+body.has-galaxy-canvas::before,
+body.has-galaxy-canvas::after {
+  display: none;
+}
+
+body.has-galaxy-canvas {
+  background: #000005;
+}

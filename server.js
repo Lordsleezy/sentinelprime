@@ -16,7 +16,9 @@ const publicBaseUrl = process.env.PUBLIC_BASE_URL || "https://sentinelprime.org"
 
 const seoPages = [
   { route: "/", file: "index.html", loc: `${publicBaseUrl}/` },
-  { route: "/products", file: "products.html", loc: `${publicBaseUrl}/products.html` },
+  { route: "/products", file: "products.html", loc: `${publicBaseUrl}/products` },
+  { route: "/care", file: "care.html", loc: `${publicBaseUrl}/care` },
+  { route: "/market", file: "market.html", loc: `${publicBaseUrl}/market` },
   { route: "/sentinel-drive", file: "sentinel-drive.html", loc: `${publicBaseUrl}/sentinel-drive.html` },
   { route: "/pricing", file: "pricing.html", loc: `${publicBaseUrl}/pricing.html` },
   { route: "/download", file: "download.html", loc: `${publicBaseUrl}/download.html` },
@@ -26,6 +28,8 @@ const seoPages = [
   { route: "/login", file: "login.html", loc: `${publicBaseUrl}/login.html` },
   { route: "/dashboard", file: "dashboard.html", loc: `${publicBaseUrl}/dashboard.html` },
   { route: "/admin", file: "admin.html", loc: `${publicBaseUrl}/admin.html` },
+  { route: "/terms", file: "terms.html", loc: `${publicBaseUrl}/terms` },
+  { route: "/privacy", file: "privacy.html", loc: `${publicBaseUrl}/privacy` },
 ];
 
 function sendMail({ to, subject, html, text }) {

@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<title>Sentinel Prime Checkout &mdash; Secure Privacy-First Tech Plans</title>
+<meta name="description" content="Sentinel Prime checkout lets you choose a privacy-first tech plan, start free, or buy Sentinel AI securely with Stripe-powered payment today online now.">
+<link rel="canonical" href="https://sentinelprime.org/checkout">
+<meta property="og:title" content="Sentinel Prime Checkout &mdash; Secure Privacy-First Tech Plans">
+<meta property="og:description" content="Sentinel Prime checkout lets you choose a privacy-first tech plan, start free, or buy Sentinel AI securely with Stripe-powered payment today online now.">
+<meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
+<meta property="og:url" content="https://sentinelprime.org/checkout">
+<meta property="og:type" content="website">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout - Sentinel Prime</title>
 <link rel="stylesheet" href="page.css">
 </head>
 <body>
@@ -14,7 +21,7 @@
 <main>
   <section class="page-hero">
     <div class="wrap narrow">
-      <h1 id="planTitle">Checkout</h1>
+      <h1 id="planTitle">Sentinel Prime Secure Checkout</h1>
       <p class="lead" id="planLead">Secure payment via Stripe.</p>
     </div>
   </section>
@@ -29,6 +36,10 @@
     </div>
   </section>
 </main>
+<footer>
+  <div class="footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Support</a></div>
+  <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
+</footer>
 <script>
 const params = new URLSearchParams(location.search);
 const plan = params.get("plan") || "annual";
@@ -63,6 +74,7 @@ document.getElementById("checkoutForm").addEventListener("submit", async e => {
   }
 });
 </script>
+<script src="js/site-shell.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

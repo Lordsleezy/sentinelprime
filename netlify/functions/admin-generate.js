@@ -8,6 +8,7 @@ exports.handler = async (event) => {
   if (!method(event, ["POST"])) return json(405, { error: "Method not allowed" });
   try {
     if (!(await verifyAdminSession(event))) return json(401, { error: "Unauthorized" });
+<<<<<<< HEAD
     const { type, email, product, notes } = parseBody(event);
 
     // Validate type
@@ -62,6 +63,18 @@ exports.handler = async (event) => {
     });
   } catch (err) {
     console.error("Admin generate error:", err);
+=======
+    const { type, email, notes, product } = parseBody(event);
+    if (!email) return json(400, { error: "Email is required before generating a code." });
+    if (!["monthly", "annual", "lifetime", "gift", "admin"].includes(type)) return json(400, { error: "Invalid type" });
+    const supabase = createServiceClient();
+    const expiresAt = expiryFor(type);
+    const code = await createCode(supabase, { type, email, product, expiresAt, notes: notes || "Admin generated" });
+    await supabase.from("code_generation_log").insert({ code_id: code.id, generated_by: "admin", notes: notes || null });
+    if (email) await sendActivationEmail({ to: email, code: code.code, plan: type, expiresAt });
+    return json(200, { code: code.code, type, email: email || null, expires_at: expiresAt });
+  } catch {
+>>>>>>> 03fbd81f212c54a9639bca42da4adeeb613e4a23
     return json(503, { error: "Admin generator is not configured yet." });
   }
 };

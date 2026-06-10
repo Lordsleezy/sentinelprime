@@ -1,134 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<title>Sentinel Prime Admin &mdash; Product Code Management</title>
+<meta name="description" content="Sentinel Prime admin manages privacy-first tech product codes, analytics, customer access, product plans, billing states, and support operations online.">
+<link rel="canonical" href="https://sentinelprime.org/admin">
+<meta property="og:title" content="Sentinel Prime Admin &mdash; Product Code Management">
+<meta property="og:description" content="Sentinel Prime admin manages privacy-first tech product codes, analytics, customer access, product plans, billing states, and support operations online.">
+<meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
+<meta property="og:url" content="https://sentinelprime.org/admin">
+<meta property="og:type" content="website">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Sentinel Prime</title>
 <meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-.admin-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.admin-wrap { max-width: 1200px; margin: 0 auto; padding: 130px 20px 80px; position: relative; z-index: 3; }
+.admin-tabs { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+.admin-tabs button { padding: 10px 18px; border: 1px solid rgba(20,184,166,0.3); background: transparent; color: rgba(255,255,255,0.7); font: 600 0.75rem "Syne", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border-radius: 4px; }
+.admin-tabs button.active { background: rgba(20,184,166,0.15); border-color: var(--accent); color: #fff; }
+.admin-panel { display: none; }
+.admin-panel.active { display: block; }
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 24px 0; }
-.stat-card { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); border-radius: 8px; padding: 16px; }
+.stat-card { background: rgba(20,184,166,0.06); border: 1px solid rgba(20,184,166,0.2); border-radius: 8px; padding: 16px; }
 .stat-card h3 { margin: 0 0 8px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
 .stat-card p { margin: 0; font-size: 1.6rem; font-weight: 700; }
-.chart-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+.chart-box { background: rgba(0,0,0,0.45); border: 1px solid rgba(20,184,166,0.12); border-radius: 8px; padding: 20px; margin-bottom: 24px; backdrop-filter: blur(12px); }
 .token-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-.token-row input { flex: 1; min-width: 200px; padding: 10px 12px; background: #0a0a12; border: 1px solid #333; color: #fff; border-radius: 6px; }
+.token-row input { flex: 1; min-width: 200px; padding: 10px 12px; background: rgba(0,0,5,0.72); border: 1px solid rgba(20,184,166,0.18); color: #fff; border-radius: 6px; }
 .error { color: #f66; margin-top: 12px; }
+.hidden { display: none !important; }
+.table-wrap { overflow-x: auto; margin-top: 16px; }
+table { width: 100%; border-collapse: collapse; font: 400 0.82rem "Share Tech Mono", monospace; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+th { color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; }
+.mini-button { min-width: auto; padding: 8px 14px; font-size: 0.68rem; }
+.status-active { color: #22c55e; }
+.status-used { color: #eab308; }
+.status-revoked { color: #ef4444; }
 </style>
 </head>
-<body>
-<nav class="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
-  <div class="nav-links"><a href="index.html">Site</a></div>
-</nav>
+<body data-page="admin">
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
+
 <main class="admin-wrap">
   <p class="eyebrow">Internal</p>
-  <h1>Product analytics</h1>
-  <p class="copy">Downloads, installs, trials, conversions, and Stripe revenue. Requires admin login.</p>
+  <h1>Admin Dashboard</h1>
+  <p class="copy">Product analytics and activation code management.</p>
 
-  <div class="token-row">
-    <input type="email" id="adminEmail" placeholder="Admin email" autocomplete="username">
-    <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="current-password">
-    <button class="button" type="button" id="loadBtn">Load dashboard</button>
+  <div class="form-panel" id="loginPanel" style="margin-top: 24px;">
+    <p class="eyebrow">Admin Login</p>
+    <div class="token-row">
+      <input type="email" id="adminEmail" placeholder="Admin email" autocomplete="username">
+      <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="current-password">
+      <button class="button" type="button" id="loginBtn">Login</button>
+    </div>
+    <div class="error" id="loginErr" style="display:none;"></div>
   </div>
-  <div class="error" id="err" style="display:none;"></div>
 
-  <div id="dashboard" style="display:none;">
-    <div class="stat-grid">
-      <div class="stat-card"><h3>Total downloads</h3><p id="totalDownloads">—</p></div>
-      <div class="stat-card"><h3>Total installs</h3><p id="totalInstalls">—</p></div>
-      <div class="stat-card"><h3>Active trials (7d)</h3><p id="activeTrials">—</p></div>
-      <div class="stat-card"><h3>Converted (activated)</h3><p id="converted">—</p></div>
-      <div class="stat-card"><h3>Active subscriptions</h3><p id="activeSubs">—</p></div>
-      <div class="stat-card"><h3>Revenue (30d)</h3><p id="revenue">—</p></div>
+  <div id="dashboard" class="hidden">
+    <div class="admin-tabs">
+      <button type="button" class="active" data-tab="analytics">Analytics</button>
+      <button type="button" data-tab="codes">Activation Codes</button>
     </div>
 
-    <div class="chart-box">
-      <h2>Downloads (last 30 days)</h2>
-      <canvas id="downloadsChart" height="100"></canvas>
+    <div class="admin-panel active" id="panel-analytics">
+      <div class="stat-grid">
+        <div class="stat-card"><h3>Total downloads</h3><p id="totalDownloads">—</p></div>
+        <div class="stat-card"><h3>Total installs</h3><p id="totalInstalls">—</p></div>
+        <div class="stat-card"><h3>Active trials (7d)</h3><p id="activeTrials">—</p></div>
+        <div class="stat-card"><h3>Converted</h3><p id="converted">—</p></div>
+        <div class="stat-card"><h3>Active subscriptions</h3><p id="activeSubs">—</p></div>
+        <div class="stat-card"><h3>Revenue (30d)</h3><p id="revenue">—</p></div>
+      </div>
+      <div class="chart-box">
+        <h2>Downloads (last 30 days)</h2>
+        <canvas id="downloadsChart" height="100"></canvas>
+      </div>
+      <div class="chart-box">
+        <h2>Installs (last 30 days)</h2>
+        <canvas id="installsChart" height="100"></canvas>
+      </div>
     </div>
-    <div class="chart-box">
-      <h2>Installs (last 30 days)</h2>
-      <canvas id="installsChart" height="100"></canvas>
+
+    <div class="admin-panel" id="panel-codes">
+      <div class="grid-2">
+        <div class="form-panel">
+          <p class="eyebrow">Generate Code</p>
+          <form id="generateForm">
+            <input required type="email" name="email" placeholder="Customer email (required)">
+            <select required name="product">
+              <option value="sentinelai">SentinelAI</option>
+              <option value="shift">Shift</option>
+              <option value="shield">Sentinel Shield</option>
+              <option value="care">Sentinel Care</option>
+            </select>
+            <select name="type">
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+              <option value="lifetime">Lifetime</option>
+              <option value="gift">Gift</option>
+            </select>
+            <textarea name="notes" placeholder="Notes (optional)"></textarea>
+            <button class="button" type="submit">Generate Code</button>
+            <div class="form-status" id="generateStatus"></div>
+          </form>
+        </div>
+        <div class="panel">
+          <p class="eyebrow">Stats</p>
+          <div id="codeStats" class="copy">Loading…</div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top: 20px;">
+        <p class="eyebrow">Activation Codes</p>
+        <button class="button mini-button" type="button" id="refreshCodes">Refresh</button>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Email</th>
+                <th>Product</th>
+                <th>Created</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="codesTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </main>
-<script>
-let downloadsChart, installsChart;
 
-function showError(msg) {
-  const el = document.getElementById("err");
+<script>
+var downloadsChart, installsChart;
+var loggedIn = false;
+
+function escapeHtml(v) {
+  return String(v || "").replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+function showLoginError(msg) {
+  var el = document.getElementById("loginErr");
   el.style.display = "block";
   el.textContent = msg;
 }
 
+async function api(path, options) {
+  var res = await fetch("/api/" + path, Object.assign({
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin"
+  }, options || {}));
+  var data = await res.json().catch(function () { return {}; });
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
+
 function makeChart(canvasId, label, daily, color) {
-  const ctx = document.getElementById(canvasId);
-  const labels = (daily || []).map(d => d.date);
-  const data = (daily || []).map(d => d.count);
+  var ctx = document.getElementById(canvasId);
+  var labels = (daily || []).map(function (d) { return d.date; });
+  var data = (daily || []).map(function (d) { return d.count; });
   return new Chart(ctx, {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{ label, data, backgroundColor: color }],
-    },
+    data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: "#888", maxTicksLimit: 10 } },
-        y: { ticks: { color: "#888" }, beginAtZero: true },
-      },
-    },
+        y: { ticks: { color: "#888" }, beginAtZero: true }
+      }
+    }
   });
 }
 
-async function loadDashboard() {
-  const email = document.getElementById("adminEmail").value.trim();
-  const password = document.getElementById("adminPassword").value;
-  if (!email || !password) { showError("Enter admin email and password."); return; }
+async function login() {
+  var email = document.getElementById("adminEmail").value.trim();
+  var password = document.getElementById("adminPassword").value;
+  if (!email || !password) { showLoginError("Enter admin email and password."); return; }
   sessionStorage.setItem("sentinel_admin_email", email);
-  document.getElementById("err").style.display = "none";
-
-  const loginRes = await fetch("/api/admin-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  const loginData = await loginRes.json().catch(() => ({}));
-  if (!loginRes.ok) {
-    showError(loginData.error || "Admin login failed");
-    return;
+  document.getElementById("loginErr").style.display = "none";
+  try {
+    await api("admin-login", { method: "POST", body: JSON.stringify({ email: email, password: password }) });
+    loggedIn = true;
+    document.getElementById("loginPanel").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    await loadAnalytics();
+    await refreshCodes();
+  } catch (err) {
+    showLoginError(err.message);
   }
+}
 
-  const res = await fetch("/api/admin/analytics", { credentials: "same-origin" });
-  const data = await res.json();
-  if (!res.ok) {
-    showError(data.error || "Failed to load analytics");
-    return;
-  }
-
-  document.getElementById("dashboard").style.display = "block";
+async function loadAnalytics() {
+  var data = await api("admin/analytics");
   document.getElementById("totalDownloads").textContent = data.downloads?.total ?? 0;
   document.getElementById("totalInstalls").textContent = data.installs?.total ?? 0;
   document.getElementById("activeTrials").textContent = data.active_trials ?? 0;
   document.getElementById("converted").textContent = data.converted_users ?? 0;
   document.getElementById("activeSubs").textContent = data.active_subscriptions ?? 0;
   document.getElementById("revenue").textContent = "$" + (data.revenue_usd || "0.00");
-
   if (downloadsChart) downloadsChart.destroy();
   if (installsChart) installsChart.destroy();
-  downloadsChart = makeChart("downloadsChart", "Downloads", data.downloads?.daily, "rgba(0,255,136,0.5)");
+  downloadsChart = makeChart("downloadsChart", "Downloads", data.downloads?.daily, "rgba(20,184,166,0.5)");
   installsChart = makeChart("installsChart", "Installs", data.installs?.daily, "rgba(100,180,255,0.5)");
 }
 
-document.getElementById("loadBtn").addEventListener("click", loadDashboard);
-const savedEmail = sessionStorage.getItem("sentinel_admin_email");
+async function refreshCodes() {
+  var data = await api("admin-codes");
+  var stats = data.stats || {};
+  document.getElementById("codeStats").textContent =
+    "Total: " + (stats.total || 0) + " | Active: " + (stats.active || 0) +
+    " | Expired: " + (stats.expired || 0);
+  var tbody = document.getElementById("codesTable");
+  var codes = data.codes || [];
+  if (!codes.length) {
+    tbody.innerHTML = '<tr><td colspan="6">No codes yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = codes.map(function (code) {
+    var statusClass = code.status === "active" || code.status === "unused" ? "status-active" :
+      code.status === "revoked" || code.status === "cancelled" ? "status-revoked" : "status-used";
+    var created = code.created_at ? new Date(code.created_at).toLocaleDateString() : "—";
+    var product = code.product || code.type || "—";
+    var revokeBtn = ["unused", "active"].includes(code.status)
+      ? '<button class="button mini-button" data-revoke="' + escapeHtml(code.id) + '">Revoke</button>' : "";
+    return '<tr><td>' + escapeHtml(code.code) + '</td><td>' + escapeHtml(code.email || "—") +
+      '</td><td>' + escapeHtml(product) + '</td><td>' + created +
+      '</td><td class="' + statusClass + '">' + escapeHtml(code.status) +
+      '</td><td>' + revokeBtn + '</td></tr>';
+  }).join("");
+  tbody.querySelectorAll("[data-revoke]").forEach(function (btn) {
+    btn.onclick = async function () {
+      await api("admin-revoke", { method: "POST", body: JSON.stringify({ id: btn.dataset.revoke }) });
+      refreshCodes();
+    };
+  });
+}
+
+document.getElementById("loginBtn").addEventListener("click", login);
+document.getElementById("refreshCodes").addEventListener("click", refreshCodes);
+
+document.getElementById("generateForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var status = document.getElementById("generateStatus");
+  try {
+    var body = Object.fromEntries(new FormData(e.target));
+    var data = await api("admin-generate", { method: "POST", body: JSON.stringify(body) });
+    status.textContent = "Generated: " + data.code;
+    refreshCodes();
+  } catch (err) {
+    status.className = "form-status error";
+    status.textContent = err.message;
+  }
+});
+
+document.querySelectorAll(".admin-tabs button").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".admin-tabs button").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll(".admin-panel").forEach(function (p) { p.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+var savedEmail = sessionStorage.getItem("sentinel_admin_email");
 if (savedEmail) document.getElementById("adminEmail").value = savedEmail;
 </script>
+<footer>
+  <div class="footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Support</a></div>
+  <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
+</footer>
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>

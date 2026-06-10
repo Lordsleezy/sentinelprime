@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Sentinel Care &mdash; AI Tech Support, Cheaper Than Geek Squad</title>
+<meta name="description" content="Sentinel Care AI tech support solves PC, printer, Wi-Fi, software, and security problems for less than Geek Squad, with human escalation when needed today.">
+<link rel="canonical" href="https://sentinelprime.org/care">
+<meta property="og:title" content="Sentinel Care &mdash; AI Tech Support, Cheaper Than Geek Squad">
+<meta property="og:description" content="Sentinel Care AI tech support solves PC, printer, Wi-Fi, software, and security problems for less than Geek Squad, with human escalation when needed today.">
+<meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
+<meta property="og:url" content="https://sentinelprime.org/care">
+<meta property="og:type" content="website">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="css/galaxy-shell.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body data-page="care">
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="space-vignette"></div>
+<div id="global-nav-mount"></div>
+
+<main>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">Sentinel Care</p>
+      <h1>Sentinel Care AI Tech Support for Home and Small Business</h1>
+      <p class="lead">Chat with Sentinel AI anytime. Real technician support when you need it. No contracts, no Best Buy lines.</p>
+      <div class="buttons">
+        <a class="button" href="#subscribe">Subscribe — From $19.99/mo</a>
+        <a class="button secondary" href="https://care.sentinelprime.org" target="_blank" rel="noopener">Open Care Portal</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap grid-3">
+      <div class="panel">
+        <h3>24/7 AI Support</h3>
+        <p class="copy">Sentinel AI handles common issues instantly — printer setup, Wi-Fi troubleshooting, software installs, and more.</p>
+      </div>
+      <div class="panel">
+        <h3>Real Technicians</h3>
+        <p class="copy">When AI isn't enough, escalate to a human technician. No hold music, no runaround.</p>
+      </div>
+      <div class="panel">
+        <h3>No Contracts</h3>
+        <p class="copy">Cancel anytime. No annual lock-in, no surprise fees. Pay monthly like any subscription you actually use.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="subscribe">
+    <div class="wrap narrow">
+      <div class="form-panel">
+        <p class="eyebrow">Get Started</p>
+        <h2>Subscribe to Sentinel Care</h2>
+        <p class="copy" style="margin-bottom: 20px;">Enter your email to start your subscription. You'll receive an activation code after payment.</p>
+        <form id="careCheckoutForm">
+          <input required type="email" id="careEmail" name="email" placeholder="you@example.com">
+          <select name="plan" id="carePlan">
+            <option value="monthly">Monthly — $19.99/mo</option>
+            <option value="annual">Annual — $149/yr (save 17%)</option>
+          </select>
+          <button class="button" type="submit">Continue to Payment</button>
+          <div class="form-status" id="careStatus"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap grid-2">
+      <div class="panel">
+        <p class="eyebrow">What's Included</p>
+        <ul class="feature-list" style="grid-template-columns: 1fr;">
+          <li>Unlimited AI chat support</li>
+          <li>Remote technician escalation</li>
+          <li>PC health monitoring alerts</li>
+          <li>Priority response times</li>
+          <li>Works with Sentinel Shield</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">How It Works</p>
+        <ol class="steps">
+          <li>Subscribe and receive your activation code via email</li>
+          <li>Install Sentinel Shield or open the Care portal</li>
+          <li>Chat with Sentinel AI or request a technician anytime</li>
+          <li>Get problems solved without leaving your chair</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="/care">Care</a>
+    <a href="/market">Market</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
+</footer>
+
+<script>
+document.getElementById("careCheckoutForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var status = document.getElementById("careStatus");
+  status.textContent = "Redirecting to secure checkout…";
+  status.className = "form-status";
+  var email = document.getElementById("careEmail").value.trim();
+  var plan = document.getElementById("carePlan").value;
+  try {
+    var res = await fetch("/api/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: plan, email: email, product: "care" })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Checkout failed");
+    if (data.url) location.href = data.url;
+    else throw new Error("No checkout URL returned");
+  } catch (err) {
+    status.className = "form-status error";
+    status.textContent = err.message;
+  }
+});
+</script>
+<script src="js/global-nav.js"></script>
+<script src="js/galaxy-background.js"></script>
+<script src="nav.js"></script>
+</body>
+</html>

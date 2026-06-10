@@ -1,0 +1,348 @@
+.products-hero {
+  min-height: 50vh;
+  padding-top: 140px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  margin-top: 48px;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card:hover {
+  border-color: rgba(20, 184, 166, 0.45);
+  box-shadow: 0 0 40px rgba(20, 184, 166, 0.12);
+}
+
+.product-mockup {
+  position: relative;
+  height: 200px;
+  background: linear-gradient(180deg, rgba(0, 4, 8, 0.9), rgba(0, 0, 5, 0.95));
+  border-bottom: 1px solid rgba(20, 184, 166, 0.15);
+  overflow: hidden;
+}
+
+.product-body {
+  padding: 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-body h2 {
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+  margin-bottom: 6px;
+}
+
+.product-tagline {
+  color: var(--accent);
+  font: 400 0.82rem "Share Tech Mono", monospace;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+
+.product-desc {
+  color: rgba(255, 255, 255, 0.72);
+  font: 400 0.88rem / 1.7 "Share Tech Mono", monospace;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.product-price {
+  font: 800 1.4rem "Syne", sans-serif;
+  color: #fff;
+}
+
+.product-badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border: 1px solid rgba(20, 184, 166, 0.5);
+  border-radius: 4px;
+  color: var(--accent);
+  font: 700 0.68rem "Share Tech Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.product-badge--beta {
+  border-color: rgba(255, 153, 68, 0.5);
+  color: #ff9944;
+}
+
+.product-cta {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 22px;
+  border: 1px solid rgba(20, 184, 166, 0.6);
+  background: rgba(20, 184, 166, 0.08);
+  color: #fff;
+  font: 600 0.78rem "Syne", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.product-cta:hover {
+  background: var(--accent);
+  color: #000005;
+}
+
+/* Shift mockup */
+.mock-shift-penguin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 85%, rgba(20, 184, 166, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(0, 8, 12, 0.6), rgba(0, 0, 5, 0.92));
+  outline: none;
+}
+
+.mock-shift-penguin::after {
+  content: "";
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  bottom: 18%;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(6px);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.mock-shift-penguin__img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.15s ease-out, filter 0.2s ease;
+  filter: drop-shadow(0 0 18px rgba(20, 184, 166, 0.35));
+}
+
+.mock-shift-penguin:hover .mock-shift-penguin__img,
+.mock-shift-penguin:focus-visible .mock-shift-penguin__img {
+  filter: drop-shadow(0 0 28px rgba(20, 184, 166, 0.7));
+}
+
+.mock-shift-penguin--hop .mock-shift-penguin__img {
+  animation: penguinHop 0.52s ease;
+}
+
+.mock-shift-penguin--hop::after {
+  transform: scaleX(0.55);
+}
+
+@keyframes penguinHop {
+  0%, 100% { transform: translateY(0) scale(1.1); }
+  40% { transform: translateY(-24px) scale(1.14) rotate(-4deg); }
+  70% { transform: translateY(-8px) scale(1.08) rotate(2deg); }
+}
+
+/* Shield mockup */
+.mock-shield {
+  padding: 24px;
+  text-align: center;
+}
+
+.mock-shield-scan {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.mock-shield-scan-bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent), #22c55e);
+  animation: shieldScan 6s ease-in-out infinite;
+}
+
+.mock-shield-threats {
+  font: 700 2rem "Syne", sans-serif;
+  color: #ef4444;
+  animation: threatCount 6s ease-in-out infinite;
+}
+
+.mock-shield-status {
+  margin-top: 12px;
+  font: 400 0.75rem "Share Tech Mono", monospace;
+  color: rgba(255, 255, 255, 0.5);
+  animation: shieldStatus 6s ease-in-out infinite;
+}
+
+@keyframes shieldScan {
+  0%, 10% { width: 0; }
+  70% { width: 100%; }
+  100% { width: 100%; }
+}
+
+@keyframes threatCount {
+  0%, 20% { content: "0"; }
+  30%, 60% { color: #ef4444; }
+  70%, 100% { color: #22c55e; }
+}
+
+.mock-shield-threats::before {
+  content: "12";
+  animation: threatNum 6s steps(1) infinite;
+}
+
+@keyframes threatNum {
+  0%, 25% { content: "0"; }
+  30%, 55% { content: "12"; }
+  60%, 100% { content: "0"; }
+}
+
+@keyframes shieldStatus {
+  0%, 55% { opacity: 1; }
+  60%, 100% { opacity: 1; color: #22c55e; }
+}
+
+.mock-shield-status::after {
+  content: "Scanning...";
+  animation: statusText 6s steps(1) infinite;
+}
+
+@keyframes statusText {
+  0%, 55% { content: "Scanning..."; }
+  60%, 100% { content: "All clear"; }
+}
+
+/* Care mockup */
+.mock-care {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.mock-care-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font: 400 0.72rem "Share Tech Mono", monospace;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: bubbleIn 8s ease-in-out infinite;
+}
+
+.mock-care-bubble--user {
+  align-self: flex-end;
+  background: rgba(20, 184, 166, 0.25);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  animation-delay: 0s;
+}
+
+.mock-care-bubble--ai {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation-delay: 1.5s;
+}
+
+.mock-care-bubble--user:nth-of-type(3) { animation-delay: 3s; }
+.mock-care-bubble--ai:nth-of-type(4) { animation-delay: 4.5s; }
+
+@keyframes bubbleIn {
+  0%, 5% { opacity: 0; transform: translateY(8px); }
+  10%, 85% { opacity: 1; transform: translateY(0); }
+  90%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* SentinelAI mockup */
+.mock-ai {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.mock-ai-orb {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #5eead4, var(--accent) 40%, #0d9488 70%, #042f2e);
+  box-shadow: 0 0 40px rgba(20, 184, 166, 0.5);
+  animation: orbPulse 3s ease-in-out infinite;
+}
+
+.mock-ai-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat 4s ease-in-out infinite;
+}
+
+.mock-ai-particle:nth-child(1) { top: 30%; left: 25%; animation-delay: 0s; }
+.mock-ai-particle:nth-child(2) { top: 60%; left: 70%; animation-delay: 0.8s; }
+.mock-ai-particle:nth-child(3) { top: 45%; left: 15%; animation-delay: 1.6s; }
+.mock-ai-particle:nth-child(4) { top: 25%; left: 75%; animation-delay: 2.4s; }
+.mock-ai-particle:nth-child(5) { top: 70%; left: 40%; animation-delay: 3.2s; }
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(20, 184, 166, 0.5); }
+  50% { transform: scale(1.08); box-shadow: 0 0 60px rgba(20, 184, 166, 0.7); }
+}
+
+@keyframes particleFloat {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  20%, 80% { opacity: 0.8; transform: translate(10px, -15px) scale(1); }
+}
+
+.nav-logo-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.global-nav .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-links a.active {
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
+}
+
+@media (max-width: 900px) {
+  .products-grid { grid-template-columns: 1fr; }
+}

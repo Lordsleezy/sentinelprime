@@ -71,6 +71,12 @@
   force = true
 
 [[redirects]]
+  from = "/care/api/chat"
+  to = "/.netlify/functions/care-chat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/download/sentinelai"
   to = "/.netlify/functions/download-sentinelai"
   status = 200
@@ -91,4 +97,34 @@
 [[redirects]]
   from = "/admin"
   to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/products"
+  to = "/products.html"
+  status = 200
+
+[[redirects]]
+  from = "/pricing"
+  to = "/pricing.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/market"
+  to = "/market.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
   status = 200
