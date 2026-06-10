@@ -7,13 +7,33 @@ function hashIp(ip) {
   return crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16);
 }
 
+async function geolocateIp(ip) {
+  if (!ip || ip === "unknown" || ip.startsWith("127.") || ip.startsWith("::1")) {
+    return { city: null, country: null };
+  }
+  try {
+    const cleanIp = ip.split(",")[0].trim();
+    const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,country,city`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return { city: null, country: null };
+    const data = await res.json();
+    if (data.status === "success") {
+      return { city: data.city || null, country: data.country || null };
+    }
+    return { city: null, country: null };
+  } catch {
+    return { city: null, country: null };
+  }
+}
+
 exports.handler = async (event) => {
   if (!method(event, ["POST"])) {
     return json(405, { error: "Method not allowed" });
   }
 
   try {
-    const { product, page, user_agent, referrer, country } = parseBody(event);
+    const { product, page, user_agent, referrer } = parseBody(event);
 
     if (!product) {
       return json(400, { error: "Product is required" });
@@ -27,16 +47,18 @@ exports.handler = async (event) => {
                      event.headers["client-ip"] ||
                      "unknown";
 
-    // Fire and forget - don't block on this
-    supabase.from("download_clicks").insert({
-      product,
-      page: page || event.headers.referer || null,
-      user_agent: user_agent || event.headers["user-agent"] || null,
-      referrer: referrer || event.headers.referer || null,
-      ip_hash: hashIp(clientIp),
-      country: country || null
-    }).then(() => {
-      // Log success silently
+    // Geolocate asynchronously — won't block the response
+    geolocateIp(clientIp).then(({ city, country }) => {
+      return supabase.from("download_clicks").insert({
+        product,
+        page: page || event.headers.referer || null,
+        user_agent: user_agent || event.headers["user-agent"] || null,
+        referrer: referrer || event.headers.referer || null,
+        ip_hash: hashIp(clientIp),
+        ip_address: clientIp !== "unknown" ? clientIp.split(",")[0].trim() : null,
+        city,
+        country,
+      });
     }).catch((err) => {
       console.error("Failed to log download click:", err);
     });
