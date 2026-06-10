@@ -2,7 +2,7 @@ const crypto = require("crypto");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_TYPES = ["monthly", "annual", "lifetime", "gift", "admin"];
-const PRODUCTS = ["shield", "shift", "earn", "sentinelai"];
+const PRODUCT_TYPES = ["sentinelai", "shift", "shield", "care", "earn"];
 
 function generateCode(product) {
   const segments = [];
@@ -26,33 +26,20 @@ function expiryFor(type, unixSeconds) {
   return null;
 }
 
-const PRODUCT_TYPES = ["sentinelai", "shift", "shield", "care"];
-
 async function createCode(supabase, values) {
-<<<<<<< HEAD
   const type = values.type || "lifetime";
   const product = values.product || "sentinelai";
 
   if (!CODE_TYPES.includes(type)) throw new Error("Invalid activation-code type");
-  if (!PRODUCTS.includes(product)) throw new Error("Invalid product");
-
-=======
-  if (!CODE_TYPES.includes(values.type)) throw new Error("Invalid activation-code type");
-  const product = values.product && PRODUCT_TYPES.includes(values.product) ? values.product : "sentinelai";
->>>>>>> 03fbd81f212c54a9639bca42da4adeeb613e4a23
+  if (!PRODUCT_TYPES.includes(product)) throw new Error("Invalid product");
   for (let attempts = 0; attempts < 10; attempts += 1) {
     const code = generateCode(product);
     const { data, error } = await supabase
       .from("activation_codes")
       .insert({
         code,
-<<<<<<< HEAD
         product,
         type,
-=======
-        type: values.type,
-        product,
->>>>>>> 03fbd81f212c54a9639bca42da4adeeb613e4a23
         status: "unused",
         email: values.email?.toLowerCase() || null,
         user_id: values.userId || null,

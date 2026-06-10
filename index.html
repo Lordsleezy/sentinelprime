@@ -34,9 +34,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <style>
 :root {
   --bg: #000005;
@@ -52,7 +49,7 @@ html { background: var(--bg); scroll-behavior: auto; }
 body {
   margin: 0;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
   background: var(--bg);
   color: #fff;
   font-family: "Syne", sans-serif;
@@ -83,7 +80,7 @@ body.site-ready { overflow-y: auto; }
   position: fixed;
   inset: 0;
   z-index: 20;
-  display: grid;
+  display: none;
   place-items: center;
   overflow: hidden;
   background: #000005;
@@ -163,8 +160,8 @@ body.site-ready { overflow-y: auto; }
   align-items: center;
   justify-content: space-between;
   padding: clamp(18px, 3vw, 34px) clamp(18px, 5vw, 72px);
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
   backdrop-filter: blur(12px);
   background: linear-gradient(180deg, rgba(0,0,5,0.58), transparent);
 }
@@ -623,6 +620,7 @@ body {
 
 .prime-main {
   color: var(--prime-text);
+  opacity: 1;
 }
 
 .prime-section {
@@ -638,7 +636,7 @@ body {
 }
 
 .prime-hero {
-  min-height: 100vh;
+  min-height: 82vh;
   display: grid;
   place-items: center;
   text-align: center;
@@ -1165,8 +1163,9 @@ body {
   gap: 18px;
   width: max-content;
   padding: 24px 18px;
-  animation: marketSlide 18s linear infinite;
+  transform: translate3d(0, 0, 0);
 }
+.animations-ready .is-visible .home-market-track { animation: marketSlide 18s linear infinite; }
 
 .home-market-product-card {
   flex: 0 0 168px;
@@ -1176,8 +1175,8 @@ body {
   background: rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
-  animation: marketCardIn 0.8s ease-out both;
 }
+.animations-ready .is-visible .home-market-product-card { animation: marketCardIn 0.8s ease-out both; }
 
 .home-market-product-card:nth-child(1) { animation-delay: 0.1s; }
 .home-market-product-card:nth-child(2) { animation-delay: 0.25s; }
@@ -1212,8 +1211,8 @@ body {
   font: 700 0.62rem "Share Tech Mono", monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  animation: marketBadgePulse 2.4s ease-in-out infinite;
 }
+.animations-ready .is-visible .home-market-badge { animation: marketBadgePulse 2.4s ease-in-out infinite; }
 
 .home-market-product-card:nth-child(2) .home-market-badge { animation-delay: 0.4s; background: #f59e0b; }
 .home-market-product-card:nth-child(3) .home-market-badge { animation-delay: 0.8s; }
@@ -1230,8 +1229,8 @@ body {
   background: rgba(0, 0, 0, 0.75);
   color: #fff;
   font: 700 0.78rem "Share Tech Mono", monospace;
-  animation: marketPricePop 3s ease-in-out infinite;
 }
+.animations-ready .is-visible .home-market-price { animation: marketPricePop 3s ease-in-out infinite; }
 
 .home-market-product-card:nth-child(2) .home-market-price { animation-delay: 0.5s; }
 .home-market-product-card:nth-child(3) .home-market-price { animation-delay: 1s; }
@@ -1338,8 +1337,9 @@ body {
   filter: drop-shadow(0 0 28px rgba(20, 184, 166, 0.7));
 }
 .mock-shift-penguin--hop .mock-shift-penguin__img {
-  animation: penguinHop 0.52s ease;
+  animation: none;
 }
+.animations-ready .is-visible .mock-shift-penguin--hop .mock-shift-penguin__img { animation: penguinHop 0.52s ease; }
 .mock-shift-penguin--hop::after {
   transform: scaleX(0.55);
 }
@@ -1350,24 +1350,31 @@ body {
 }
 .mock-shield { padding: 24px; text-align: center; }
 .mock-shield-scan { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
-.mock-shield-scan-bar { height: 100%; width: 0; background: linear-gradient(90deg, #14b8a6, #22c55e); animation: shieldScan 6s ease-in-out infinite; }
+.mock-shield-scan-bar { height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg, #14b8a6, #22c55e); }
+.animations-ready .is-visible .mock-shield-scan-bar { animation: shieldScanTransform 6s ease-in-out infinite; }
 .mock-shield-threats { font: 700 2rem "Syne", sans-serif; color: #ef4444; }
-.mock-shield-threats::before { content: "12"; animation: threatNum 6s steps(1) infinite; }
+.mock-shield-threats::before { content: "0"; }
+.animations-ready .is-visible .mock-shield-threats::before { animation: threatNum 6s steps(1) infinite; }
 .mock-shield-status { margin-top: 12px; font: 400 0.75rem "Share Tech Mono", monospace; color: rgba(255,255,255,0.5); }
-.mock-shield-status::after { content: "Scanning..."; animation: statusText 6s steps(1) infinite; }
+.mock-shield-status::after { content: "All clear"; }
+.animations-ready .is-visible .mock-shield-status::after { animation: statusText 6s steps(1) infinite; }
 @keyframes shieldScan { 0%,10% { width: 0; } 70% { width: 100%; } 100% { width: 100%; } }
+@keyframes shieldScanTransform { 0%,10% { transform: scaleX(0); } 70%,100% { transform: scaleX(1); } }
 @keyframes threatNum { 0%,25% { content: "0"; } 30%,55% { content: "12"; } 60%,100% { content: "0"; } }
 @keyframes statusText { 0%,55% { content: "Scanning..."; } 60%,100% { content: "All clear"; } }
 .mock-care { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end; height: 100%; }
-.mock-care-bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; font: 400 0.72rem "Share Tech Mono", monospace; opacity: 0; transform: translateY(8px); animation: bubbleIn 8s ease-in-out infinite; }
+.mock-care-bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; font: 400 0.72rem "Share Tech Mono", monospace; opacity: 1; transform: translateY(0); }
+.animations-ready .is-visible .mock-care-bubble { opacity: 0; transform: translateY(8px); animation: bubbleIn 8s ease-in-out infinite; }
 .mock-care-bubble--user { align-self: flex-end; background: rgba(20,184,166,0.25); border: 1px solid rgba(20,184,166,0.4); animation-delay: 0s; }
 .mock-care-bubble--ai { align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); animation-delay: 1.5s; }
 .mock-care-bubble--user:nth-of-type(3) { animation-delay: 3s; }
 .mock-care-bubble--ai:nth-of-type(4) { animation-delay: 4.5s; }
 @keyframes bubbleIn { 0%,5% { opacity: 0; transform: translateY(8px); } 10%,85% { opacity: 1; transform: translateY(0); } 90%,100% { opacity: 0; transform: translateY(-4px); } }
 .mock-ai { display: flex; align-items: center; justify-content: center; height: 100%; position: relative; }
-.mock-ai-orb { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #5eead4, #14b8a6 40%, #0d9488 70%, #042f2e); box-shadow: 0 0 40px rgba(20,184,166,0.5); animation: orbPulse 3s ease-in-out infinite; }
-.mock-ai-particle { position: absolute; width: 4px; height: 4px; background: #14b8a6; border-radius: 50%; opacity: 0; animation: particleFloat 4s ease-in-out infinite; }
+.mock-ai-orb { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #5eead4, #14b8a6 40%, #0d9488 70%, #042f2e); box-shadow: 0 0 40px rgba(20,184,166,0.5); }
+.animations-ready .is-visible .mock-ai-orb { animation: orbPulse 3s ease-in-out infinite; }
+.mock-ai-particle { position: absolute; width: 4px; height: 4px; background: #14b8a6; border-radius: 50%; opacity: 0; }
+.animations-ready .is-visible .mock-ai-particle { animation: particleFloat 4s ease-in-out infinite; }
 .mock-ai-particle:nth-child(1) { top: 30%; left: 25%; animation-delay: 0s; }
 .mock-ai-particle:nth-child(2) { top: 60%; left: 70%; animation-delay: 0.8s; }
 .mock-ai-particle:nth-child(3) { top: 45%; left: 15%; animation-delay: 1.6s; }
@@ -1380,6 +1387,27 @@ body {
   .home-products-grid,
   .home-why-grid,
   .home-market-features { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px), (prefers-reduced-motion: reduce) {
+  #galaxy-canvas,
+  .intro,
+  .space-vignette {
+    display: none;
+  }
+  .prime-hero {
+    min-height: 76vh;
+    background:
+      radial-gradient(circle at 50% 32%, rgba(20,184,166,0.22), transparent 34%),
+      radial-gradient(circle at 80% 20%, rgba(255,153,68,0.14), transparent 28%);
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
 </style>
 </head>
@@ -1431,7 +1459,7 @@ body {
         <article class="home-product-card">
           <div class="home-product-mockup">
             <div class="mock-shift-penguin">
-              <img class="mock-shift-penguin__img" src="assets/tux-penguin.gif" alt="Linux penguin waddling" width="110" height="110">
+              <img class="mock-shift-penguin__img" src="assets/tux-penguin.gif" alt="Linux penguin waddling" width="110" height="110" loading="lazy" decoding="async">
             </div>
           </div>
           <div class="home-product-body">
@@ -1614,278 +1642,9 @@ body {
   <div class="prime-bottom">Built for privacy. No telemetry beyond licensing.</div>
 </footer>
 
-<script>
-(function () {
-  "use strict";
-  if (!window.THREE || !window.gsap || !window.ScrollTrigger) {
-    document.body.classList.add("site-ready");
-    document.getElementById("intro").style.display = "none";
-    document.getElementById("site").style.opacity = "1";
-    document.getElementById("nav").style.opacity = "1";
-    document.getElementById("footer").style.opacity = "1";
-    return;
-  }
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  var isMobile = window.matchMedia("(max-width: 800px)").matches;
-  var canvas = document.getElementById("galaxy-canvas");
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 6000);
-  camera.position.z = 980;
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000005, 1);
-
-  var mouse = { x: 0, y: 0 };
-  var target = { x: 0, y: 0 };
-  var introComplete = false;
-
-  function makeGlowTexture(inner, outer) {
-    var c = document.createElement("canvas");
-    c.width = 256;
-    c.height = 256;
-    var ctx = c.getContext("2d");
-    var g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-    g.addColorStop(0, inner);
-    g.addColorStop(0.18, inner);
-    g.addColorStop(0.48, outer);
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 256, 256);
-    return new THREE.CanvasTexture(c);
-  }
-
-  var galaxy = new THREE.Group();
-  scene.add(galaxy);
-
-  var count = isMobile ? 6500 : 18000;
-  var geo = new THREE.BufferGeometry();
-  var pos = new Float32Array(count * 3);
-  var col = new Float32Array(count * 3);
-  var core = new THREE.Color(0xff9944);
-  var white = new THREE.Color(0xffffff);
-  var blue = new THREE.Color(0xcce8ff);
-  var deep = new THREE.Color(0x214a86);
-
-  for (var i = 0; i < count; i++) {
-    var arm = i % 4;
-    var radius = Math.pow(Math.random(), 0.54) * 960;
-    var coreParticle = Math.random() < 0.18;
-    if (coreParticle) radius = Math.pow(Math.random(), 2.7) * 150;
-    var angle = arm * Math.PI * 0.5 + radius * 0.014 + (Math.random() - 0.5) * (coreParticle ? 1.2 : 0.32);
-    var height = (Math.random() - 0.5) * (coreParticle ? 40 : 86) * (1 - Math.min(radius / 1100, 0.85));
-    pos[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 24;
-    pos[i * 3 + 1] = height;
-    pos[i * 3 + 2] = Math.sin(angle) * radius + (Math.random() - 0.5) * 24;
-    var c = coreParticle || radius < 120
-      ? white.clone().lerp(core, Math.random() * 0.78)
-      : (radius < 560 ? blue.clone().lerp(white, Math.random() * 0.25) : deep.clone().lerp(blue, Math.random() * 0.45));
-    col[i * 3] = c.r;
-    col[i * 3 + 1] = c.g;
-    col[i * 3 + 2] = c.b;
-  }
-
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  var mat = new THREE.PointsMaterial({
-    size: isMobile ? 1.55 : 1.9,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  var points = new THREE.Points(geo, mat);
-  galaxy.add(points);
-
-  function addGlow(texture, size, opacity) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: texture,
-      transparent: true,
-      opacity: opacity,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    }));
-    sprite.scale.set(size, size, 1);
-    galaxy.add(sprite);
-  }
-  addGlow(makeGlowTexture("rgba(255,235,170,1)", "rgba(255,153,68,0.14)"), 440, 0.95);
-  addGlow(makeGlowTexture("rgba(160,212,255,0.75)", "rgba(0,80,255,0.1)"), 1350, 0.22);
-
-  var starCount = isMobile ? 1100 : 2600;
-  var starGeo = new THREE.BufferGeometry();
-  var starPos = new Float32Array(starCount * 3);
-  var starCol = new Float32Array(starCount * 3);
-  for (var s = 0; s < starCount; s++) {
-    starPos[s * 3] = (Math.random() - 0.5) * 4200;
-    starPos[s * 3 + 1] = (Math.random() - 0.5) * 2600;
-    starPos[s * 3 + 2] = -1400 - Math.random() * 2200;
-    starCol[s * 3] = 0.8 + Math.random() * 0.2;
-    starCol[s * 3 + 1] = 0.9 + Math.random() * 0.1;
-    starCol[s * 3 + 2] = 1;
-  }
-  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-  starGeo.setAttribute("color", new THREE.BufferAttribute(starCol, 3));
-  var stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    size: 1.4,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  }));
-  scene.add(stars);
-
-  galaxy.scale.setScalar(0.03);
-  galaxy.rotation.x = 1.04;
-
-  function normalizePath(pathname) {
-    var p = pathname || "/";
-    if (p.slice(-11) === "/index.html") p = p.slice(0, -10) || "/";
-    if (p.length > 1 && p.charAt(p.length - 1) === "/") p = p.slice(0, -1);
-    return p || "/";
-  }
-
-  function isHomePath(path) {
-    return path === "/" || path === "";
-  }
-
-  function shouldShowIntro() {
-    var navEntry = performance.getEntriesByType("navigation")[0];
-    var navType = navEntry && navEntry.type;
-
-    if (navType === "reload") return true;
-    if (navType === "back_forward") return false;
-
-    if (navType === "navigate" || navType === "prerender") {
-      var referrer = document.referrer;
-      if (!referrer) return true;
-      try {
-        var refUrl = new URL(referrer);
-        if (refUrl.origin !== window.location.origin) return true;
-        var refPath = normalizePath(refUrl.pathname);
-        var currentPath = normalizePath(window.location.pathname);
-        if (isHomePath(currentPath) && !isHomePath(refPath)) return false;
-      } catch (e) {}
-      return true;
-    }
-
-    if (performance.navigation) {
-      if (performance.navigation.type === 1) return true;
-      if (performance.navigation.type === 2) return false;
-      if (performance.navigation.type === 0 && document.referrer) {
-        try {
-          var legacyRef = new URL(document.referrer);
-          if (legacyRef.origin === window.location.origin) {
-            var legacyRefPath = normalizePath(legacyRef.pathname);
-            var legacyCurrentPath = normalizePath(window.location.pathname);
-            if (isHomePath(legacyCurrentPath) && !isHomePath(legacyRefPath)) return false;
-          }
-        } catch (e2) {}
-      }
-    }
-
-    return true;
-  }
-
-  function skipIntro() {
-    introComplete = true;
-    galaxy.scale.setScalar(0.24);
-    galaxy.rotation.x = 1.04;
-    camera.position.z = 980;
-    mat.opacity = 1;
-    stars.material.opacity = 0.82;
-    document.body.classList.add("site-ready");
-    gsap.set("#intro", { display: "none" });
-    gsap.set(["#site", "#nav", "#footer"], { opacity: 1 });
-    ScrollTrigger.refresh();
-  }
-
-  function runIntro() {
-    var tl = gsap.timeline({
-      defaults: { ease: "power3.out" },
-      onComplete: function () {
-        introComplete = true;
-        galaxy.scale.setScalar(0.24);
-        camera.position.z = 980;
-        document.body.classList.add("site-ready");
-        gsap.set("#intro", { display: "none" });
-        ScrollTrigger.refresh();
-      }
-    });
-    tl.to("#introPoint", { scale: 18, duration: 0.75, ease: "expo.in" });
-    tl.to("#introPoint", { scale: 500, opacity: 0, duration: 0.38, ease: "power4.in" }, "-=0.08");
-    tl.to("#introBurst", { opacity: 1, scale: 1.2, rotate: 38, duration: 0.7, ease: "expo.out" }, "-=0.22");
-    tl.to(stars.material, { opacity: 0.82, duration: 0.8 }, "-=0.55");
-    tl.to(mat, { opacity: 1, duration: 0.85 }, "-=0.52");
-    tl.to(galaxy.scale, { x: 0.24, y: 0.24, z: 0.24, duration: 1.25, ease: "expo.out" }, "-=0.65");
-    tl.to("#introGalaxy", { opacity: 1, scale: 1, rotate: 120, duration: 1.1, ease: "expo.out" }, "-=1.05");
-    tl.to("#introBurst", { opacity: 0, scale: 1.55, duration: 0.8 }, "-=0.32");
-    tl.to("#introTitle", { opacity: 1, y: -8, duration: 0.75 }, "-=0.45");
-    tl.to(["#site", "#nav", "#footer"], { opacity: 1, duration: 0.95, stagger: 0.08 }, "+=0.25");
-    tl.to("#intro", { opacity: 0, duration: 0.75 }, "-=0.2");
-  }
-
-  function scrollMotion() {
-    gsap.utils.toArray(".section").forEach(function (section) {
-      gsap.fromTo(section.children, { opacity: 0, y: 46 }, {
-        opacity: 1,
-        y: 0,
-        duration: 0.9,
-        ease: "power2.out",
-        scrollTrigger: { trigger: section, start: "top 68%", once: true }
-      });
-    });
-
-  }
-
-  function render() {
-    galaxy.rotation.z += 0.00145;
-    if (introComplete) {
-      var maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      var p = Math.max(0, Math.min(1, window.scrollY / maxScroll));
-      var scrollScale = 0.24 + p * 1.06;
-      galaxy.scale.setScalar(scrollScale);
-      camera.position.z = 980 - p * 220;
-    }
-    target.x += (mouse.x - target.x) * 0.045;
-    target.y += (mouse.y - target.y) * 0.045;
-    if (!isMobile) {
-      galaxy.rotation.y = target.x * 0.18;
-      galaxy.rotation.x = 1.04 + target.y * 0.14;
-    }
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
-  }
-
-  window.addEventListener("mousemove", function (event) {
-    mouse.x = (event.clientX / window.innerWidth - 0.5) * 2;
-    mouse.y = (event.clientY / window.innerHeight - 0.5) * -2;
-  }, { passive: true });
-
-  window.addEventListener("resize", function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    ScrollTrigger.refresh();
-  });
-
-  scrollMotion();
-  render();
-  if (shouldShowIntro()) {
-    runIntro();
-  } else {
-    skipIntro();
-  }
-})();
-</script>
-<script src="nav.js"></script>
-<<<<<<< HEAD
-<script src="js/download-tracker.js"></script>
-=======
-<script src="js/shift-penguin.js"></script>
->>>>>>> 03fbd81f212c54a9639bca42da4adeeb613e4a23
+<script defer src="nav.js"></script>
+<script defer src="js/performance-home.js"></script>
+<script defer src="js/download-tracker.js"></script>
+<script defer src="js/shift-penguin.js"></script>
 </body>
 </html>

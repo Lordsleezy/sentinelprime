@@ -1,4 +1,6 @@
 .env
+.netlify/
 activation_codes.sqlite
+dist/
 node_modules/
 npm-debug.log*

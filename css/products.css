@@ -154,6 +154,9 @@
 }
 
 .mock-shift-penguin--hop .mock-shift-penguin__img {
+  animation: none;
+}
+.animations-ready .is-visible .mock-shift-penguin--hop .mock-shift-penguin__img {
   animation: penguinHop 0.52s ease;
 }
 
@@ -183,14 +186,22 @@
 
 .mock-shield-scan-bar {
   height: 100%;
-  width: 0;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
   background: linear-gradient(90deg, var(--accent), #22c55e);
-  animation: shieldScan 6s ease-in-out infinite;
+}
+
+.animations-ready .is-visible .mock-shield-scan-bar {
+  animation: shieldScanTransform 6s ease-in-out infinite;
 }
 
 .mock-shield-threats {
   font: 700 2rem "Syne", sans-serif;
   color: #ef4444;
+}
+
+.animations-ready .is-visible .mock-shield-threats {
   animation: threatCount 6s ease-in-out infinite;
 }
 
@@ -207,6 +218,11 @@
   100% { width: 100%; }
 }
 
+@keyframes shieldScanTransform {
+  0%, 10% { transform: scaleX(0); }
+  70%, 100% { transform: scaleX(1); }
+}
+
 @keyframes threatCount {
   0%, 20% { content: "0"; }
   30%, 60% { color: #ef4444; }
@@ -214,7 +230,10 @@
 }
 
 .mock-shield-threats::before {
-  content: "12";
+  content: "0";
+}
+
+.animations-ready .is-visible .mock-shield-threats::before {
   animation: threatNum 6s steps(1) infinite;
 }
 
@@ -230,7 +249,10 @@
 }
 
 .mock-shield-status::after {
-  content: "Scanning...";
+  content: "All clear";
+}
+
+.animations-ready .is-visible .mock-shield-status::after {
   animation: statusText 6s steps(1) infinite;
 }
 
@@ -254,6 +276,11 @@
   padding: 10px 14px;
   border-radius: 12px;
   font: 400 0.72rem "Share Tech Mono", monospace;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animations-ready .is-visible .mock-care-bubble {
   opacity: 0;
   transform: translateY(8px);
   animation: bubbleIn 8s ease-in-out infinite;
@@ -297,6 +324,9 @@
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #5eead4, var(--accent) 40%, #0d9488 70%, #042f2e);
   box-shadow: 0 0 40px rgba(20, 184, 166, 0.5);
+}
+
+.animations-ready .is-visible .mock-ai-orb {
   animation: orbPulse 3s ease-in-out infinite;
 }
 
@@ -307,6 +337,9 @@
   background: var(--accent);
   border-radius: 50%;
   opacity: 0;
+}
+
+.animations-ready .is-visible .mock-ai-particle {
   animation: particleFloat 4s ease-in-out infinite;
 }
 

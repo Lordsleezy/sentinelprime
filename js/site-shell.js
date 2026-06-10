@@ -27,19 +27,22 @@
 
   function loadGalaxy() {
     if (window.__sentinelGalaxyInit) return;
+    if (window.matchMedia("(max-width: 820px), (prefers-reduced-motion: reduce)").matches) return;
+
+    function appendScript(src, onload) {
+      var script = document.createElement("script");
+      script.src = src;
+      script.defer = true;
+      if (onload) script.onload = onload;
+      document.body.appendChild(script);
+    }
+
     if (!window.THREE) {
-      var three = document.createElement("script");
-      three.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-      three.onload = function () {
-        var bg = document.createElement("script");
-        bg.src = "/js/galaxy-background.js";
-        document.body.appendChild(bg);
-      };
-      document.body.appendChild(three);
+      appendScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", function () {
+        appendScript("/js/galaxy-background.js");
+      });
     } else {
-      var bg = document.createElement("script");
-      bg.src = "/js/galaxy-background.js";
-      document.body.appendChild(bg);
+      appendScript("/js/galaxy-background.js");
     }
   }
 
@@ -50,5 +53,9 @@
     document.head.appendChild(link);
   }
 
-  loadGalaxy();
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(loadGalaxy, { timeout: 2200 });
+  } else {
+    window.setTimeout(loadGalaxy, 1200);
+  }
 })();
