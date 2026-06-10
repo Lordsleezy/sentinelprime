@@ -36,7 +36,7 @@
         <p class="copy" id="betaNotes"></p>
         <p class="copy" id="betaReq"></p>
         <div class="buttons">
-          <a class="button" id="betaDownloadBtn" href="/api/download/sentinelai?channel=beta">Download SentinelAISetup.exe</a>
+          <a class="button" id="betaDownloadBtn" href="/api/download/sentinelai?channel=beta" data-product="sentinelai">Download SentinelAISetup.exe</a>
         </div>
       </div>
     </div>
@@ -49,7 +49,7 @@
         <h2>SentinelAI Free - Windows x64</h2>
         <p class="copy">Download the latest public release from GitHub. The free tier includes the core orb interface, Forge, memory, web search, calendar, notes, and local automations.</p>
         <div class="buttons">
-          <a class="button" href="/api/download/sentinelai?channel=free">Download SentinelAI Free - Windows x64</a>
+          <a class="button" href="/api/download/sentinelai?channel=free" data-product="sentinelai">Download SentinelAI Free - Windows x64</a>
         </div>
         <ul class="plain-list">
           <li>Windows 10/11 x64</li>
@@ -70,7 +70,7 @@
           <div class="form-status" id="activateStatus"></div>
         </form>
         <div id="proLink" style="display:none" class="buttons">
-          <a class="button" href="/api/download/sentinelai?channel=pro">Download Pro Installer</a>
+          <a class="button" href="/api/download/sentinelai?channel=pro" data-product="sentinelai">Download Pro Installer</a>
         </div>
         <p class="copy">Purchase Pro on the pricing page to get an activation code.</p>
       </div>
@@ -143,5 +143,6 @@ fetch("/api/beta/release").then(r => r.json()).then(data => {
 }).catch(() => {});
 </script>
 <script src="nav.js"></script>
+<script src="js/download-tracker.js"></script>
 </body>
 </html>

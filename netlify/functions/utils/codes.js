@@ -2,17 +2,21 @@ const crypto = require("crypto");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_TYPES = ["monthly", "annual", "lifetime", "gift", "admin"];
+const PRODUCTS = ["shield", "shift", "earn", "sentinelai"];
 
-function generateCode() {
+function generateCode(product) {
   const segments = [];
-  for (let segment = 0; segment < 3; segment += 1) {
+  for (let segment = 0; segment < 4; segment += 1) {
     let value = "";
     for (let index = 0; index < 4; index += 1) {
       value += CODE_CHARS[crypto.randomInt(0, CODE_CHARS.length)];
     }
     segments.push(value);
   }
-  return `SNTL-${segments.join("-")}`;
+  // Format: XXXX-XXXX-XXXX-XXXX (uppercase alphanumeric)
+  // Or with prefix for specific products
+  const prefix = product && product !== 'sentinelai' ? product.toUpperCase().substring(0, 4) : '';
+  return prefix ? `${prefix}-${segments.join("-")}` : segments.join("-");
 }
 
 function expiryFor(type, unixSeconds) {
@@ -23,18 +27,24 @@ function expiryFor(type, unixSeconds) {
 }
 
 async function createCode(supabase, values) {
-  if (!CODE_TYPES.includes(values.type)) throw new Error("Invalid activation-code type");
+  const type = values.type || "lifetime";
+  const product = values.product || "sentinelai";
+
+  if (!CODE_TYPES.includes(type)) throw new Error("Invalid activation-code type");
+  if (!PRODUCTS.includes(product)) throw new Error("Invalid product");
+
   for (let attempts = 0; attempts < 10; attempts += 1) {
-    const code = generateCode();
+    const code = generateCode(product);
     const { data, error } = await supabase
       .from("activation_codes")
       .insert({
         code,
-        type: values.type,
+        product,
+        type,
         status: "unused",
         email: values.email?.toLowerCase() || null,
         user_id: values.userId || null,
-        stripe_subscription_id: values.stripeSubId || null,
+        stripe_subscription_id: values.stripeSubId || values.stripeSubscriptionId || null,
         stripe_customer_id: values.stripeCustomerId || null,
         stripe_payment_intent_id: values.stripePaymentIntentId || null,
         expires_at: values.expiresAt || null,

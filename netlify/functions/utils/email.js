@@ -29,5 +29,43 @@ async function sendActivationEmail({ to, code, plan, expiresAt, resent = false }
   });
 }
 
-module.exports = { activationEmail, emailConfigured, sendActivationEmail, sendEmail };
+function productActivationEmail(code, productName, productSlug) {
+  return `<div style="background:#000005;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:40px;max-width:640px;margin:auto;border-radius:8px">
+    <h1 style="color:#00d4ff;margin:0 0 8px">Sentinel Prime</h1>
+    <h2 style="color:#fff;margin:0 0 24px;font-weight:500">Your ${productName} Activation Code</h2>
+    <p style="color:#9aa3ad;line-height:1.6">Thank you for purchasing ${productName}. Use the activation code below to unlock your software:</p>
+    <div style="border:2px solid #00d4ff;padding:24px;text-align:center;margin:24px 0;border-radius:8px;background:rgba(0,212,255,0.05)">
+      <strong style="font-size:28px;letter-spacing:4px;color:#00d4ff;font-family:monospace">${code}</strong>
+    </div>
+    <p style="color:#9aa3ad;line-height:1.6"><strong>How to activate:</strong></p>
+    <ol style="color:#9aa3ad;line-height:1.6;margin:16px 0;padding-left:24px">
+      <li>Install ${productName} on your device</li>
+      <li>Launch the application</li>
+      <li>Enter your email and the activation code above when prompted</li>
+    </ol>
+    <p style="color:#9aa3ad;line-height:1.6">Keep this code safe — you'll need it if you reinstall the software.</p>
+    <hr style="border-color:#333;margin:32px 0">
+    <p style="color:#666;font-size:13px;margin:0">
+      Need help? Contact us at <a href="mailto:customerservice@sentinelprime.org" style="color:#00d4ff;text-decoration:none">customerservice@sentinelprime.org</a>
+    </p>
+  </div>`;
+}
+
+async function sendProductActivationEmail({ to, code, product, productName }) {
+  const productNames = {
+    shield: "Sentinel Shield",
+    shift: "Shift by Sentinel",
+    earn: "Sentinel Earn"
+  };
+  const name = productName || productNames[product] || product;
+
+  return sendEmail({
+    to,
+    from: process.env.RESEND_FROM || "Sentinel Prime <customerservice@sentinelprime.org>",
+    subject: `Your ${name} Activation Code`,
+    html: productActivationEmail(code, name, product)
+  });
+}
+
+module.exports = { activationEmail, emailConfigured, sendActivationEmail, sendProductActivationEmail, sendEmail };
 
