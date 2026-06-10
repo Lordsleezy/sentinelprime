@@ -6,6 +6,7 @@
     { href: "/products", label: "Products", key: "products" },
     { href: "https://market.sentinelprime.org", label: "Market", key: "market" },
     { href: "/pricing", label: "Pricing", key: "pricing" },
+    { href: "/blog", label: "Blog", key: "blog" },
     { href: "/care", label: "Care", key: "care" },
     { href: "/contact", label: "Contact", key: "contact" },
     { href: "/admin", label: "Admin", key: "admin" }

@@ -41,6 +41,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://sentinelprime.org/blog</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://sentinelprime.org/about</loc>
     <priority>0.6</priority>
   </url>

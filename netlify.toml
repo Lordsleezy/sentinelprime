@@ -3,6 +3,9 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions."blog-weekly"]
+  schedule = "0 9 * * 1"
+
 [[redirects]]
   from = "/care"
   to = "/care/index.html"
@@ -94,6 +97,16 @@
   to = "/.netlify/functions/:splat"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/blog"
+  to = "/blog/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/blog/:slug"
+  to = "/blog/post.html"
+  status = 200
 
 [[redirects]]
   from = "/admin"
