@@ -16,13 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
 </head>
-<body>
-<nav class="nav">
-  <a class="logo" href="index.html">SENTINELPRIME</a>
-  <div class="nav-links">
-    <a href="signup.html">Sign up</a><a href="download.html">Download</a>
-  </div>
-</nav>
+<body data-page="login">
+<div id="global-nav-mount"></div>
 <main>
   <section class="section">
     <div class="wrap narrow form-panel">
@@ -33,7 +28,7 @@
         <button class="button" type="submit">Login</button>
         <div class="form-status" id="status"></div>
       </form>
-      <p class="copy" style="margin-top:16px;"><a href="signup.html">Create account</a> · <a href="pricing.html">Purchase</a></p>
+      <p class="copy" style="margin-top:16px;"><a href="signup.html">Create account</a> · <a href="products.html">Purchase</a></p>
     </div>
   </section>
 </main>
@@ -56,9 +51,19 @@ document.getElementById("loginForm").addEventListener("submit", async e => {
 });
 </script>
 <footer>
-  <div class="footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Support</a></div>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="https://market.sentinelprime.org">Market</a>
+    <a href="/blog">Blog</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/contact">Contact</a>
+  </div>
   <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
+  <div class="footer-admin" style="margin-top:8px;font-size:0.7em;opacity:0.5;"><a href="/admin">Admin</a></div>
 </footer>
+<script defer src="js/global-nav.js"></script>
 <script defer src="js/site-shell.js"></script>
 <script defer src="nav.js"></script>
 </body>

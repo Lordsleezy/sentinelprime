@@ -1,16 +1,20 @@
 (function () {
   "use strict";
 
-  var LINKS = [
-    { href: "/", label: "Home", key: "home" },
+  // Simplified navigation: Products, Market, Blog, Contact
+  // Home is shown on non-home pages
+  var isHome = document.body.dataset.page === "home";
+  
+  var LINKS = [];
+  if (!isHome) {
+    LINKS.push({ href: "/", label: "Home", key: "home" });
+  }
+  LINKS.push(
     { href: "/products", label: "Products", key: "products" },
     { href: "https://market.sentinelprime.org", label: "Market", key: "market" },
-    { href: "/pricing", label: "Pricing", key: "pricing" },
     { href: "/blog", label: "Blog", key: "blog" },
-    { href: "/care", label: "Care", key: "care" },
-    { href: "/contact", label: "Contact", key: "contact" },
-    { href: "/admin", label: "Admin", key: "admin" }
-  ];
+    { href: "/contact", label: "Contact", key: "contact" }
+  );
 
   var activeKey = document.body.dataset.page || "";
   var mount = document.getElementById("global-nav-mount");
