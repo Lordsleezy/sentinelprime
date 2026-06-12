@@ -7,7 +7,7 @@
  * and GROQ_API_KEY in environment, OR pass --url pointing to live Netlify deploy.
  */
 
-require('dotenv').config();
+try { require('dotenv').config(); } catch(e) {}
 
 const TOPICS = [
   'how to install linux without losing windows',

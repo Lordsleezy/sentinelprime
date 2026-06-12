@@ -13,18 +13,38 @@
 Set these in the Netlify dashboard:
 
 ```text
+# Supabase
 SUPABASE_URL
 SUPABASE_ANON_KEY
 SUPABASE_SERVICE_KEY
+
+# Stripe - Core
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
-STRIPE_PRICE_MONTHLY
-STRIPE_PRICE_ANNUAL
-STRIPE_PRICE_LIFETIME
+STRIPE_PUBLISHABLE_KEY
+
+# Stripe - NEW BUSINESS MODEL (June 2026)
+STRIPE_PRICE_INVEST_MONTHLY
+STRIPE_PRICE_PLUS_MONTHLY
+STRIPE_PRICE_PLUS_ANNUAL
+STRIPE_PRICE_CARE_REMOTE_MEMBER
+STRIPE_PRICE_CARE_REMOTE_NONMEMBER
+STRIPE_PRICE_CARE_PHONE_NONMEMBER
+
+# OLD - Archive these in Stripe (kept for existing subscriptions)
+# STRIPE_PRICE_MONTHLY
+# STRIPE_PRICE_ANNUAL
+# STRIPE_PRICE_LIFETIME
+
+# Email
 RESEND_API_KEY
 RESEND_FROM
+
+# Admin
 ADMIN_EMAIL
 ADMIN_PASSWORD
+
+# Site
 SITE_URL=https://sentinelprime.org
 ```
 
@@ -32,11 +52,41 @@ Use a long, random `ADMIN_PASSWORD`. Do not commit it to the repository.
 
 ## Stripe Setup
 
-1. Create monthly, annual, and lifetime Stripe products.
-2. Add their Price IDs to the corresponding Netlify variables.
-3. Add `https://sentinelprime.org/api/webhook` as a Stripe webhook.
-4. Enable `checkout.session.completed`, `customer.subscription.deleted`, `customer.subscription.updated`, and `invoice.payment_failed`.
-5. Store the webhook signing secret in `STRIPE_WEBHOOK_SECRET`.
+### New Business Model (June 2026)
+
+Run the setup script to create new products:
+```bash
+node scripts/setup-stripe-products.js
+```
+
+Or manually create these products in Stripe:
+
+1. **Sentinel Invest** - $9.99/month subscription
+2. **Sentinel Plus** - $19.99/month OR $149/year subscription
+3. **Care Remote (Member)** - $40 one-time payment
+4. **Care Remote (Non-Member)** - $100 one-time payment
+5. **Care Phone (Non-Member)** - $10 one-time payment
+
+### Legacy Products (Archive, Don't Delete)
+
+Archive these old products in Stripe Dashboard (to preserve existing subscriptions):
+- SentinelAI Monthly ($14.99/mo)
+- SentinelAI Annual ($99/yr)
+- SentinelAI Lifetime ($499)
+
+### Environment Variables
+
+Add the Price IDs from the setup script output to Netlify environment variables.
+
+### Webhook Configuration
+
+1. Add `https://sentinelprime.org/.netlify/functions/webhook` as a Stripe webhook endpoint
+2. Enable these events:
+   - `checkout.session.completed`
+   - `customer.subscription.deleted`
+   - `customer.subscription.updated`
+   - `invoice.payment_succeeded`
+3. Store the webhook signing secret in `STRIPE_WEBHOOK_SECRET`
 
 ## Supabase Setup
 

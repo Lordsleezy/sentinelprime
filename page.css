@@ -4,8 +4,8 @@
   --beam-glow: #a0d4ff;
   --star: #cce8ff;
   --galaxy-core: #ff9944;
-  --hud-blue: #14b8a6;
-  --accent: #14b8a6;
+  --hud-blue: #00d4ff;
+  --accent: #00d4ff;
 }
 
 * { box-sizing: border-box; }
@@ -27,6 +27,27 @@ body {
   font-family: "Syne", sans-serif;
 }
 
+/* Galaxy canvas for pages that include it */
+#galaxy-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  background: var(--bg);
+}
+
+.space-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0 30%, rgba(0,0,5,0.18) 58%, rgba(0,0,5,0.76) 100%),
+    linear-gradient(180deg, rgba(0,0,5,0.04), rgba(0,0,5,0.42));
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -39,6 +60,12 @@ body::before {
   opacity: 0.55;
   mix-blend-mode: screen;
   animation: galaxySpin 80s linear infinite;
+}
+
+/* Hide pseudo-background when galaxy canvas is present */
+body.has-galaxy-canvas::before,
+body.has-galaxy-canvas::after {
+  display: none;
 }
 
 body::after {
@@ -96,11 +123,11 @@ body::after {
   text-transform: uppercase;
 }
 
-.nav-links a:hover { color: #fff; text-shadow: 0 0 16px var(--accent); }
+.nav-links a:hover { color: #fff; text-shadow: 0 0 16px var(--hud-blue); }
 .nav-links .nav-cta {
   padding: 10px 14px;
-  border: 1px solid rgba(20, 184, 166, 0.55);
-  background: rgba(20, 184, 166, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  background: rgba(0, 212, 255, 0.08);
   color: #fff;
 }
 
@@ -110,7 +137,7 @@ body::after {
   height: 42px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(20, 184, 166, 0.38);
+  border: 1px solid rgba(0, 212, 255, 0.38);
   border-radius: 4px;
   background: rgba(0, 4, 8, 0.82);
   color: #fff;
@@ -125,7 +152,7 @@ body::after {
   width: 18px;
   height: 2px;
   background: currentColor;
-  box-shadow: 0 0 12px rgba(20, 184, 166, 0.55);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
@@ -160,13 +187,13 @@ main, footer { position: relative; z-index: 3; }
   font: 400 0.78rem "Share Tech Mono", monospace;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(20,184,166,0.45);
+  text-shadow: 0 0 20px rgba(0,212,255,0.45);
 }
 
 h1, h2, h3 { margin: 0; }
 h1 {
-  max-width: 1100px;
-  font: 800 clamp(3rem, 8vw, 7.8rem) / 0.9 "Syne", sans-serif;
+  max-width: 1200px;
+  font: 800 clamp(3.2rem, 9vw, 8.8rem) / 0.9 "Syne", sans-serif;
   letter-spacing: 0;
   text-shadow: 0 0 42px rgba(255,255,255,0.22);
 }
@@ -222,7 +249,7 @@ textarea,
 .card,
 .price-card,
 .form-panel {
-  border: 1px solid rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(0, 212, 255, 0.15);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(18px);
@@ -244,7 +271,7 @@ textarea,
 .feature-list li,
 .faq-item {
   padding: 14px 16px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(0,212,255,0.1);
   background: rgba(0,0,5,0.42);
   color: rgba(255,255,255,0.72);
 }
@@ -265,10 +292,10 @@ textarea,
   align-items: center;
   min-width: 150px;
   padding: 14px 22px;
-  border: 1px solid rgba(20, 184, 166, 0.72);
+  border: 1px solid rgba(0, 212, 255, 0.72);
   color: #fff;
-  background: rgba(20, 184, 166, 0.03);
-  box-shadow: 0 0 22px rgba(20, 184, 166, 0.18), inset 0 0 18px rgba(20, 184, 166, 0.05);
+  background: rgba(0, 212, 255, 0.03);
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.18), inset 0 0 18px rgba(0, 212, 255, 0.05);
   font: 600 0.78rem "Syne", sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -309,7 +336,7 @@ select,
 textarea {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid rgba(20,184,166,0.18);
+  border: 1px solid rgba(0,212,255,0.18);
   background: rgba(0,0,5,0.72);
   color: #fff;
   border-radius: 4px;
@@ -353,7 +380,7 @@ footer {
     align-items: stretch;
     gap: 10px;
     padding: 14px;
-    border: 1px solid rgba(20, 184, 166, 0.15);
+    border: 1px solid rgba(0, 212, 255, 0.15);
     border-radius: 4px;
     background: rgba(0, 4, 8, 0.92);
   }

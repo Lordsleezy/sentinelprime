@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Sentinel Prime Pricing &mdash; Plans Starting Free</title>
-<meta name="description" content="Sentinel Prime pricing starts free with clear plans for Shift, Shield, Care, Sentinel AI, Market, and Prime X privacy-first tech tools for everyone today.">
+<title>Sentinel Prime Pricing — Plans Starting Free</title>
+<meta name="description" content="Sentinel Prime pricing starts free with Shift, Invest trading signals, and Plus bundle with Shield, Care, Command, and Scout. Privacy-first tech tools.">
 <link rel="canonical" href="https://sentinelprime.org/pricing">
-<meta property="og:title" content="Sentinel Prime Pricing &mdash; Plans Starting Free">
-<meta property="og:description" content="Sentinel Prime pricing starts free with clear plans for Shift, Shield, Care, Sentinel AI, Market, and Prime X privacy-first tech tools for everyone today.">
+<meta property="og:title" content="Sentinel Prime Pricing — Plans Starting Free">
+<meta property="og:description" content="Sentinel Prime pricing starts free with Shift, Invest trading signals, and Plus bundle with Shield, Care, Command, and Scout.">
 <meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
 <meta property="og:url" content="https://sentinelprime.org/pricing">
 <meta property="og:type" content="website">
@@ -18,6 +18,123 @@
 <link rel="stylesheet" href="css/galaxy-shell.css">
 <link rel="stylesheet" href="css/pricing.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+.founding-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  color: #1a1a2e;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.pricing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.pricing-toggle button {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.pricing-toggle button.active {
+  background: #0f8;
+  color: #000;
+  border-color: #0f8;
+}
+.pricing-toggle button:hover:not(.active) {
+  background: rgba(255,255,255,0.2);
+}
+.pricing-card--featured {
+  border: 2px solid #0f8;
+  position: relative;
+}
+.pricing-card--featured::before {
+  content: "MOST POPULAR";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f8;
+  color: #000;
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.pricing-price-annual {
+  display: none;
+}
+.pricing-price-annual.active {
+  display: block;
+}
+.pricing-price-monthly.active {
+  display: block;
+}
+.opensource-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #0f8;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.care-addons {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 32px;
+}
+.care-addons h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+}
+.care-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.care-item {
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+.care-item h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #0f8;
+}
+.care-item .price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 8px 0;
+}
+.care-item .note {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 8px;
+}
+</style>
 </head>
 <body class="has-galaxy-canvas" data-page="pricing">
 <canvas id="galaxy-canvas" aria-hidden="true"></canvas>
@@ -28,7 +145,7 @@
   <section class="page-hero pricing-hero">
     <div class="wrap">
       <p class="eyebrow">Pricing</p>
-      <h1>Sentinel Prime Pricing for Privacy-First Tech Tools</h1>
+      <h1>Simple, Transparent Pricing</h1>
       <p class="lead">No hidden fees. No surprise charges. Cancel anytime.</p>
     </div>
   </section>
@@ -36,174 +153,147 @@
   <section class="section" style="padding-top: 0;">
     <div class="wrap pricing-stack">
 
+      <!-- Sentinel Shift - Free & Open Source -->
       <article class="pricing-card">
         <div class="pricing-card-header">
-          <h2>Shift by Sentinel</h2>
+          <h2>Sentinel Shift</h2>
           <div class="pricing-card-meta">
-            <span class="pricing-badge">One-time</span>
-            <div class="pricing-price">$29</div>
+            <span class="opensource-badge">Open Source</span>
+            <div class="pricing-price">Free</div>
           </div>
         </div>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">The easiest way to give an old laptop new life.</p>
         <ul class="pricing-features">
           <li>Full OS installer</li>
           <li>Try before you install with live demos</li>
           <li>Windows key saved and protected</li>
           <li>Go Back to Windows revert system</li>
           <li>Lifetime updates</li>
+          <li>Community support</li>
         </ul>
+        <a class="pricing-btn pricing-btn--secondary" href="https://github.com/Lordsleezy/Shift" target="_blank" rel="noopener">View on GitHub</a>
         <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shift/Shift.by.Sentinel.Setup.0.1.6.exe">Download</a>
       </article>
 
+      <!-- Sentinel Invest - $9.99/mo -->
       <article class="pricing-card">
         <div class="pricing-card-header">
-          <h2>Sentinel Shield</h2>
+          <div class="founding-badge">
+            <span>🔒</span> Founding Member Pricing
+          </div>
+          <h2>Sentinel Invest</h2>
           <div class="pricing-card-meta">
-            <span class="pricing-badge pricing-badge--green">1 Day Free Trial</span>
-            <div class="pricing-price">$19.99<span>/year</span> <span style="font-size:0.5em;display:block;font-weight:500;color:rgba(255,255,255,0.55);margin-top:4px;">after trial</span></div>
+            <span class="pricing-badge">Subscription</span>
+            <div class="pricing-price">$9.99<span>/month</span></div>
           </div>
         </div>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">AI-powered trading intelligence for everyone.</p>
         <ul class="pricing-features">
-          <li>Real-time protection</li>
-          <li>Virus and malware scanner</li>
-          <li>Network monitor</li>
-          <li>PC optimizer and cleaner</li>
-          <li>Startup manager</li>
-          <li>Auto-updates</li>
-          <li>Android companion app</li>
+          <li>AI-powered trading signals</li>
+          <li>Strategy breakdowns (bull/bear case)</li>
+          <li>Technical analysis & insights</li>
+          <li>Paper trading simulation</li>
+          <li>Live execution via Alpaca</li>
+          <li>Real-time market alerts</li>
         </ul>
-        <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shield/SentinelShield-Setup-0.1.1.exe">Download Free Trial</a>
+        <button class="pricing-btn" onclick="startCheckout('invest', 'monthly')">Start Trading</button>
+        <p class="pricing-note">Lock in this rate for life. Price increases for new subscribers in the future.</p>
       </article>
 
-      <article class="pricing-card">
-        <div class="pricing-card-header">
-          <h2>SentinelAI</h2>
-        </div>
-        <div class="pricing-tier-grid pricing-tier-grid--3">
-          <div class="pricing-tier">
-            <h3>Monthly</h3>
-            <div class="pricing-price">$14.99<span>/month</span></div>
-            <ul class="pricing-features">
-              <li>Full access</li>
-              <li>Cancel anytime</li>
-            </ul>
-            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
-          </div>
-          <div class="pricing-tier">
-            <span class="pricing-badge pricing-badge--amber">Save 45%</span>
-            <h3>Annual</h3>
-            <div class="pricing-price">$99<span>/year</span></div>
-            <ul class="pricing-features">
-              <li>Full access for the year</li>
-            </ul>
-            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
-          </div>
-          <div class="pricing-tier">
-            <span class="pricing-badge">Best Value</span>
-            <h3>Lifetime</h3>
-            <div class="pricing-price">$499</div>
-            <ul class="pricing-features">
-              <li>Pay once, all updates forever</li>
-            </ul>
-            <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/sentinel/SentinelAISetup.exe">Start Beta</a>
-          </div>
-        </div>
-        <p class="pricing-note">Currently free during beta — 7 day free trial, no account required</p>
-      </article>
-
-      <article class="pricing-card">
-        <div class="pricing-card-header">
-          <h2>Sentinel Care</h2>
-        </div>
-        <div class="pricing-tier-grid pricing-tier-grid--3">
-          <div class="pricing-tier">
-            <h3>Free</h3>
-            <div class="pricing-price">$0</div>
-            <ul class="pricing-features">
-              <li>Unlimited casual AI chat</li>
-              <li>No tech support included</li>
-            </ul>
-            <a class="pricing-btn" href="/care">Try Free</a>
-          </div>
-          <div class="pricing-tier">
-            <h3>Basic</h3>
-            <div class="pricing-price">$19.99<span>/month</span></div>
-            <ul class="pricing-features">
-              <li>Everything in Free</li>
-              <li>Full AI tech support</li>
-              <li>Phone support</li>
-              <li>1 remote desktop session/month included</li>
-              <li>Additional remote desktop: $50/hour</li>
-            </ul>
-            <a class="pricing-btn" href="/care/checkout?plan=basic">Subscribe</a>
-          </div>
-          <div class="pricing-tier pricing-tier--popular">
-            <span class="pricing-badge">Most Popular</span>
-            <h3>Plus</h3>
-            <div class="pricing-price">$34.99<span>/month</span></div>
-            <ul class="pricing-features">
-              <li>Everything in Basic</li>
-              <li>2 remote desktop sessions/month included</li>
-              <li>Additional remote desktop: $50/hour</li>
-            </ul>
-            <a class="pricing-btn" href="/care/checkout?plan=plus">Subscribe</a>
-          </div>
-        </div>
-        <p class="pricing-note">Remote desktop support without a membership: $100/hour</p>
-      </article>
-
+      <!-- Sentinel Plus - $149/yr or $19.99/mo (Featured) -->
       <article class="pricing-card pricing-card--featured">
         <div class="pricing-card-header">
-          <h2>Sentinel Prime X</h2>
+          <div class="founding-badge">
+            <span>🔒</span> Founding Member Pricing
+          </div>
+          <h2>Sentinel Plus</h2>
           <div class="pricing-card-meta">
-            <span class="pricing-badge">Best Value</span>
-            <div class="pricing-price">$49.99<span>/month</span></div>
+            <span class="pricing-badge pricing-badge--green">Best Value</span>
+            <div class="pricing-price pricing-price-monthly active">$19.99<span>/month</span></div>
+            <div class="pricing-price pricing-price-annual">$149<span>/year</span> <span style="font-size:0.5em;display:block;font-weight:500;color:#0f8;margin-top:4px;">Save 38%</span></div>
+          </div>
+          <div class="pricing-toggle">
+            <button class="toggle-monthly active" onclick="setBilling('monthly')">Monthly</button>
+            <button class="toggle-annual" onclick="setBilling('annual')">Annual</button>
           </div>
         </div>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">Everything you need. One subscription. Complete protection and productivity.</p>
         <ul class="pricing-features">
-          <li>Everything in Shift, Shield, SentinelAI, and Sentinel Care</li>
-          <li>Sentinel Market Smart Search — type what you want, AI finds the top 5 cheapest deals with active sales across the web, subscribers only</li>
-          <li>3 remote desktop sessions/month included</li>
-          <li>Additional remote desktop: $30/hour (members-only rate)</li>
-          <li>Phone support</li>
-          <li>Full AI tech support</li>
-          <li>Priority escalation</li>
+          <li><strong>Sentinel Shield</strong> — Security, cleaner, optimizer, real-time protection</li>
+          <li><strong>Sentinel Care</strong> — AI-first tech support with human escalation</li>
+          <li><strong>Sentinel Command</strong> — Mobile + web business/device control dashboard</li>
+          <li><strong>Sentinel Scout</strong> — AI finds the best deals anywhere online, in real time</li>
+          <li><strong>Sentinel Invest</strong> — Included: trading signals & strategy breakdowns</li>
+          <li>First remote desktop session every 6 months FREE</li>
+          <li>Priority support & feature requests</li>
         </ul>
-        <a class="pricing-btn" href="/care/checkout?plan=prime-x">Get Sentinel Prime X</a>
+        <button class="pricing-btn pricing-btn--monthly" onclick="startCheckout('plus', 'monthly')">Get Plus Monthly</button>
+        <button class="pricing-btn pricing-btn--annual" style="display:none;" onclick="startCheckout('plus', 'annual')">Get Plus Annual</button>
+        <p class="pricing-note">Lock in this rate for life. Price increases for new subscribers in the future.</p>
       </article>
 
-      <article class="pricing-card">
+      <!-- Care Add-ons Section -->
+      <div class="care-addons">
+        <h3>Sentinel Care — Add-on Support</h3>
+        <p style="color: rgba(255,255,255,0.7);">Need extra help? Book a support session. No subscription required.</p>
+        
+        <div class="care-grid">
+          <div class="care-item">
+            <h4>Remote Desktop — Plus Members</h4>
+            <div class="price">$40<span style="font-size:0.6em;">/hour</span></div>
+            <p>First session every 6 months is FREE with Plus</p>
+            <p class="note">Hands-on remote assistance for any tech issue</p>
+            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-remote-member', 'onetime')">Book Session</button>
+          </div>
+          
+          <div class="care-item">
+            <h4>Remote Desktop — Non-Member</h4>
+            <div class="price">$100<span style="font-size:0.6em;">/hour</span></div>
+            <p>Full remote desktop support</p>
+            <p class="note">No membership required — pay per session</p>
+            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-remote-nonmember', 'onetime')">Book Session</button>
+          </div>
+          
+          <div class="care-item">
+            <h4>Phone Support — Non-Member</h4>
+            <div class="price">$10<span style="font-size:0.6em;">/call</span></div>
+            <p>Quick phone assistance</p>
+            <p class="note">Perfect for quick questions and guidance</p>
+            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-phone-nonmember', 'onetime')">Book Call</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sentinel Market - Separate (brief mention) -->
+      <article class="pricing-card" style="margin-top: 32px; opacity: 0.9;">
         <div class="pricing-card-header">
           <h2>Sentinel Market</h2>
           <div class="pricing-card-meta">
-            <div class="pricing-price">Free</div>
+            <div class="pricing-price">Free to Browse</div>
           </div>
         </div>
         <ul class="pricing-features">
-          <li>Free to browse and buy</li>
-          <li>No membership fee</li>
-          <li>Sentinel Prime X subscribers get Smart Search feature</li>
+          <li>Privacy-focused marketplace</li>
+          <li>No membership fee to shop</li>
+          <li>Plus members get Scout AI deal-finding</li>
         </ul>
-        <a class="pricing-btn" href="https://market.sentinelprime.org">Shop Now</a>
+        <a class="pricing-btn pricing-btn--secondary" href="https://market.sentinelprime.org">Visit Market</a>
       </article>
-
-      <aside class="pricing-rdp-summary">
-        <h3>Remote Desktop Pricing Summary</h3>
-        <div class="pricing-rdp-grid">
-          <p><strong>No membership:</strong> $100/hour</p>
-          <p><strong>Care Basic or Plus:</strong> $50/hour</p>
-          <p><strong>Sentinel Prime X:</strong> $30/hour</p>
-          <p><strong>Care Basic:</strong> 1 session/month included</p>
-          <p><strong>Care Plus:</strong> 2 sessions/month included</p>
-          <p><strong>Sentinel Prime X:</strong> 3 sessions/month included</p>
-        </div>
-      </aside>
 
       <div class="pricing-bottom">
         <p class="pricing-privacy-line">All products include: No telemetry. No data selling. Privacy first.</p>
         <div class="pricing-faq">
           <details>
+            <summary>What is Founding Member Pricing?</summary>
+            <p>Subscribe now and lock in your price for life. Your rate never increases, even when prices go up for new subscribers in the future.</p>
+          </details>
+          <details>
             <summary>Can I cancel anytime?</summary>
-            <p>Yes, all subscriptions cancel anytime with no penalty.</p>
+            <p>Yes, all subscriptions cancel anytime with no penalty. You keep your locked-in rate if you resubscribe later.</p>
+          </details>
+          <details>
+            <summary>What's included in Sentinel Plus?</summary>
+            <p>Everything: Shield security suite, Care tech support, Command device management dashboard, Scout AI deal finder, and Invest trading signals — all in one subscription.</p>
           </details>
           <details>
             <summary>Do you offer refunds?</summary>
@@ -211,7 +301,7 @@
           </details>
           <details>
             <summary>Is my data safe?</summary>
-            <p>We use Supabase and Stripe — industry standard encryption and security.</p>
+            <p>We use Supabase and Stripe — industry standard encryption and security. We never sell your data.</p>
           </details>
         </div>
       </div>
@@ -237,5 +327,50 @@
 <script defer src="js/global-nav.js"></script>
 <script defer src="js/galaxy-background.js"></script>
 <script defer src="nav.js"></script>
+<script>
+// Billing toggle for Plus card
+function setBilling(interval) {
+  document.querySelectorAll('.pricing-toggle button').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.pricing-price-monthly, .pricing-price-annual').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.pricing-btn--monthly, .pricing-btn--annual').forEach(el => el.style.display = 'none');
+  
+  if (interval === 'monthly') {
+    document.querySelector('.toggle-monthly').classList.add('active');
+    document.querySelectorAll('.pricing-price-monthly').forEach(el => el.classList.add('active'));
+    document.querySelectorAll('.pricing-btn--monthly').forEach(el => el.style.display = 'block');
+  } else {
+    document.querySelector('.toggle-annual').classList.add('active');
+    document.querySelectorAll('.pricing-price-annual').forEach(el => el.classList.add('active'));
+    document.querySelectorAll('.pricing-btn--annual').forEach(el => el.style.display = 'block');
+  }
+}
+
+// Checkout flow
+async function startCheckout(product, plan) {
+  const email = prompt('Enter your email for the subscription:');
+  if (!email || !email.includes('@')) {
+    alert('Please enter a valid email address');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/.netlify/functions/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, plan, email })
+    });
+    
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Checkout error: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Failed to start checkout. Please try again.');
+    console.error(err);
+  }
+}
+</script>
 </body>
 </html>
