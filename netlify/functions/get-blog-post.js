@@ -112,10 +112,7 @@ exports.handler = async function (event) {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST205' && fallback) {
-        return { statusCode: 200, headers, body: JSON.stringify({ post: fallback, fallback: true }) };
-      }
-      if (error.code === 'PGRST116' && fallback) {
+      if ((error.code === 'PGRST205' || error.code === 'PGRST116' || /invalid api key/i.test(error.message || '')) && fallback) {
         return { statusCode: 200, headers, body: JSON.stringify({ post: fallback, fallback: true }) };
       }
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'Post not found' }) };

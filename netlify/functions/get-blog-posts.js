@@ -72,7 +72,7 @@ exports.handler = async function (event) {
 
     if (error) {
       console.error('[get-blog-posts] Supabase error:', error);
-      if (error.code === 'PGRST205') {
+      if (error.code === 'PGRST205' || /invalid api key/i.test(error.message || '')) {
         return {
           statusCode: 200,
           headers,
