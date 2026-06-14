@@ -7,11 +7,16 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const BASE = (process.env.SUPABASE_URL || 'https://gilnarpmhddxiuvgncmh.supabase.co').replace(/\/+$/, '');
+const BASE = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SERVICE_KEY ||
   process.argv.find((a) => a.startsWith('--key='))?.slice(6);
+
+if (!BASE) {
+  console.error('Set SUPABASE_URL');
+  process.exit(1);
+}
 
 if (!KEY) {
   console.error('Set SUPABASE_SERVICE_ROLE_KEY or pass --key=...');

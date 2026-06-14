@@ -85,7 +85,11 @@ async function main() {
 
   for (const file of walk(outDir)) {
     if (/\.(html|css|js)$/i.test(file)) {
-      await minifyFile(file);
+      try {
+        await minifyFile(file);
+      } catch (error) {
+        console.error(`Minify skipped for ${path.relative(outDir, file)}:`, error.message || error);
+      }
     }
   }
 }

@@ -21,7 +21,9 @@ if (!password) {
 
 const connectionString =
   process.env.DATABASE_URL ||
-  `postgresql://postgres.gilnarpmhddxiuvgncmh:${encodeURIComponent(password)}@aws-0-us-west-1.pooler.supabase.com:6543/postgres`;
+  (password
+    ? `postgresql://postgres.${process.env.SUPABASE_PROJECT_REF}:${encodeURIComponent(password)}@aws-0-${process.env.SUPABASE_DB_REGION || 'us-west-1'}.pooler.supabase.com:6543/postgres`
+    : null);
 
 const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
 

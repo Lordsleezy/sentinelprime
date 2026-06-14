@@ -62,7 +62,8 @@ function connectionString(body) {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
   const password = process.env.SUPABASE_DB_PASSWORD || body.dbPassword;
   if (!password) return null;
-  const projectRef = (process.env.SUPABASE_URL || '').match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || 'gilnarpmhddxiuvgncmh';
+  const projectRef = (process.env.SUPABASE_URL || '').match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || process.env.SUPABASE_PROJECT_REF;
+  if (!projectRef) return null;
   const region = process.env.SUPABASE_DB_REGION || 'us-west-1';
   return `postgresql://postgres.${projectRef}:${encodeURIComponent(password)}@aws-0-${region}.pooler.supabase.com:6543/postgres`;
 }
