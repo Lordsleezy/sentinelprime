@@ -184,8 +184,17 @@
   }
 
   fetch('/api/get-blog-posts')
-    .then(function(r) { return r.json(); })
-    .then(function(data) { renderPosts(data.posts || data); })
+    .then(function(r) {
+      return r.json().then(function(data) {
+        if (!r.ok) throw new Error(data.error || 'request failed');
+        return data;
+      });
+    })
+    .then(function(data) {
+      var posts = data && data.posts;
+      if (!Array.isArray(posts)) throw new Error('invalid response');
+      renderPosts(posts);
+    })
     .catch(function() {
       container.innerHTML = '<div class="blog-empty"><h2>Could not load articles.</h2><p>Please try again in a moment.</p></div>';
     });

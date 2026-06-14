@@ -92,3 +92,33 @@ Add the Price IDs from the setup script output to Netlify environment variables.
 
 Run [supabase/schema.sql](supabase/schema.sql) in the Supabase SQL editor. Use the service-role key only in Netlify environment variables.
 
+### Blog (`/blog`)
+
+The blog reads published posts from the `blog_posts` table via Netlify functions `get-blog-posts` and `get-blog-post`.
+
+Required Netlify environment variables:
+
+```text
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+```
+
+`SUPABASE_URL` must be the project root URL (not `/rest/v1/`).
+
+1. Run [supabase/migrations/004_blog_posts.sql](supabase/migrations/004_blog_posts.sql) in the Supabase SQL editor, **or** call the one-time bootstrap function after setting `DATABASE_URL` or `SUPABASE_DB_PASSWORD`:
+
+```bash
+curl -X POST https://sentinelprime.org/api/setup-blog-db \
+  -H "Authorization: Bearer $ADMIN_PASSWORD" \
+  -H "Content-Type: application/json" \
+  -d '{"dbPassword":"<your-supabase-db-password>"}'
+```
+
+2. Optionally seed AI-generated articles:
+
+```bash
+node scripts/seed-blog.js --url https://sentinelprime.org --key $BLOG_ADMIN_KEY
+```
+
+Until the table exists, the API serves two built-in placeholder articles so `/blog` never shows a hard error.
+
