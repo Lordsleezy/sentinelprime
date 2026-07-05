@@ -1,20 +1,14 @@
 (function () {
   "use strict";
 
-  // Simplified navigation: Products, Market, Blog, Contact
-  // Home is shown on non-home pages
-  var isHome = document.body.dataset.page === "home";
-  
-  var LINKS = [];
-  if (!isHome) {
-    LINKS.push({ href: "/", label: "Home", key: "home" });
-  }
-  LINKS.push(
+  var LINKS = [
+    { href: "/", label: "Home", key: "home" },
     { href: "/products", label: "Products", key: "products" },
-    { href: "https://market.sentinelprime.org", label: "Market", key: "market" },
-    { href: "/blog", label: "Blog", key: "blog" },
-    { href: "/contact", label: "Contact", key: "contact" }
-  );
+    { href: "/projects", label: "Projects", key: "projects" },
+    { href: "/care", label: "Care", key: "care" },
+    { href: "/contact", label: "Contact", key: "contact" },
+    { href: "/admin", label: "Admin", key: "admin" }
+  ];
 
   var activeKey = document.body.dataset.page || "";
   var mount = document.getElementById("global-nav-mount");

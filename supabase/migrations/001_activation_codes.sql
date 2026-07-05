@@ -1,9 +1,9 @@
--- Activation codes table for Shield, Shift, and Earn products
+-- Activation codes table for Sentinel Prime products
 CREATE TABLE IF NOT EXISTS activation_codes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
-    product TEXT NOT NULL CHECK (product IN ('shield', 'shift', 'earn', 'sentinelai')),
+    product TEXT NOT NULL CHECK (product IN ('linux', 'guardian', 'projects', 'care')),
     type TEXT DEFAULT 'lifetime' CHECK (type IN ('monthly', 'annual', 'lifetime', 'gift', 'admin')),
     status TEXT DEFAULT 'unused' CHECK (status IN ('unused', 'active', 'revoked', 'cancelled', 'expired')),
     stripe_payment_intent_id TEXT,

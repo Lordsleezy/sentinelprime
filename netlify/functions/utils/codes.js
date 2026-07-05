@@ -2,7 +2,7 @@ const crypto = require("crypto");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_TYPES = ["monthly", "annual", "lifetime", "gift", "admin"];
-const PRODUCT_TYPES = ["sentinelai", "shift", "shield", "care", "earn"];
+const PRODUCT_TYPES = ["linux", "guardian", "projects", "care"];
 
 function generateCode(product) {
   const segments = [];
@@ -15,7 +15,7 @@ function generateCode(product) {
   }
   // Format: XXXX-XXXX-XXXX-XXXX (uppercase alphanumeric)
   // Or with prefix for specific products
-  const prefix = product && product !== 'sentinelai' ? product.toUpperCase().substring(0, 4) : '';
+  const prefix = product ? product.toUpperCase().substring(0, 4) : '';
   return prefix ? `${prefix}-${segments.join("-")}` : segments.join("-");
 }
 
@@ -28,7 +28,7 @@ function expiryFor(type, unixSeconds) {
 
 async function createCode(supabase, values) {
   const type = values.type || "lifetime";
-  const product = values.product || "sentinelai";
+  const product = values.product || "care";
 
   if (!CODE_TYPES.includes(type)) throw new Error("Invalid activation-code type");
   if (!PRODUCT_TYPES.includes(product)) throw new Error("Invalid product");

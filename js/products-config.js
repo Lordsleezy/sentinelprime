@@ -17,43 +17,56 @@ export const PRODUCT_TIERS = {
 
 export const PRODUCTS = [
   {
-    slug: "sentinel-ai",
-    name: "Sentinel AI",
-    tagline: "Your personal AI operating system.",
+    slug: "sentinel-linux",
+    name: "Sentinel Linux",
+    tagline: "A cleaner path to privacy-first computing.",
     status: "available",
     statusLabel: "Available",
     tier: "hero",
     color: CSS_COLORS.cyan,
     cellAxis: "+X",
-    pageUrl: "/sentinel-ai",
-    features: ["15+ specialized workers", "Voice, memory, code, security, markets, and smart home", "Runs on your machine"],
-    cta: { href: "/sentinel-ai", label: "Explore Sentinel AI", variant: "fill" }
+    pageUrl: "/products#linux",
+    features: ["Linux migration tools", "Rollback planning", "Privacy-first setup"],
+    cta: { href: "/products#linux", label: "Explore Sentinel Linux", variant: "fill" }
   },
   {
-    slug: "personal-ai",
-    name: "Sentinel Personal AI",
-    tagline: "Your AI. On your device.",
+    slug: "sentinel-guardian",
+    name: "Sentinel Guardian",
+    tagline: "Security tooling for real-world defense.",
     status: "available",
     statusLabel: "Available",
     tier: "secondary",
     color: CSS_COLORS.cyan,
     cellAxis: "+Y",
-    pageUrl: "/personal-ai.html",
-    features: ["iOS companion app", "Local-first memory", "Private personal workflows"],
-    cta: { href: "https://apps.apple.com/app/id6767139428", label: "App Store", variant: "fill", external: true }
+    pageUrl: "/guardian",
+    features: ["Scanning", "Monitoring", "Practical hardening workflows"],
+    cta: { href: "/guardian", label: "Explore Guardian", variant: "fill" }
   },
   {
-    slug: "sentinel-drive",
-    name: "Sentinel Drive",
-    tagline: "Your AI. In your pocket.",
-    status: "soon",
-    statusLabel: "Coming Soon",
+    slug: "sentinel-projects",
+    name: "Sentinel Projects",
+    tagline: "Construction Opportunity Intelligence.",
+    status: "available",
+    statusLabel: "Available",
     tier: "secondary",
     color: CSS_COLORS.cyanDim,
     cellAxis: "+Z",
-    pageUrl: "/sentinel-drive",
-    features: ["Encrypted portable workspace", "Encrypted password vault with auto-fill", "Works on iOS, Android, Windows, macOS, iPadOS, and Linux"],
-    cta: { href: "/sentinel-drive#notify", label: "Notify Me", variant: "fill" }
+    pageUrl: "https://projects.sentinelprime.org",
+    features: ["Permits", "Planning records", "Bids and development signals"],
+    cta: { href: "https://projects.sentinelprime.org", label: "Launch Sentinel Projects", variant: "fill", external: true }
+  },
+  {
+    slug: "sentinelcare",
+    name: "SentinelCare",
+    tagline: "Personal IT support without the runaround.",
+    status: "available",
+    statusLabel: "Available",
+    tier: "secondary",
+    color: CSS_COLORS.cyan,
+    cellAxis: "-X",
+    pageUrl: "/care",
+    features: ["Guided support", "Technician escalation", "Computer, printer, Wi-Fi, and software help"],
+    cta: { href: "/care", label: "Open SentinelCare", variant: "fill" }
   }
 ];
 

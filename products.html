@@ -1,14 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Sentinel Products — Plans Starting Free</title>
-<meta name="description" content="Sentinel Prime products and pricing. Shift is free and open source, Invest trading signals, and Plus bundle with Shield, Care, Command, and Scout.">
+<title>Sentinel Products &mdash; Linux, Guardian, Projects, and Care</title>
+<meta name="description" content="Sentinel Prime products include Sentinel Linux, Sentinel Guardian, Sentinel Projects, and SentinelCare privacy-first tools for work, security, construction intelligence, and support.">
 <link rel="canonical" href="https://sentinelprime.org/products">
-<meta property="og:title" content="Sentinel Products — Plans Starting Free">
-<meta property="og:description" content="Sentinel Prime products and pricing. Shift is free and open source, Invest trading signals, and Plus bundle with Shield, Care, Command, and Scout.">
+<meta property="og:title" content="Sentinel Products &mdash; Linux, Guardian, Projects, and Care">
+<meta property="og:description" content="Sentinel Prime products include Sentinel Linux, Sentinel Guardian, Sentinel Projects, and SentinelCare.">
 <meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
 <meta property="og:url" content="https://sentinelprime.org/products">
 <meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["Product", "SoftwareApplication"],
+      "name": "Sentinel Linux",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Windows, Linux",
+      "brand": { "@type": "Brand", "name": "Sentinel Prime" },
+      "description": "Privacy-first Linux transition tools for users who want a cleaner, safer computing setup.",
+      "url": "https://sentinelprime.org/products#linux"
+    },
+    {
+      "@type": ["Product", "SoftwareApplication"],
+      "name": "Sentinel Guardian",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Windows, Linux",
+      "brand": { "@type": "Brand", "name": "Sentinel Prime" },
+      "description": "Security tooling for protection, scanning, monitoring, and practical defense.",
+      "url": "https://sentinelprime.org/products#guardian"
+    },
+    {
+      "@type": ["Product", "SoftwareApplication"],
+      "name": "Sentinel Projects",
+      "applicationCategory": "BusinessApplication",
+      "brand": { "@type": "Brand", "name": "Sentinel Prime" },
+      "description": "Construction Opportunity Intelligence for contractors.",
+      "url": "https://projects.sentinelprime.org"
+    },
+    {
+      "@type": "Product",
+      "name": "SentinelCare",
+      "brand": { "@type": "Brand", "name": "Sentinel Prime" },
+      "description": "Tech support with guided assistance and human escalation.",
+      "url": "https://sentinelprime.org/care"
+    }
+  ]
+}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,307 +56,92 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="page.css">
 <link rel="stylesheet" href="css/galaxy-shell.css">
-<link rel="stylesheet" href="css/pricing.css">
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<style>
-.product-mockup { position: relative; height: 180px; background: linear-gradient(180deg, rgba(0,4,8,0.9), rgba(0,0,5,0.95)); border-bottom: 1px solid rgba(0,212,255,0.15); overflow: hidden; border-radius: 8px 8px 0 0; }
-.mock-shift-penguin { display: flex; align-items: center; justify-content: center; height: 100%; cursor: pointer; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 85%, rgba(0,212,255,0.14) 0%, transparent 55%), linear-gradient(180deg, rgba(0,8,12,0.6), rgba(0,0,5,0.92)); }
-.mock-shift-penguin::after { content: ""; position: absolute; left: 28%; right: 28%; bottom: 18%; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.45); filter: blur(6px); pointer-events: none; transition: transform 0.2s ease; }
-.mock-shift-penguin__img { width: 100px; height: 100px; object-fit: contain; position: relative; z-index: 1; transition: transform 0.15s ease-out, filter 0.2s ease; filter: drop-shadow(0 0 18px rgba(0,212,255,0.35)); }
-.mock-shift-penguin:hover .mock-shift-penguin__img { filter: drop-shadow(0 0 28px rgba(0,212,255,0.7)); }
-.mock-shift-penguin--hop .mock-shift-penguin__img { animation: none; }
-.animations-ready .is-visible .mock-shift-penguin--hop .mock-shift-penguin__img { animation: penguinHop 0.52s ease; }
-.mock-shift-penguin--hop::after { transform: scaleX(0.55); }
-@keyframes penguinHop { 0%, 100% { transform: translateY(0) scale(1.1); } 40% { transform: translateY(-24px) scale(1.14) rotate(-4deg); } 70% { transform: translateY(-8px) scale(1.08) rotate(2deg); } }
-.mock-shield { padding: 24px; text-align: center; }
-.mock-shield-scan { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
-.mock-shield-scan-bar { height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg, var(--hud-blue), #22c55e); }
-.animations-ready .is-visible .mock-shield-scan-bar { animation: shieldScanTransform 6s ease-in-out infinite; }
-.mock-shield-threats { font: 700 2rem "Syne", sans-serif; color: #ef4444; }
-.animations-ready .is-visible .mock-shield-threats { animation: threatCount 6s ease-in-out infinite; }
-.mock-shield-status { margin-top: 12px; font: 400 0.75rem "Share Tech Mono", monospace; color: rgba(255,255,255,0.5); }
-@keyframes shieldScanTransform { 0%, 10% { transform: scaleX(0); } 70%, 100% { transform: scaleX(1); } }
-.mock-shield-threats::before { content: "0"; }
-.animations-ready .is-visible .mock-shield-threats::before { animation: threatNum 6s steps(1) infinite; }
-@keyframes threatNum { 0%, 25% { content: "0"; } 30%, 55% { content: "12"; } 60%, 100% { content: "0"; } }
-.mock-shield-status::after { content: "Scanning..."; }
-.animations-ready .is-visible .mock-shield-status::after { animation: statusText 6s steps(1) infinite; }
-@keyframes statusText { 0%, 55% { content: "Scanning..."; } 60%, 100% { content: "All clear"; } }
-.mock-care { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end; height: 100%; }
-.mock-care-bubble { max-width: 75%; padding: 8px 12px; border-radius: 12px; font: 400 0.7rem "Share Tech Mono", monospace; }
-.animations-ready .is-visible .mock-care-bubble { opacity: 0; transform: translateY(8px); animation: bubbleIn 8s ease-in-out infinite; }
-.mock-care-bubble--user { align-self: flex-end; background: rgba(0,212,255,0.25); border: 1px solid rgba(0,212,255,0.4); }
-.mock-care-bubble--ai { align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); animation-delay: 1.5s; }
-.mock-care-bubble--user:nth-of-type(3) { animation-delay: 3s; }
-.mock-care-bubble--ai:nth-of-type(4) { animation-delay: 4.5s; }
-@keyframes bubbleIn { 0%, 5% { opacity: 0; transform: translateY(8px); } 10%, 85% { opacity: 1; transform: translateY(0); } 90%, 100% { opacity: 0; transform: translateY(-4px); } }
-.mock-ai { display: flex; align-items: center; justify-content: center; height: 100%; position: relative; }
-.mock-ai-orb { width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #5eead4, var(--hud-blue) 40%, #0d9488 70%, #042f2e); box-shadow: 0 0 40px rgba(0,212,255,0.5); }
-.animations-ready .is-visible .mock-ai-orb { animation: orbPulse 3s ease-in-out infinite; }
-.mock-ai-particle { position: absolute; width: 4px; height: 4px; background: var(--hud-blue); border-radius: 50%; opacity: 0; }
-.animations-ready .is-visible .mock-ai-particle { animation: particleFloat 4s ease-in-out infinite; }
-.mock-ai-particle:nth-child(1) { top: 30%; left: 25%; animation-delay: 0s; }
-.mock-ai-particle:nth-child(2) { top: 60%; left: 70%; animation-delay: 0.8s; }
-.mock-ai-particle:nth-child(3) { top: 45%; left: 15%; animation-delay: 1.6s; }
-.mock-ai-particle:nth-child(4) { top: 25%; left: 75%; animation-delay: 2.4s; }
-.mock-ai-particle:nth-child(5) { top: 70%; left: 40%; animation-delay: 3.2s; }
-@keyframes orbPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,212,255,0.5); } 50% { transform: scale(1.08); box-shadow: 0 0 60px rgba(0,212,255,0.7); } }
-@keyframes particleFloat { 0%, 100% { opacity: 0; transform: translate(0,0) scale(0.5); } 20%, 80% { opacity: 0.8; transform: translate(10px,-15px) scale(1); } }
-.pricing-card { overflow: hidden; }
-.pricing-card .pricing-card-header { padding: 24px 24px 0 24px; }
-.pricing-card .pricing-features { padding: 0 24px 24px 24px; }
-.pricing-card .pricing-btn { margin: 0 24px 24px 24px; }
-.pricing-card .pricing-note { padding: 0 24px 24px 24px; margin: 0; }
-.founding-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%); color: #1a1a2e; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-.pricing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; }
-.pricing-toggle button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 0.9rem; transition: all 0.2s; }
-.pricing-toggle button.active { background: var(--hud-blue); color: #000; border-color: var(--hud-blue); }
-.pricing-toggle button:hover:not(.active) { background: rgba(255,255,255,0.2); }
-.pricing-card--featured { border: 2px solid var(--hud-blue); position: relative; }
-.pricing-card--featured::before { content: "MOST POPULAR"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--hud-blue); color: #000; padding: 4px 16px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; }
-.pricing-price-annual { display: none; }
-.pricing-price-annual.active { display: block; }
-.pricing-price-monthly.active { display: block; }
-.opensource-badge { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--hud-blue); padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; }
-.care-addons { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-top: 32px; }
-.care-addons h3 { margin-top: 0; font-size: 1.3rem; }
-.care-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px; }
-.care-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px; }
-.care-item h4 { margin: 0 0 8px 0; font-size: 1rem; color: var(--hud-blue); }
-.care-item .price { font-size: 1.5rem; font-weight: 700; margin: 8px 0; }
-.care-item .note { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 8px; }
-.footer-admin { margin-top: 12px; font-size: 0.65rem; opacity: 0.5; }
-.footer-admin a { color: rgba(255,255,255,0.5); text-decoration: none; }
-.footer-admin a:hover { color: rgba(255,255,255,0.8); }
-</style>
+<link rel="stylesheet" href="css/products.css">
 </head>
-<body class="has-galaxy-canvas" data-page="products">
+<body data-page="products">
 <canvas id="galaxy-canvas" aria-hidden="true"></canvas>
 <div class="space-vignette"></div>
 <div id="global-nav-mount"></div>
 
-<main class="pricing-page">
-  <section class="page-hero pricing-hero">
+<main>
+  <section class="page-hero products-hero">
     <div class="wrap">
       <p class="eyebrow">Products</p>
-      <h1>Simple, Transparent Pricing</h1>
-      <p class="lead">No hidden fees. No surprise charges. Cancel anytime.</p>
+      <h1>Sentinel Prime Products for Security, Support, Linux, and Construction Intelligence</h1>
+      <p class="lead">A focused product family: Sentinel Linux, Sentinel Guardian, Sentinel Projects, and SentinelCare.</p>
     </div>
   </section>
 
   <section class="section" style="padding-top: 0;">
-    <div class="wrap pricing-stack">
+    <div class="wrap">
+      <div class="products-grid">
+        <article class="product-card" id="linux">
+          <div class="product-mockup">
+            <div class="mock-shift-penguin">
+              <img class="mock-shift-penguin__img" src="assets/tux-penguin.gif" alt="Linux penguin" width="110" height="110" loading="lazy" decoding="async">
+            </div>
+          </div>
+          <div class="product-body">
+            <h2>Sentinel Linux</h2>
+            <p class="product-tagline">A cleaner path to privacy-first computing</p>
+            <p class="product-desc">Move toward Linux with practical migration tooling, protected rollback planning, and a setup path designed for everyday users.</p>
+            <div class="product-meta"><span class="product-price">$29 one-time</span></div>
+            <a class="product-cta" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shift/Shift.by.Sentinel.Setup.0.1.6.exe">Download Sentinel Linux</a>
+          </div>
+        </article>
 
-      <!-- Sentinel Shift - Free & Open Source -->
-      <article class="pricing-card">
-        <div class="product-mockup">
-          <div class="mock-shift-penguin" onclick="hopPenguin(this)" tabindex="0" role="button" aria-label="Make penguin hop">
-            <img class="mock-shift-penguin__img" src="assets/tux-penguin.gif" alt="Linux penguin waddling" width="100" height="100" loading="lazy" decoding="async">
+        <article class="product-card" id="guardian">
+          <div class="product-mockup">
+            <div class="mock-shield">
+              <div class="mock-shield-scan"><div class="mock-shield-scan-bar"></div></div>
+              <div class="mock-shield-threats"></div>
+              <div class="mock-shield-status"></div>
+            </div>
           </div>
-        </div>
-        <div class="pricing-card-header">
-          <h2>Sentinel Shift</h2>
-          <div class="pricing-card-meta">
-            <span class="opensource-badge">Open Source</span>
-            <div class="pricing-price">Free</div>
+          <div class="product-body">
+            <h2>Sentinel Guardian</h2>
+            <p class="product-tagline">Security tooling for real-world defense</p>
+            <p class="product-desc">Scan, monitor, and harden systems with practical security workflows built for homes, small businesses, and independent operators.</p>
+            <div class="product-meta"><span class="product-price">$19.99/year</span></div>
+            <a class="product-cta" href="/guardian">Explore Guardian</a>
           </div>
-        </div>
-        <p style="color: rgba(255,255,255,0.7); margin: 0 24px 16px;">The easiest way to give an old laptop new life. Switch to Linux without losing Windows.</p>
-        <ul class="pricing-features">
-          <li>Full OS installer</li>
-          <li>Try before you install with live demos</li>
-          <li>Windows key saved and protected</li>
-          <li>Go Back to Windows revert system</li>
-          <li>Lifetime updates</li>
-          <li>Community support</li>
-        </ul>
-        <a class="pricing-btn pricing-btn--secondary" href="https://github.com/Lordsleezy/Shift" target="_blank" rel="noopener">View on GitHub</a>
-        <a class="pricing-btn" href="https://github.com/Lordsleezy/SentinelReleases/releases/download/shift/Shift.by.Sentinel.Setup.0.1.6.exe">Download</a>
-      </article>
+        </article>
 
-      <!-- Sentinel Shield -->
-      <article class="pricing-card">
-        <div class="product-mockup">
-          <div class="mock-shield">
-            <div class="mock-shield-scan"><div class="mock-shield-scan-bar"></div></div>
-            <div class="mock-shield-threats"></div>
-            <div class="mock-shield-status"></div>
+        <article class="product-card" id="projects">
+          <div class="product-mockup">
+            <div class="mock-shield">
+              <div class="mock-shield-scan"><div class="mock-shield-scan-bar"></div></div>
+              <div class="mock-shield-threats"></div>
+              <div class="mock-shield-status"></div>
+            </div>
           </div>
-        </div>
-        <div class="pricing-card-header">
-          <h2>Sentinel Shield</h2>
-          <div class="pricing-card-meta">
-            <span class="pricing-badge">Security Suite</span>
-            <div class="pricing-price">$99.99<span> one-time</span></div>
+          <div class="product-body">
+            <h2>Sentinel Projects</h2>
+            <p class="product-tagline">Construction Opportunity Intelligence</p>
+            <p class="product-desc">Find construction opportunities using permits, planning records, bids, public records, and development signals.</p>
+            <div class="product-meta"><span class="product-price">Opportunity search</span></div>
+            <a class="product-cta" href="https://projects.sentinelprime.org">Launch Sentinel Projects</a>
           </div>
-        </div>
-        <p style="color: rgba(255,255,255,0.7); margin: 0 24px 16px;">Security that actually works for everyone. Real-time protection for your digital life.</p>
-        <ul class="pricing-features">
-          <li>Real-time virus protection</li>
-          <li>Network monitoring</li>
-          <li>PC optimizer & cleaner</li>
-          <li>Threat scanner</li>
-          <li>Privacy protection</li>
-          <li>Also included in Plus bundle</li>
-        </ul>
-        <button class="pricing-btn" onclick="startCheckout('shield', 'onetime')">Buy Shield</button>
-        <p class="pricing-note">Or <a href="#plus" style="color:var(--hud-blue);">get it included with Plus</a></p>
-      </article>
+        </article>
 
-      <!-- Sentinel Care (included in Plus) -->
-      <article class="pricing-card">
-        <div class="product-mockup">
-          <div class="mock-care">
-            <div class="mock-care-bubble mock-care-bubble--user">My printer won't connect</div>
-            <div class="mock-care-bubble mock-care-bubble--ai">Let me walk you through it step by step.</div>
-            <div class="mock-care-bubble mock-care-bubble--user">That worked, thanks!</div>
-            <div class="mock-care-bubble mock-care-bubble--ai">Happy to help. Anything else?</div>
+        <article class="product-card" id="care">
+          <div class="product-mockup">
+            <div class="mock-care">
+              <div class="mock-care-bubble mock-care-bubble--user">My printer won't connect</div>
+              <div class="mock-care-bubble mock-care-bubble--ai">Let's walk through it step by step.</div>
+              <div class="mock-care-bubble mock-care-bubble--user">That worked, thanks!</div>
+              <div class="mock-care-bubble mock-care-bubble--ai">Happy to help.</div>
+            </div>
           </div>
-        </div>
-        <div class="pricing-card-header">
-          <h2>Sentinel Care</h2>
-          <div class="pricing-card-meta">
-            <span class="pricing-badge">AI Support</span>
-            <div class="pricing-price">Included in Plus</div>
+          <div class="product-body">
+            <h2>SentinelCare</h2>
+            <p class="product-tagline">Personal IT support without the runaround</p>
+            <p class="product-desc">Guided support for everyday computer, printer, Wi-Fi, software, and security problems with technician escalation when needed.</p>
+            <div class="product-meta"><span class="product-price">From $19.99/month</span></div>
+            <a class="product-cta" href="/care">Open SentinelCare</a>
           </div>
-        </div>
-        <p style="color: rgba(255,255,255,0.7); margin: 0 24px 16px;">Your personal IT department for less than Netflix. AI support with human escalation.</p>
-        <ul class="pricing-features">
-          <li>Chat with Sentinel AI anytime</li>
-          <li>Real technician support</li>
-          <li>No contracts or waiting lines</li>
-          <li>Computer & printer help</li>
-          <li>Wi-Fi & software issues</li>
-          <li>Available in Plus bundle</li>
-        </ul>
-        <a class="pricing-btn" href="#plus">Get with Plus</a>
-        <p class="pricing-note">Add-ons: Remote Desktop $40–$100/hr · Phone Support $10/call · <a href="#care-addons" style="color:var(--hud-blue);">View all</a></p>
-      </article>
-
-      <!-- Sentinel Invest - $9.99/mo -->
-      <article class="pricing-card">
-        <div class="product-mockup">
-          <div class="mock-ai">
-            <div class="mock-ai-particle"></div>
-            <div class="mock-ai-particle"></div>
-            <div class="mock-ai-particle"></div>
-            <div class="mock-ai-particle"></div>
-            <div class="mock-ai-particle"></div>
-            <div class="mock-ai-orb"></div>
-          </div>
-        </div>
-        <div class="pricing-card-header">
-          <div class="founding-badge">Founding Member Pricing</div>
-          <h2>Sentinel Invest</h2>
-          <div class="pricing-card-meta">
-            <span class="pricing-badge">Subscription</span>
-            <div class="pricing-price">$9.99<span>/month</span></div>
-          </div>
-        </div>
-        <p style="color: rgba(255,255,255,0.7); margin: 0 24px 16px;">AI-powered trading intelligence for everyone. Make smarter investment decisions.</p>
-        <ul class="pricing-features">
-          <li>AI-powered trading signals</li>
-          <li>Strategy breakdowns (bull/bear case)</li>
-          <li>Technical analysis & insights</li>
-          <li>Paper trading simulation</li>
-          <li>Live execution via Alpaca</li>
-          <li>Real-time market alerts</li>
-        </ul>
-        <button class="pricing-btn" onclick="startCheckout('invest', 'monthly')">Start Trading</button>
-        <p class="pricing-note">Lock in this rate for life. Price increases for new subscribers in the future.</p>
-      </article>
-
-      <!-- Sentinel Plus - Featured -->
-      <article class="pricing-card pricing-card--featured" id="plus">
-        <div class="product-mockup" style="background: linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,0,5,0.95) 100%);">
-          <div class="mock-ai" style="opacity: 0.8;">
-            <div class="mock-ai-orb" style="width: 90px; height: 90px; background: radial-gradient(circle at 35% 35%, #ffd700, var(--hud-blue) 40%, #0d9488 70%, #042f2e);"></div>
-          </div>
-        </div>
-        <div class="pricing-card-header">
-          <div class="founding-badge">Founding Member Pricing</div>
-          <h2>Sentinel Plus</h2>
-          <div class="pricing-card-meta">
-            <span class="pricing-badge pricing-badge--green">Best Value</span>
-            <div class="pricing-price pricing-price-monthly active">$19.99<span>/month</span></div>
-            <div class="pricing-price pricing-price-annual">$149<span>/year</span> <span style="font-size:0.5em;display:block;font-weight:500;color:var(--hud-blue);margin-top:4px;">Save 38%</span></div>
-          </div>
-          <div class="pricing-toggle">
-            <button class="toggle-monthly active" onclick="setBilling('monthly')">Monthly</button>
-            <button class="toggle-annual" onclick="setBilling('annual')">Annual</button>
-          </div>
-        </div>
-        <p style="color: rgba(255,255,255,0.7); margin: 0 24px 16px;">Everything you need. One subscription. Complete protection and productivity.</p>
-        <ul class="pricing-features">
-          <li><strong>Sentinel Shield</strong> — Security, cleaner, optimizer, real-time protection</li>
-          <li><strong>Sentinel Care</strong> — AI-first tech support with human escalation</li>
-          <li><strong>Sentinel Command</strong> — Mobile + web business/device control dashboard</li>
-          <li><strong>Sentinel Scout</strong> — AI finds the best deals anywhere online, in real time</li>
-          <li><strong>Sentinel Invest</strong> — Included: trading signals & strategy breakdowns</li>
-          <li>First remote desktop session every 6 months FREE</li>
-          <li>Priority support & feature requests</li>
-        </ul>
-        <button class="pricing-btn pricing-btn--monthly" onclick="startCheckout('plus', 'monthly')">Get Plus Monthly</button>
-        <button class="pricing-btn pricing-btn--annual" style="display:none;" onclick="startCheckout('plus', 'annual')">Get Plus Annual</button>
-        <p class="pricing-note">Lock in this rate for life. Price increases for new subscribers in the future.</p>
-      </article>
-
-      <!-- Care Add-ons Section -->
-      <div class="care-addons">
-        <h3>Sentinel Care — Add-on Support</h3>
-        <p style="color: rgba(255,255,255,0.7);">Need extra help? Book a support session. No subscription required.</p>
-        <div class="care-grid">
-          <div class="care-item">
-            <h4>Remote Desktop — Plus Members</h4>
-            <div class="price">$40<span style="font-size:0.6em;">/hour</span></div>
-            <p>First session every 6 months is FREE with Plus</p>
-            <p class="note">Hands-on remote assistance for any tech issue</p>
-            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-remote-member', 'onetime')">Book Session</button>
-          </div>
-          <div class="care-item">
-            <h4>Remote Desktop — Non-Member</h4>
-            <div class="price">$100<span style="font-size:0.6em;">/hour</span></div>
-            <p>Full remote desktop support</p>
-            <p class="note">No membership required — pay per session</p>
-            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-remote-nonmember', 'onetime')">Book Session</button>
-          </div>
-          <div class="care-item">
-            <h4>Phone Support — Non-Member</h4>
-            <div class="price">$10<span style="font-size:0.6em;">/call</span></div>
-            <p>Quick phone assistance</p>
-            <p class="note">Perfect for quick questions and guidance</p>
-            <button class="pricing-btn" style="margin-top:12px;width:100%;" onclick="startCheckout('care-phone-nonmember', 'onetime')">Book Call</button>
-          </div>
-        </div>
+        </article>
       </div>
-
-      <!-- Sentinel Market -->
-      <article class="pricing-card" style="margin-top: 32px; opacity: 0.9;">
-        <div class="pricing-card-header">
-          <h2>Sentinel Market</h2>
-          <div class="pricing-card-meta">
-            <div class="pricing-price">Free to Browse</div>
-          </div>
-        </div>
-        <ul class="pricing-features">
-          <li>Privacy-focused marketplace</li>
-          <li>No membership fee to shop</li>
-          <li>Plus members get Scout AI deal-finding</li>
-        </ul>
-        <a class="pricing-btn pricing-btn--secondary" href="https://market.sentinelprime.org">Visit Market</a>
-      </article>
-
-      <div class="pricing-bottom">
-        <p class="pricing-privacy-line">All products include: No telemetry. No data selling. Privacy first.</p>
-        <div class="pricing-faq">
-          <details><summary>What is Founding Member Pricing?</summary><p>Subscribe now and lock in your price for life. Your rate never increases, even when prices go up for new subscribers in the future.</p></details>
-          <details><summary>Can I cancel anytime?</summary><p>Yes, all subscriptions cancel anytime with no penalty. You keep your locked-in rate if you resubscribe later.</p></details>
-          <details><summary>What's included in Sentinel Plus?</summary><p>Everything: Shield security suite, Care tech support, Command device management dashboard, Scout AI deal finder, and Invest trading signals — all in one subscription.</p></details>
-          <details><summary>Do you offer refunds?</summary><p>Contact <a href="mailto:paul@sentinelprime.org">paul@sentinelprime.org</a> within 7 days of purchase.</p></details>
-          <details><summary>Is my data safe?</summary><p>We use Supabase and Stripe — industry standard encryption and security. We never sell your data.</p></details>
-        </div>
-      </div>
-
     </div>
   </section>
 </main>
@@ -325,31 +150,18 @@
   <div class="footer-links">
     <a href="/">Home</a>
     <a href="/products">Products</a>
-    <a href="https://market.sentinelprime.org">Market</a>
-    <a href="/blog">Blog</a>
+    <a href="/projects">Projects</a>
+    <a href="/care">Care</a>
     <a href="/privacy">Privacy</a>
     <a href="/terms">Terms</a>
     <a href="/contact">Contact</a>
   </div>
   <div>&copy; 2024 Sentinel Prime Inc. &middot; Founded 2024 &middot; Established 2026</div>
-  <div class="footer-admin"><a href="/admin">Admin</a></div>
 </footer>
 
 <script defer src="js/global-nav.js"></script>
-<script defer src="js/galaxy-background.js"></script>
+<script defer src="js/performance-home.js"></script>
 <script defer src="nav.js"></script>
-<script>
-// Enable animations when elements are visible
-(function(){'use strict';if('IntersectionObserver'in window){var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('is-visible');}});},{threshold:0.1});document.querySelectorAll('.product-mockup').forEach(function(el){observer.observe(el);});document.body.classList.add('animations-ready');}})();
-
-// Penguin hop interaction
-function hopPenguin(el){el.classList.remove('mock-shift-penguin--hop');void el.offsetWidth;el.classList.add('mock-shift-penguin--hop');setTimeout(function(){el.classList.remove('mock-shift-penguin--hop');},520);}
-
-// Billing toggle
-function setBilling(interval){document.querySelectorAll('.pricing-toggle button').forEach(function(btn){btn.classList.remove('active');});document.querySelectorAll('.pricing-price-monthly,.pricing-price-annual').forEach(function(el){el.classList.remove('active');});document.querySelectorAll('.pricing-btn--monthly,.pricing-btn--annual').forEach(function(el){el.style.display='none';});if(interval==='monthly'){document.querySelector('.toggle-monthly').classList.add('active');document.querySelectorAll('.pricing-price-monthly').forEach(function(el){el.classList.add('active');});document.querySelectorAll('.pricing-btn--monthly').forEach(function(el){el.style.display='block';});}else{document.querySelector('.toggle-annual').classList.add('active');document.querySelectorAll('.pricing-price-annual').forEach(function(el){el.classList.add('active');});document.querySelectorAll('.pricing-btn--annual').forEach(function(el){el.style.display='block';});}}
-
-// Checkout flow
-async function startCheckout(product,plan){var email=prompt('Enter your email for the subscription:');if(!email||!email.includes('@')){alert('Please enter a valid email address');return;}try{var response=await fetch('/.netlify/functions/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product,plan,email})});var data=await response.json();if(data.url){window.location.href=data.url;}else{alert('Checkout error: '+(data.error||'Unknown error'));}}catch(err){alert('Failed to start checkout. Please try again.');console.error(err);}}
-</script>
+<script defer src="js/shift-penguin.js"></script>
 </body>
 </html>

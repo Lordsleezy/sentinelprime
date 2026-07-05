@@ -118,13 +118,13 @@ alter table public.installs enable row level security;
 alter table public.trial_events enable row level security;
 alter table public.license_events enable row level security;
 
--- ─── Activation codes (products, care, SentinelAI licenses) ─────────────────
+-- ─── Activation codes for Sentinel Prime products ─────────────────
 
 create table if not exists public.activation_codes (
   id uuid primary key default uuid_generate_v4(),
   code text not null unique,
   email text,
-  product text not null default 'sentinelai',
+  product text not null default 'care',
   type text not null default 'monthly',
   status text not null default 'unused' check (status in ('unused', 'active', 'used', 'revoked', 'expired', 'cancelled')),
   device_id text,

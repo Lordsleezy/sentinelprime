@@ -3,11 +3,10 @@ const { sendActivationEmail, sendProductActivationEmail } = require("./utils/ema
 const { createServiceClient } = require("./utils/supabase");
 
 const PRODUCT_PLAN_MAP = {
-  shift: "lifetime",
-  shield: "annual",
+  linux: "lifetime",
+  guardian: "annual",
+  projects: "monthly",
   care: "monthly",
-  earn: "monthly",
-  sentinelai: "monthly"
 };
 
 exports.handler = async (event) => {
@@ -33,7 +32,7 @@ exports.handler = async (event) => {
 
   if (stripeEvent.type === "checkout.session.completed") {
     const product = object.metadata?.product;
-    if (!product || product === "sentinelai") {
+    if (!product) {
       return { statusCode: 200, body: JSON.stringify({ received: true, skipped: true }) };
     }
 

@@ -58,7 +58,7 @@ function showWebGPUFallback() {
 
 async function loadModel() {
   // Show loading message on first visit
-  const hasLoadedBefore = localStorage.getItem("sentinel-ai-loaded");
+  const hasLoadedBefore = localStorage.getItem("sentinelcare-loaded");
   
   if (!hasLoadedBefore) {
     showLoadingScreen();
@@ -77,7 +77,7 @@ async function loadModel() {
     });
     
     // Mark as loaded
-    localStorage.setItem("sentinel-ai-loaded", "true");
+    localStorage.setItem("sentinelcare-loaded", "true");
     hideLoadingScreen();
     
     modelStatus.textContent = "Online";
@@ -99,7 +99,7 @@ function showLoadingScreen() {
   overlay.innerHTML = `
     <div class="loading-content">
       <div class="loading-spinner"></div>
-      <h3>Loading Sentinel AI</h3>
+      <h3>Loading SentinelCare</h3>
       <p>This takes about 30 seconds the first time, then it's instant.</p>
       <div class="loading-progress">
         <div class="loading-bar"></div>

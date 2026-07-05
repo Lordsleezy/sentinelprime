@@ -6,9 +6,6 @@ require("dotenv").config();
 const account = require("./lib/account_store");
 const analytics = require("./lib/analytics_store");
 const billing = require("./lib/stripe_billing");
-const github = require("./lib/github_releases");
-const downloadHandler = require("./lib/download_handler");
-const { clientIp } = require("./lib/client_ip");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,10 +15,6 @@ const seoPages = [
   { route: "/", file: "index.html", loc: `${publicBaseUrl}/` },
   { route: "/products", file: "products.html", loc: `${publicBaseUrl}/products` },
   { route: "/care", file: "care.html", loc: `${publicBaseUrl}/care` },
-  { route: "/market", file: "market.html", loc: `${publicBaseUrl}/market` },
-  { route: "/sentinel-drive", file: "sentinel-drive.html", loc: `${publicBaseUrl}/sentinel-drive.html` },
-  { route: "/pricing", file: "pricing.html", loc: `${publicBaseUrl}/pricing.html` },
-  { route: "/download", file: "download.html", loc: `${publicBaseUrl}/download.html` },
   { route: "/about", file: "about.html", loc: `${publicBaseUrl}/about.html` },
   { route: "/contact", file: "contact.html", loc: `${publicBaseUrl}/contact.html` },
   { route: "/signup", file: "signup.html", loc: `${publicBaseUrl}/signup.html` },
@@ -52,13 +45,13 @@ function sendMail({ to, subject, html, text }) {
 async function sendActivationEmail(email, code, plan = "pro") {
   return sendMail({
     to: email,
-    subject: "Your SentinelAI License Key",
-    text: `Your SentinelAI license key is ${code}. Plan: ${plan}. Download SentinelAI and enter this key in setup.`,
+    subject: "Your Sentinel Prime License Key",
+    text: `Your Sentinel Prime license key is ${code}. Plan: ${plan}. Keep this key for your product setup.`,
     html: `<div style="font-family:Arial,sans-serif;background:#000005;color:#fff;padding:28px">
-      <h1>Your SentinelAI License</h1>
+      <h1>Your Sentinel Prime License</h1>
       <p style="font-size:22px;letter-spacing:2px"><strong>${code}</strong></p>
       <p>Plan: <strong>${plan}</strong></p>
-      <p>Download from <a href="${publicBaseUrl}/download.html" style="color:#0f8">sentinelprime.org/download</a> and activate in the setup wizard.</p>
+      <p>Visit <a href="${publicBaseUrl}/products" style="color:#0f8">sentinelprime.org/products</a> for product access and setup instructions.</p>
     </div>`,
   });
 }
@@ -81,6 +74,8 @@ seoPages.forEach(page => {
     app.get(page.route, (req, res) => res.sendFile(path.join(__dirname, page.file)));
   }
 });
+
+app.get("/projects", (req, res) => res.redirect(302, "https://projects.sentinelprime.org"));
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, account_backend: account.useSupabase() ? "supabase" : "sqlite" });
@@ -118,7 +113,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
       amount: cfg.fallbackAmount,
       currency: "usd",
       receipt_email: email || undefined,
-      metadata: { plan, email: email || "", product: "sentinelai-pro" },
+      metadata: { plan, email: email || "", product: "sentinelcare" },
       automatic_payment_methods: { enabled: true },
     });
     res.json({ clientSecret: intent.client_secret, plan });
@@ -243,26 +238,6 @@ app.post("/api/validate", async (req, res) => {
   });
 });
 
-app.get("/api/download/sentinelai", async (req, res) => {
-  try {
-    const target = await downloadHandler.handleDownloadRequest({
-      ip: clientIp(req),
-      userAgent: req.headers["user-agent"] || "",
-      referrer: req.headers.referer || req.headers.referrer || "",
-      version: req.query.version,
-      channel: req.query.channel || "windows",
-    });
-    res.redirect(302, target.downloadUrl);
-  } catch (e) {
-    console.error("download redirect", e);
-    res.redirect(
-      302,
-      process.env.DOWNLOAD_REDIRECT_URL ||
-        "https://github.com/Lordsleezy/SentinelAI/releases/latest/download/SentinelAISetup.exe"
-    );
-  }
-});
-
 app.post("/api/telemetry/install", async (req, res) => {
   const { install_id, version, os, arch, timestamp, trial_start } = req.body || {};
   if (!install_id) return res.status(400).json({ error: "install_id required" });
@@ -302,30 +277,6 @@ app.post("/api/contact", async (req, res) => {
     html: `<p><strong>${name}</strong> &lt;${email}&gt;</p><p>${String(message).replace(/\n/g, "<br>")}</p>`,
   });
   res.json({ ok: true });
-});
-
-app.get("/api/beta/release", async (req, res) => {
-  const gh = await github.fetchLatestRelease();
-  const fallback = {
-    version: process.env.BETA_VERSION || "1.0.0-beta.1",
-    channel: "beta",
-    releaseNotes: process.env.BETA_RELEASE_NOTES || "",
-    requirements: { os: "Windows 10/11 x64", ram_gb: 16, disk_gb: 20, gpu: "8GB VRAM recommended" },
-    downloadUrl: process.env.BETA_INSTALLER_URL || "https://github.com/Lordsleezy/SentinelAI/releases/latest",
-    installerName: "SentinelAISetup.exe",
-  };
-  if (gh.ok) {
-    return res.json({
-      ...fallback,
-      version: gh.version || fallback.version,
-      releaseNotes: gh.body || fallback.releaseNotes,
-      downloadUrl: gh.downloadUrl,
-      installerName: gh.installerName,
-      published_at: gh.published_at,
-      github: true,
-    });
-  }
-  res.json({ ...fallback, github: false, github_error: gh.error });
 });
 
 function requireAdmin(req, res, next) {

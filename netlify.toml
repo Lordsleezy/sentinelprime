@@ -81,12 +81,6 @@
   force = true
 
 [[redirects]]
-  from = "/api/download/sentinelai"
-  to = "/.netlify/functions/download-sentinelai"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/api/admin/analytics"
   to = "/.netlify/functions/admin-analytics"
   status = 200
@@ -119,18 +113,14 @@
   status = 200
 
 [[redirects]]
-  from = "/pricing"
-  to = "/pricing.html"
-  status = 200
+  from = "/projects"
+  to = "https://projects.sentinelprime.org"
+  status = 302
+  force = true
 
 [[redirects]]
   from = "/contact"
   to = "/contact.html"
-  status = 200
-
-[[redirects]]
-  from = "/market"
-  to = "/market.html"
   status = 200
 
 [[redirects]]

@@ -1,13 +1,11 @@
 const fallbackNavItems = [
   { label: "Home", href: "/index.html", key: "home" },
-  { label: "Sentinel AI", href: "/sentinel-ai", key: "sentinelai" },
-  { label: "Sentinel Drive", href: "/sentinel-drive", key: "sentinel-drive" },
-  { label: "Pricing", href: "/pricing.html", key: "pricing" },
-  { label: "Download", href: "/download", key: "download" },
+  { label: "Products", href: "/products", key: "products" },
+  { label: "Projects", href: "/projects", key: "projects" },
+  { label: "Care", href: "/care", key: "care" },
   { label: "About", href: "/about", key: "about" },
   { label: "Contact", href: "/contact", key: "contact" },
-  { label: "Login", href: "/login", key: "account" },
-  { label: "Start Free Trial", href: "/download", key: "trial", tryCta: true }
+  { label: "Login", href: "/login", key: "account" }
 ];
 
 const navItems = Array.isArray(window.NAV_ITEMS) ? window.NAV_ITEMS : fallbackNavItems;

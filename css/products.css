@@ -84,7 +84,7 @@
   text-transform: uppercase;
 }
 
-.product-badge--beta {
+.product-badge--status {
   border-color: rgba(255, 153, 68, 0.5);
   color: #ff9944;
 }
@@ -309,7 +309,7 @@
   90%, 100% { opacity: 0; transform: translateY(-4px); }
 }
 
-/* SentinelAI mockup */
+/* Product mockup */
 .mock-ai {
   display: flex;
   align-items: center;

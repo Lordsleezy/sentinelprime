@@ -29,14 +29,10 @@
   function initDownloadTracking() {
     // Map of download button selectors to products
     const downloadButtons = [
-      { selector: 'a[href*="/api/download/sentinelai"]', product: 'sentinelai' },
-      { selector: 'a[href*="sentinel-shield"]', product: 'shield' },
-      { selector: 'a[href*="shift-by-sentinel"]', product: 'shift' },
-      { selector: 'a[href*="sentinel-shield-setup"]', product: 'shield' },
-      { selector: 'a[href*="shift-setup"]', product: 'shift' },
-      { selector: 'a[href*="SentinelShield"]', product: 'shield' },
-      { selector: 'a[href*="Shift by Sentinel"]', product: 'shift' },
-      { selector: 'a[href*="sentinel-earn"]', product: 'earn' }
+      { selector: 'a[href*="SentinelShield"]', product: 'guardian' },
+      { selector: 'a[href*="Shift.by.Sentinel"]', product: 'linux' },
+      { selector: 'a[href*="projects.sentinelprime.org"]', product: 'projects' },
+      { selector: 'a[href*="/care"]', product: 'care' }
     ];
 
     downloadButtons.forEach(({ selector, product }) => {

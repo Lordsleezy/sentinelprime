@@ -15,8 +15,8 @@ exports.handler = async (event) => {
       return json(400, { error: "Invalid type" });
     }
 
-    const productValue = product || "sentinelai";
-    if (!["shield", "shift", "earn", "sentinelai", "care"].includes(productValue)) {
+    const productValue = product || "care";
+    if (!["linux", "guardian", "projects", "care"].includes(productValue)) {
       return json(400, { error: "Invalid product" });
     }
 
@@ -37,7 +37,7 @@ exports.handler = async (event) => {
       notes: notes || null
     });
 
-    if (productValue === "sentinelai") {
+    if (productValue === "care") {
       await sendActivationEmail({ to: email, code: code.code, plan: type, expiresAt });
     } else {
       await sendProductActivationEmail({ to: email, code: code.code, product: productValue });
