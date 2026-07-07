@@ -22,11 +22,11 @@ We're building a knowledge base for everyday PC users who want clear answers wit
 
 ## Why Sentinel Prime
 
-Sentinel Prime builds privacy-first tools: [SentinelCare](/care) for practical support, [Sentinel Prospects](https://prospects.sentinelprime.org) for construction opportunity intelligence, [Sentinel Guardian](/guardian) for security, and [Sentinel Linux](/products#linux) for cleaner computing.
+Sentinel Prime builds privacy-first tools: [Care](/care) for practical support, [Prospects](https://prospects.sentinelprime.org) for construction opportunity intelligence, [Guardian](/guardian) for security, and [Shift](/products#shift) for cleaner computing.
 
 ## Check back soon
 
-We're publishing new guides every week. Bookmark this page or explore [SentinelCare](/care) if you need hands-on help today.`,
+We're publishing new guides every week. Bookmark this page or explore [Care](/care) if you need hands-on help today.`,
   },
   '5-free-ways-protect-your-pc-2026': {
     id: 'fallback-security',
@@ -58,11 +58,11 @@ Phishing beats malware most days. When in doubt, type the site address yourself.
 
 ## 5. Run Sentinel Shield for local scanning
 
-[Sentinel Guardian](/guardian) adds on-device scanning and quarantine without sending your files to the cloud.
+[Guardian](/guardian) adds on-device scanning and quarantine without sending your files to the cloud.
 
 ## Need help?
 
-If something feels off on your machine, [SentinelCare](/care) connects you with a real technician — not a script.`,
+If something feels off on your machine, [Care](/care) connects you with a real technician — not a script.`,
   },
 };
 

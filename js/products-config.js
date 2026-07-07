@@ -17,21 +17,21 @@ export const PRODUCT_TIERS = {
 
 export const PRODUCTS = [
   {
-    slug: "sentinel-linux",
-    name: "Sentinel Linux",
+    slug: "shift",
+    name: "Shift",
     tagline: "A cleaner path to privacy-first computing.",
     status: "available",
     statusLabel: "Available",
     tier: "hero",
     color: CSS_COLORS.cyan,
     cellAxis: "+X",
-    pageUrl: "/products#linux",
+    pageUrl: "/products#shift",
     features: ["Linux migration tools", "Rollback planning", "Privacy-first setup"],
-    cta: { href: "/products#linux", label: "Explore Sentinel Linux", variant: "fill" }
+    cta: { href: "/products#shift", label: "Explore Shift", variant: "fill" }
   },
   {
-    slug: "sentinel-guardian",
-    name: "Sentinel Guardian",
+    slug: "guardian",
+    name: "Guardian",
     tagline: "Security tooling for real-world defense.",
     status: "available",
     statusLabel: "Available",
@@ -43,8 +43,8 @@ export const PRODUCTS = [
     cta: { href: "/guardian", label: "Explore Guardian", variant: "fill" }
   },
   {
-    slug: "sentinel-prospects",
-    name: "Sentinel Prospects",
+    slug: "prospects",
+    name: "Prospects",
     tagline: "Construction Opportunity Intelligence.",
     status: "available",
     statusLabel: "Available",
@@ -53,11 +53,11 @@ export const PRODUCTS = [
     cellAxis: "+Z",
     pageUrl: "https://prospects.sentinelprime.org",
     features: ["Fast Money Opportunities", "Pipeline Opportunities", "Early Signals", "Evidence-Based Recommendations", "Contractor Intelligence"],
-    cta: { href: "https://prospects.sentinelprime.org", label: "Launch Sentinel Prospects", variant: "fill", external: true }
+    cta: { href: "https://prospects.sentinelprime.org", label: "Launch Prospects", variant: "fill", external: true }
   },
   {
-    slug: "sentinelcare",
-    name: "SentinelCare",
+    slug: "care",
+    name: "Care",
     tagline: "Personal IT support without the runaround.",
     status: "available",
     statusLabel: "Available",
@@ -66,7 +66,7 @@ export const PRODUCTS = [
     cellAxis: "-X",
     pageUrl: "/care",
     features: ["Guided support", "Technician escalation", "Computer, printer, Wi-Fi, and software help"],
-    cta: { href: "/care", label: "Open SentinelCare", variant: "fill" }
+    cta: { href: "/care", label: "Open Care", variant: "fill" }
   }
 ];
 

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Contact Sentinel Prime &mdash; Privacy-First Tech Support</title>
-<meta name="description" content="Contact Sentinel Prime for privacy-first tech support, product questions, partnerships, press, bug reports, and help choosing the right tool today online.">
+<title>Contact Sentinel Prime</title>
+<meta name="description" content="Contact Sentinel Prime for questions, partnerships, support, product help, or business inquiries.">
 <link rel="canonical" href="https://sentinelprime.org/contact">
-<meta property="og:title" content="Contact Sentinel Prime &mdash; Privacy-First Tech Support">
-<meta property="og:description" content="Contact Sentinel Prime for privacy-first tech support, product questions, partnerships, press, bug reports, and help choosing the right tool today online.">
+<meta property="og:title" content="Contact Sentinel Prime">
+<meta property="og:description" content="Questions, partnerships, support, or business inquiries.">
 <meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
 <meta property="og:url" content="https://sentinelprime.org/contact">
 <meta property="og:type" content="website">
@@ -18,7 +18,6 @@
 <link rel="stylesheet" href="css/galaxy-shell.css">
 <link rel="stylesheet" href="css/legal.css">
 <link rel="stylesheet" href="css/contact.css">
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body class="has-galaxy-canvas" data-page="contact">
 <canvas id="galaxy-canvas" aria-hidden="true"></canvas>
@@ -29,24 +28,33 @@
   <div class="wrap contact-grid">
     <article class="legal-card contact-card">
       <p class="eyebrow">Contact</p>
-      <h1>Contact Sentinel Prime Privacy-First Tech Support</h1>
-      <p class="contact-lead">Questions about products, billing, or your account? Our team typically responds within 24&ndash;48 hours.</p>
-      <div class="contact-email-block">
-        <p class="contact-label">Customer service</p>
-        <a class="contact-email" href="mailto:customerservice@sentinelprime.org">customerservice@sentinelprime.org</a>
+      <h1>Contact Sentinel Prime</h1>
+      <p class="contact-lead">Questions, partnerships, support, or business inquiries.</p>
+      <div class="contact-sections" aria-label="Contact options">
+        <section class="contact-section">
+          <h2>General Contact</h2>
+          <p>Product questions, account help, press, and anything that does not fit neatly elsewhere.</p>
+          <a href="mailto:customerservice@sentinelprime.org">Email Sentinel Prime</a>
+        </section>
+        <section class="contact-section">
+          <h2>Business Inquiries</h2>
+          <p>Partnerships, commercial deployments, contractor intelligence, and organization-level questions.</p>
+          <a href="mailto:customerservice@sentinelprime.org?subject=Business%20Inquiry">Start a business inquiry</a>
+        </section>
+        <section class="contact-section">
+          <h2>Product Support</h2>
+          <p>Help with Shift, Guardian, Prospects, Care, billing, activation codes, or account access.</p>
+          <a href="mailto:customerservice@sentinelprime.org?subject=Product%20Support">Request support</a>
+        </section>
       </div>
-      <form id="contactForm" class="contact-form">
+      <form id="contactForm" class="contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="contact">
+        <input type="hidden" name="subject" value="General Contact">
+        <p class="hidden-field">
+          <label>Do not fill this out if you are human: <input name="bot-field"></label>
+        </p>
         <input required name="name" placeholder="Name" autocomplete="name">
         <input required type="email" name="email" placeholder="Email" autocomplete="email">
-        <select required name="subject">
-          <option value="">Subject</option>
-          <option>General</option>
-          <option>Support</option>
-          <option>Billing</option>
-          <option>Business / Partnership</option>
-          <option>Press</option>
-          <option>Bug Report</option>
-        </select>
         <textarea required name="message" placeholder="Message" rows="6"></textarea>
         <button class="contact-btn" type="submit">Send Message</button>
         <div class="form-status" id="contactStatus"></div>
@@ -58,10 +66,10 @@
 <footer>
   <div class="footer-links">
     <a href="/">Home</a>
-    <a href="/products#linux">Linux</a>
+    <a href="/products#shift">Shift</a>
     <a href="/guardian">Guardian</a>
     <a href="https://prospects.sentinelprime.org">Prospects</a>
-    <a href="/care">SentinelCare</a>
+    <a href="/care">Care</a>
     <a href="/privacy">Privacy</a>
     <a href="/terms">Terms</a>
     <a href="/contact">Contact</a>
@@ -70,31 +78,36 @@
 </footer>
 
 <script>
-document.getElementById("contactForm").addEventListener("submit", async function (event) {
+document.getElementById("contactForm").addEventListener("submit", function (event) {
   event.preventDefault();
+  var form = event.currentTarget;
   var status = document.getElementById("contactStatus");
   status.className = "form-status";
   status.textContent = "Sending...";
-  var payload = Object.fromEntries(new FormData(event.currentTarget));
-  if (!payload.name || !payload.email || !payload.subject || !payload.message) {
+  var payload = Object.fromEntries(new FormData(form));
+  if (!payload.name || !payload.email || !payload.message) {
     status.classList.add("error");
     status.textContent = "Please fill out every field.";
     return;
   }
-  try {
-    var response = await fetch("/api/contact", {
+  fetch("/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error("Contact endpoint unavailable");
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(new FormData(form)).toString()
+    })
+    .then(function (response) {
+      if (!response.ok) throw new Error("Netlify Forms submission failed");
+      return response;
+    })
+    .then(function () {
     status.classList.add("success");
     status.textContent = "Message sent. We'll respond within 24-48 hours.";
-    event.currentTarget.reset();
-  } catch (error) {
+      form.reset();
+    })
+    .catch(function () {
     status.classList.add("error");
     status.textContent = "Unable to send right now. Email customerservice@sentinelprime.org directly.";
-  }
+    });
 });
 </script>
 <script defer src="js/global-nav.js"></script>

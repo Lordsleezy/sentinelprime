@@ -1,6 +1,6 @@
-# Sentinel Care
+# Care
 
-Sentinel Care is a static Netlify app for Sentinel Prime's tech support subscription service at `sentinelprime.org/care`.
+Care is a static Netlify app for Sentinel Prime's tech support subscription service at `sentinelprime.org/care`.
 
 ## Features
 
@@ -59,7 +59,7 @@ STRIPE_BASIC_PRICE_ID=
 STRIPE_PLUS_PRICE_ID=
 RESEND_API_KEY=
 SUPPORT_NOTIFICATION_EMAIL=paul@sentinelprime.org
-FROM_EMAIL=Sentinel Care <support@sentinelprime.org>
+FROM_EMAIL=Care <support@sentinelprime.org>
 # ANTHROPIC_API_KEY=sk-ant-...  # Optional: for server-side AI fallback
 ```
 
@@ -99,7 +99,7 @@ The included `netlify.toml` already defines the build settings.
 
 ## AI Chat
 
-Sentinel Care uses **WebLLM** (`@mlc-ai/web-llm`) to run the **Llama-3.2-3B-Instruct** model directly in the browser via WebGPU.
+Care uses **WebLLM** (`@mlc-ai/web-llm`) to run the **Llama-3.2-3B-Instruct** model directly in the browser via WebGPU.
 
 ### Features
 
@@ -134,6 +134,6 @@ entertainment, news, weather, jokes, general questions, advice. Be warm, engagin
 and conversational. However, if the user asks for technical support help with 
 computers, software, phones, networks, printers, or devices, you must NOT provide 
 technical help. Instead respond exactly with: "I'd love to help with that! That's 
-what Sentinel Care subscribers get - real step by step tech support. Plans start 
+what Care subscribers get - real step by step tech support. Plans start
 at $19.99/month."
 ```

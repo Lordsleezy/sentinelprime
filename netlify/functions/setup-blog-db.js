@@ -22,7 +22,7 @@ We're building a knowledge base for everyday PC users who want clear answers wit
 
 ## Why Sentinel Prime
 
-Sentinel Prime builds privacy-first tools: [SentinelCare](/care) for practical support, [Sentinel Prospects](https://prospects.sentinelprime.org) for construction opportunity intelligence, [Sentinel Guardian](/guardian) for security, and [Sentinel Linux](/products#linux) for cleaner computing.`,
+Sentinel Prime builds privacy-first tools: [Care](/care) for practical support, [Prospects](https://prospects.sentinelprime.org) for construction opportunity intelligence, [Guardian](/guardian) for security, and [Shift](/products#shift) for cleaner computing.`,
     published: true,
   },
   {
@@ -45,7 +45,7 @@ Good security is mostly about habits, not expensive software.
 
 ## 5. Run Sentinel Shield for local scanning
 
-[Sentinel Care](/care) connects you with a real technician when you need help.`,
+[Care](/care) connects you with a real technician when you need help.`,
     published: true,
   },
 ];

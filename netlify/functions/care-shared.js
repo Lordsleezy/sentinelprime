@@ -69,9 +69,9 @@ async function sendSupportEmail(ticket, customer) {
   if (!process.env.RESEND_API_KEY) return;
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: process.env.FROM_EMAIL || 'Sentinel Care <support@sentinelprime.org>',
+    from: process.env.FROM_EMAIL || 'Care <support@sentinelprime.org>',
     to: process.env.SUPPORT_NOTIFICATION_EMAIL || 'paul@sentinelprime.org',
-    subject: `Sentinel Care support request: ${ticket.issue_summary}`,
+    subject: `Care support request: ${ticket.issue_summary}`,
     text: `Customer: ${customer.name || customer.email}\nEmail: ${customer.email}\nType: ${ticket.type}\nSummary: ${ticket.issue_summary}\nDetails: ${ticket.details || ''}\nCreated: ${ticket.created_at}`
   });
 }

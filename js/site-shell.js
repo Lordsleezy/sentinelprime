@@ -27,7 +27,6 @@
 
   function loadGalaxy() {
     if (window.__sentinelGalaxyInit) return;
-    if (window.matchMedia("(max-width: 820px), (prefers-reduced-motion: reduce)").matches) return;
 
     function appendScript(src, onload) {
       var script = document.createElement("script");
@@ -37,13 +36,7 @@
       document.body.appendChild(script);
     }
 
-    if (!window.THREE) {
-      appendScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", function () {
-        appendScript("/js/galaxy-background.js");
-      });
-    } else {
-      appendScript("/js/galaxy-background.js");
-    }
+    appendScript("/js/galaxy-background.js");
   }
 
   if (!document.querySelector('link[href*="galaxy-shell"]')) {

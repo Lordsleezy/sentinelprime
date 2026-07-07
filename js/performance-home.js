@@ -44,14 +44,12 @@
   }
 
   function loadGalaxyAfterIdle() {
-    if (reduceMotion || isMobile || document.hidden) return;
+    if (document.hidden || window.__sentinelGalaxyInit) return;
     var canvas = document.getElementById("galaxy-canvas");
     if (!canvas) return;
 
     onIdle(function () {
-      loadScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", function () {
-        loadScript("js/galaxy-background.js");
-      });
+      if (!window.__sentinelGalaxyInit) loadScript("js/galaxy-background.js");
     });
   }
 

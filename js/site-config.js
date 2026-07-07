@@ -8,17 +8,18 @@ window.API_BASES = {
 window.SENTINELWEB_API_BASE = window.API_BASES.sentinelweb;
 
 window.NAV_ITEMS = [
-  { label: "Linux", href: "/products#linux", key: "linux" },
+  { label: "Shift", href: "/products#shift", key: "shift" },
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
-  { label: "SentinelCare", href: "/care", key: "care" }
+  { label: "Care", href: "/care", key: "care" },
+  { label: "Contact", href: "/contact", key: "contact" }
 ];
 
 window.PRODUCT_ITEMS = [
-  { label: "Sentinel Linux", href: "/products#linux", key: "sentinel-linux", status: "Available" },
-  { label: "Sentinel Guardian", href: "/guardian", key: "sentinel-guardian", status: "Available" },
-  { label: "Sentinel Prospects", href: "https://prospects.sentinelprime.org", key: "sentinel-prospects", status: "Available" },
-  { label: "SentinelCare", href: "/care", key: "sentinelcare", status: "Available" }
+  { label: "Shift", href: "/products#shift", key: "shift", status: "Available" },
+  { label: "Guardian", href: "/guardian", key: "guardian", status: "Available" },
+  { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects", status: "Available" },
+  { label: "Care", href: "/care", key: "care", status: "Available" }
 ];
 
 window.THEME_TOKENS = {

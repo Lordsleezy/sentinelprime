@@ -2,10 +2,11 @@
   "use strict";
 
   var LINKS = [
-    { href: "/products#linux", label: "Linux", key: "linux" },
+    { href: "/products#shift", label: "Shift", key: "shift" },
     { href: "/guardian", label: "Guardian", key: "guardian" },
     { href: "https://prospects.sentinelprime.org", label: "Prospects", key: "prospects" },
-    { href: "/care", label: "SentinelCare", key: "care" }
+    { href: "/care", label: "Care", key: "care" },
+    { href: "/contact", label: "Contact", key: "contact" }
   ];
 
   var activeKey = document.body.dataset.page || "";

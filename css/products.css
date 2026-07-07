@@ -11,6 +11,7 @@
 }
 
 .product-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(20, 184, 166, 0.2);
@@ -19,6 +20,11 @@
   backdrop-filter: blur(18px);
   overflow: hidden;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.legacy-anchor {
+  position: absolute;
+  top: -130px;
 }
 
 .product-card:hover {

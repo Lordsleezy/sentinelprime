@@ -1,8 +1,9 @@
 const fallbackNavItems = [
-  { label: "Linux", href: "/products#linux", key: "linux" },
+  { label: "Shift", href: "/products#shift", key: "shift" },
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
-  { label: "SentinelCare", href: "/care", key: "care" }
+  { label: "Care", href: "/care", key: "care" },
+  { label: "Contact", href: "/contact", key: "contact" }
 ];
 
 const navItems = Array.isArray(window.NAV_ITEMS) ? window.NAV_ITEMS : fallbackNavItems;
