@@ -58,7 +58,7 @@ We're building a knowledge base for everyday PC users who want clear answers wit
 
 ## Why Sentinel Prime
 
-Sentinel Prime builds privacy-first tools: [SentinelCare](/care) for practical support, [Sentinel Projects](https://projects.sentinelprime.org) for construction opportunity intelligence, [Sentinel Guardian](/guardian) for security, and [Sentinel Linux](/products#linux) for cleaner computing.
+Sentinel Prime builds privacy-first tools: [SentinelCare](/care) for practical support, [Sentinel Prospects](https://prospects.sentinelprime.org) for construction opportunity intelligence, [Sentinel Guardian](/guardian) for security, and [Sentinel Linux](/products#linux) for cleaner computing.
 
 ## Check back soon
 

@@ -113,8 +113,8 @@
   status = 200
 
 [[redirects]]
-  from = "/projects"
-  to = "https://projects.sentinelprime.org"
+  from = "/prospects"
+  to = "https://prospects.sentinelprime.org"
   status = 302
   force = true
 

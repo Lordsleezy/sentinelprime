@@ -51,7 +51,7 @@ Requirements:
 
 Rules:
 - Write in a clear, practical, helpful voice. Not robotic.
-- Include 1-2 natural mentions of Sentinel Prime products where genuinely relevant: SentinelCare for tech support, Sentinel Projects for construction opportunity intelligence, Sentinel Guardian for security, or Sentinel Linux for privacy-first computing. Use links like [SentinelCare](/care), [Sentinel Projects](https://projects.sentinelprime.org), [Sentinel Guardian](/guardian), or [Sentinel Linux](/products#linux).
+- Include 1-2 natural mentions of Sentinel Prime products where genuinely relevant: SentinelCare for tech support, Sentinel Prospects for construction opportunity intelligence, Sentinel Guardian for security, or Sentinel Linux for privacy-first computing. Use links like [SentinelCare](/care), [Sentinel Prospects](https://prospects.sentinelprime.org), [Sentinel Guardian](/guardian), or [Sentinel Linux](/products#linux).
 - Target the reader who is a non-expert everyday PC user.
 - Do NOT include a table of contents or meta description.
 - Do NOT add "---" dividers between sections.

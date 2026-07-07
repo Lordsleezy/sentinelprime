@@ -7,7 +7,7 @@ function emailConfigured() {
 const PRODUCT_LABELS = {
   linux: "Sentinel Linux",
   guardian: "Sentinel Guardian",
-  projects: "Sentinel Projects",
+  projects: "Sentinel Prospects",
   care: "SentinelCare"
 };
 
@@ -18,7 +18,7 @@ function activationEmail(code, plan, expiresAt, product = "care") {
   const downloadHint = product === "care"
     ? "<p>Visit sentinelprime.org/care to activate your subscription.</p>"
     : product === "projects"
-      ? "<p>Visit projects.sentinelprime.org to launch Sentinel Projects.</p>"
+      ? "<p>Visit prospects.sentinelprime.org to launch Sentinel Prospects.</p>"
       : "<p>Visit sentinelprime.org/products and enter this code when prompted.</p>";
   return `<div style="background:#000005;color:#fff;font-family:monospace;padding:40px;max-width:640px;margin:auto"><h1 style="color:#14b8a6">SENTINEL PRIME</h1><h2>Your ${productLabel} Activation Code</h2><p>Thank you for choosing ${productLabel} — ${planLabel}.</p><div style="border:1px solid #14b8a6;padding:24px;text-align:center;margin:24px 0"><strong style="font-size:26px;letter-spacing:3px;color:#14b8a6">${code}</strong></div>${expiry}${downloadHint}<p style="color:#9aa3ad">Need help? customerservice@sentinelprime.org</p></div>`;
 }
@@ -69,7 +69,7 @@ async function sendProductActivationEmail({ to, code, product, productName }) {
   const productNames = {
     guardian: "Sentinel Guardian",
     linux: "Sentinel Linux",
-    projects: "Sentinel Projects",
+    projects: "Sentinel Prospects",
     care: "SentinelCare"
   };
   const name = productName || productNames[product] || product;

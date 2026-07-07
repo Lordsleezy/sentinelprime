@@ -43,17 +43,17 @@ export const PRODUCTS = [
     cta: { href: "/guardian", label: "Explore Guardian", variant: "fill" }
   },
   {
-    slug: "sentinel-projects",
-    name: "Sentinel Projects",
+    slug: "sentinel-prospects",
+    name: "Sentinel Prospects",
     tagline: "Construction Opportunity Intelligence.",
     status: "available",
     statusLabel: "Available",
     tier: "secondary",
     color: CSS_COLORS.cyanDim,
     cellAxis: "+Z",
-    pageUrl: "https://projects.sentinelprime.org",
-    features: ["Permits", "Planning records", "Bids and development signals"],
-    cta: { href: "https://projects.sentinelprime.org", label: "Launch Sentinel Projects", variant: "fill", external: true }
+    pageUrl: "https://prospects.sentinelprime.org",
+    features: ["Fast Money Opportunities", "Pipeline Opportunities", "Early Signals", "Evidence-Based Recommendations", "Contractor Intelligence"],
+    cta: { href: "https://prospects.sentinelprime.org", label: "Launch Sentinel Prospects", variant: "fill", external: true }
   },
   {
     slug: "sentinelcare",

@@ -75,7 +75,7 @@ seoPages.forEach(page => {
   }
 });
 
-app.get("/projects", (req, res) => res.redirect(302, "https://projects.sentinelprime.org"));
+app.get("/prospects", (req, res) => res.redirect(302, "https://prospects.sentinelprime.org"));
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, account_backend: account.useSupabase() ? "supabase" : "sqlite" });

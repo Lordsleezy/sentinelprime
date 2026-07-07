@@ -31,7 +31,7 @@
     const downloadButtons = [
       { selector: 'a[href*="SentinelShield"]', product: 'guardian' },
       { selector: 'a[href*="Shift.by.Sentinel"]', product: 'linux' },
-      { selector: 'a[href*="projects.sentinelprime.org"]', product: 'projects' },
+      { selector: 'a[href*="prospects.sentinelprime.org"]', product: 'prospects' },
       { selector: 'a[href*="/care"]', product: 'care' }
     ];
 
