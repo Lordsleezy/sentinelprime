@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Sentinel Prime &mdash; Privacy-First Tech Tools for Everyone</title>
-<meta name="description" content="Sentinel Prime products help people use privacy-first tools for private computing, security, construction opportunity intelligence, and practical tech support.">
+<title>Sentinel Prime &mdash; AI-Powered Tools for Work</title>
+<meta name="description" content="Sentinel Prime builds practical software for construction intelligence, finance, security, support, and better everyday work.">
 <link rel="canonical" href="https://sentinelprime.org/">
-<meta property="og:title" content="Sentinel Prime &mdash; Privacy-First Tech Tools for Everyone">
-<meta property="og:description" content="Sentinel Prime products help people use privacy-first tools for private computing, security, construction opportunity intelligence, and practical tech support.">
+<meta property="og:title" content="Sentinel Prime &mdash; AI-Powered Tools for Work">
+<meta property="og:description" content="Sentinel Prime builds practical software for construction intelligence, finance, security, support, and better everyday work.">
 <meta property="og:image" content="https://sentinelprime.org/assets/logo-tesseract.svg">
 <meta property="og:url" content="https://sentinelprime.org/">
 <meta property="og:type" content="website">
@@ -642,15 +642,46 @@ body {
   display: grid;
   place-items: center;
   text-align: center;
+  position: relative;
+  overflow: hidden;
   padding-top: 122px;
   padding-bottom: clamp(78px, 10vw, 128px);
 }
 
+.prime-hero::before,
+.prime-hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.prime-hero::before {
+  width: min(760px, 86vw);
+  height: min(760px, 86vw);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 220, 200, 0.24), rgba(0, 220, 200, 0.08) 36%, transparent 68%),
+    conic-gradient(from 135deg, rgba(0, 220, 200, 0), rgba(0, 220, 200, 0.22), rgba(130, 108, 255, 0.16), rgba(0, 220, 200, 0));
+  filter: blur(22px);
+  opacity: 0.78;
+  animation: primeHeroGlow 12s ease-in-out infinite;
+}
+
+.prime-hero::after {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent) 50% 40% / min(720px, 78vw) 1px no-repeat,
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.1), transparent 12%);
+  opacity: 0.7;
+}
+
 .prime-hero-inner {
-  width: min(980px, 100%);
+  width: min(1060px, 100%);
   display: grid;
   justify-items: center;
-  gap: 28px;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
   filter: drop-shadow(0 20px 68px rgba(0, 0, 5, 0.42));
 }
 
@@ -695,6 +726,11 @@ body {
   to { rotate: 360deg; }
 }
 
+@keyframes primeHeroGlow {
+  0%, 100% { transform: translate3d(-6%, -3%, 0) scale(0.96); opacity: 0.58; }
+  50% { transform: translate3d(5%, 4%, 0) scale(1.04); opacity: 0.86; }
+}
+
 .prime-label {
   margin-bottom: 18px;
   color: var(--prime-cyan);
@@ -718,9 +754,13 @@ body {
 }
 
 .prime-main h1 {
-  font-size: clamp(46px, 8.5vw, 108px);
-  line-height: 0.96;
-  text-shadow: 0 0 34px rgba(0, 220, 200, 0.16), 0 12px 64px rgba(0, 0, 5, 0.72);
+  max-width: 980px;
+  font-size: clamp(56px, 9vw, 124px);
+  line-height: 0.92;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-wrap: balance;
+  text-shadow: 0 0 42px rgba(0, 220, 200, 0.2), 0 18px 70px rgba(0, 0, 5, 0.76);
 }
 
 .prime-main h2 {
@@ -741,9 +781,28 @@ body {
 }
 
 .prime-lead {
+  max-width: 860px;
+  font-size: clamp(20px, 2.7vw, 32px);
+  line-height: 1.22;
+  font-weight: 500;
+  color: rgba(245, 255, 255, 0.9);
+  text-wrap: balance;
+}
+
+.prime-hero-copy {
   max-width: 760px;
-  font-size: clamp(16px, 2vw, 20px);
-  color: rgba(240, 255, 255, 0.78);
+  color: rgba(226, 242, 242, 0.68);
+  font-size: clamp(15px, 1.45vw, 18px);
+  line-height: 1.72;
+}
+
+.prime-trust {
+  color: rgba(0, 220, 200, 0.78);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  line-height: 1.8;
+  text-transform: uppercase;
 }
 
 .prime-actions {
@@ -1025,6 +1084,32 @@ body {
 
   .prime-btn {
     width: min(100%, 320px);
+  }
+
+  .prime-hero {
+    min-height: 82vh;
+    padding-top: 112px;
+    text-align: left;
+    place-items: center start;
+  }
+
+  .prime-hero-inner {
+    justify-items: start;
+    gap: 20px;
+  }
+
+  .prime-main h1 {
+    font-size: clamp(48px, 16vw, 72px);
+  }
+
+  .prime-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .prime-trust {
+    max-width: 360px;
+    letter-spacing: 1.8px;
   }
 
   .prime-download {
@@ -1441,7 +1526,7 @@ body {
   <div class="intro-galaxy" id="introGalaxy"></div>
   <div class="intro-title" id="introTitle">
     <div class="intro-heading">SENTINEL PRIME</div>
-    <p>Privacy-first tools for real work</p>
+    <p>Software for real work</p>
   </div>
 </div>
 
@@ -1461,12 +1546,14 @@ body {
 <main id="site" class="prime-main">
   <section class="prime-section prime-hero" id="top">
     <div class="prime-hero-inner">
-      <h1>Privacy-First Tech Tools for Everyone</h1>
-      <p class="prime-lead">Sentinel Prime builds privacy-first tools for people who just want their technology to work.</p>
+      <h1>Build Smarter. Move Faster.</h1>
+      <p class="prime-lead">AI-powered tools for contractors, businesses, and everyday users.</p>
+      <p class="prime-hero-copy">Sentinel Prime develops practical software that helps people discover opportunities, manage finances, secure systems, and work more effectively.</p>
       <div class="prime-actions">
         <a class="prime-btn prime-btn--primary" href="/products">Explore Products</a>
         <a class="prime-btn prime-btn--secondary" href="https://prospects.sentinelprime.org">Launch Prospects</a>
       </div>
+      <p class="prime-trust">Construction Intelligence &bull; Finance &bull; Security &bull; Technology</p>
     </div>
   </section>
 
