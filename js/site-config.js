@@ -11,6 +11,7 @@ window.NAV_ITEMS = [
   { label: "Shift", href: "/products#shift", key: "shift" },
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
+  { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance" },
   { label: "Care", href: "/care", key: "care" },
   { label: "Contact", href: "/contact", key: "contact" }
 ];
@@ -19,6 +20,7 @@ window.PRODUCT_ITEMS = [
   { label: "Shift", href: "/products#shift", key: "shift", status: "Available" },
   { label: "Guardian", href: "/guardian", key: "guardian", status: "Available" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects", status: "Available" },
+  { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance", status: "Available" },
   { label: "Care", href: "/care", key: "care", status: "Available" }
 ];
 

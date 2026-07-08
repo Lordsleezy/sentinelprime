@@ -5,6 +5,7 @@
     { href: "/products#shift", label: "Shift", key: "shift" },
     { href: "/guardian", label: "Guardian", key: "guardian" },
     { href: "https://prospects.sentinelprime.org", label: "Prospects", key: "prospects" },
+    { href: "https://finance.sentinelprime.org", label: "Finance", key: "finance" },
     { href: "/care", label: "Care", key: "care" },
     { href: "/contact", label: "Contact", key: "contact" }
   ];

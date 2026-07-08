@@ -2,6 +2,7 @@ const fallbackNavItems = [
   { label: "Shift", href: "/products#shift", key: "shift" },
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
+  { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance" },
   { label: "Care", href: "/care", key: "care" },
   { label: "Contact", href: "/contact", key: "contact" }
 ];
@@ -79,6 +80,7 @@ function renderHeaderFooter() {
         <nav class="il-footer__links" aria-label="Footer">
           <a href="/story.html">Our Story</a>
           <a href="/privacy">Privacy Policy</a>
+          <a href="https://finance.sentinelprime.org">Sentinel Finance</a>
           <a href="/sentinelweb.html">SentinelWeb</a>
           <a href="/contact.html">Contact</a>
         </nav>
