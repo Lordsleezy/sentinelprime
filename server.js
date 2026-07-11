@@ -14,7 +14,7 @@ const publicBaseUrl = process.env.PUBLIC_BASE_URL || "https://sentinelprime.org"
 const seoPages = [
   { route: "/", file: "index.html", loc: `${publicBaseUrl}/` },
   { route: "/products", file: "products.html", loc: `${publicBaseUrl}/products` },
-  { route: "/care", file: "care.html", loc: `${publicBaseUrl}/care` },
+  { route: "/marketing", file: "marketing.html", loc: `${publicBaseUrl}/marketing` },
   { route: "/about", file: "about.html", loc: `${publicBaseUrl}/about.html` },
   { route: "/contact", file: "contact.html", loc: `${publicBaseUrl}/contact.html` },
   { route: "/signup", file: "signup.html", loc: `${publicBaseUrl}/signup.html` },
@@ -113,7 +113,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
       amount: cfg.fallbackAmount,
       currency: "usd",
       receipt_email: email || undefined,
-      metadata: { plan, email: email || "", product: "sentinelcare" },
+      metadata: { plan, email: email || "", product: "sentinelprime" },
       automatic_payment_methods: { enabled: true },
     });
     res.json({ clientSecret: intent.client_secret, plan });

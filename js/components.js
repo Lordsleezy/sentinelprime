@@ -3,7 +3,7 @@ const fallbackNavItems = [
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
   { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance" },
-  { label: "Care", href: "/care", key: "care" },
+  { label: "Marketing", href: "/marketing", key: "marketing" },
   { label: "Contact", href: "/contact", key: "contact" }
 ];
 

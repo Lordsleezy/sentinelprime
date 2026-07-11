@@ -12,7 +12,7 @@ window.NAV_ITEMS = [
   { label: "Guardian", href: "/guardian", key: "guardian" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects" },
   { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance" },
-  { label: "Care", href: "/care", key: "care" },
+  { label: "Marketing", href: "/marketing", key: "marketing" },
   { label: "Contact", href: "/contact", key: "contact" }
 ];
 
@@ -21,7 +21,7 @@ window.PRODUCT_ITEMS = [
   { label: "Guardian", href: "/guardian", key: "guardian", status: "Available" },
   { label: "Prospects", href: "https://prospects.sentinelprime.org", key: "prospects", status: "Available" },
   { label: "Finance", href: "https://finance.sentinelprime.org", key: "finance", status: "Available" },
-  { label: "Care", href: "/care", key: "care", status: "Available" }
+  { label: "Digital Marketing & Advertising", href: "/marketing", key: "marketing", status: "Available" }
 ];
 
 window.THEME_TOKENS = {

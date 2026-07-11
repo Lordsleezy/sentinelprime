@@ -56,17 +56,17 @@ export const PRODUCTS = [
     cta: { href: "https://prospects.sentinelprime.org", label: "Launch Prospects", variant: "fill", external: true }
   },
   {
-    slug: "care",
-    name: "Care",
-    tagline: "Personal IT support without the runaround.",
+    slug: "marketing",
+    name: "Digital Marketing",
+    tagline: "Turn attention into qualified opportunity.",
     status: "available",
     statusLabel: "Available",
     tier: "secondary",
     color: CSS_COLORS.cyan,
     cellAxis: "-X",
-    pageUrl: "/care",
-    features: ["Guided support", "Technician escalation", "Computer, printer, Wi-Fi, and software help"],
-    cta: { href: "/care", label: "Open Care", variant: "fill" }
+    pageUrl: "/marketing",
+    features: ["Lead generation", "Local SEO", "Google and Meta ads", "CRM lead routing"],
+    cta: { href: "/marketing", label: "Explore Marketing", variant: "fill" }
   }
 ];
 

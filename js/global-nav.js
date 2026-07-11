@@ -6,7 +6,7 @@
     { href: "/guardian", label: "Guardian", key: "guardian" },
     { href: "https://prospects.sentinelprime.org", label: "Prospects", key: "prospects" },
     { href: "https://finance.sentinelprime.org", label: "Finance", key: "finance" },
-    { href: "/care", label: "Care", key: "care" },
+    { href: "/marketing", label: "Marketing", key: "marketing" },
     { href: "/contact", label: "Contact", key: "contact" }
   ];
 
